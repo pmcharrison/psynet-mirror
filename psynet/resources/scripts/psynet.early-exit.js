@@ -106,7 +106,6 @@
       const pending = document.getElementById("automatic-early-exit-pending");
       const failure = document.getElementById("automatic-early-exit-failure");
       const retry = document.getElementById("automatic-early-exit-retry");
-      const ready = document.getElementById("automatic-early-exit-ready");
       const finish = document.getElementById("automatic-early-exit-continue");
       const preparationPostUrl = automatic.dataset.preparationPostUrl;
       const preparationPostData = JSON.parse(
@@ -121,13 +120,11 @@
         automatic.dataset.autoRedirectDelayMs || 0,
       );
       let releaseUrl = null;
-      let prepared = false;
       let reloadOnRetry = false;
 
       function showFailure(error) {
         reloadOnRetry = error.code === "stale_early_exit_offer";
         pending.hidden = true;
-        ready.hidden = true;
         if (finish) {
           finish.hidden = true;
           finish.disabled = false;
@@ -139,12 +136,22 @@
         }
       }
 
+      function showActionPending() {
+        failure.hidden = true;
+        retry.hidden = true;
+        if (finish) {
+          finish.hidden = true;
+          finish.disabled = true;
+        }
+        pending.hidden = false;
+      }
+
       async function followParticipantAction() {
         if (autoRedirectTimer) {
           global.clearTimeout(autoRedirectTimer);
           autoRedirectTimer = null;
         }
-        if (finish) finish.disabled = true;
+        showActionPending();
         try {
           if (automatic.dataset.offerId && !releaseUrl) {
             releaseUrl = await executePlan(
@@ -168,48 +175,32 @@
         }
       }
 
-      async function run() {
-        pending.hidden = false;
-        failure.hidden = true;
-        retry.hidden = true;
-        ready.hidden = true;
-        if (finish) finish.hidden = true;
-        releaseUrl = null;
-        prepared = false;
-        reloadOnRetry = false;
-        try {
-          prepared = true;
-          pending.hidden = true;
-          ready.hidden = false;
-          if (finish) finish.hidden = false;
-          if (autoRedirectDelay > 0) {
-            autoRedirectTimer = global.setTimeout(
-              followParticipantAction,
-              autoRedirectDelay,
-            );
-          }
-        } catch (error) {
-          showFailure(error);
-        }
-      }
-
+      // Copy is already visible. Reveal the action once handlers exist;
+      // show the wait state only while posting or redirecting.
+      pending.hidden = true;
+      failure.hidden = true;
+      retry.hidden = true;
       retry.addEventListener(
         "click",
         () => {
           if (reloadOnRetry) {
             global.location.reload();
-          } else if (prepared) {
-            followParticipantAction();
           } else {
-            run();
+            followParticipantAction();
           }
         },
         { signal },
       );
       if (finish) {
         finish.addEventListener("click", followParticipantAction, { signal });
+        finish.hidden = false;
       }
-      run();
+      if (autoRedirectDelay > 0) {
+        autoRedirectTimer = global.setTimeout(
+          followParticipantAction,
+          autoRedirectDelay,
+        );
+      }
       return;
     }
 

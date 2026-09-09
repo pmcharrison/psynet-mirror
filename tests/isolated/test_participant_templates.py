@@ -141,14 +141,25 @@ def test_transient_pages_style_their_spinner():
     assert "width: 2.5rem" in block
 
 
-def test_error_recovery_pending_state_is_visual_and_accessible():
+def _opening_tag_with_id(source, element_id):
+    marker = f'id="{element_id}"'
+    start = source.rindex("<", 0, source.index(marker))
+    return source[start : source.index(">", source.index(marker)) + 1]
+
+
+def test_error_recovery_shows_copy_before_javascript():
     source = (resources.files("psynet") / "templates" / "psynet_error.html").read_text(
         encoding="utf-8"
     )
 
-    assert 'id="automatic-early-exit-pending"' in source
+    ready = _opening_tag_with_id(source, "automatic-early-exit-ready")
+    pending = _opening_tag_with_id(source, "automatic-early-exit-pending")
+    continue_button = _opening_tag_with_id(source, "automatic-early-exit-continue")
+
+    assert "hidden" not in ready
+    assert "hidden" in pending
+    assert "hidden" in continue_button
     assert 'class="spinner-border"' in source
-    assert 'class="visually-hidden"' in source
     assert "Please wait." in source
     assert "saving your responses" not in source.lower()
 
@@ -792,6 +803,9 @@ def test_footer_exit_uses_an_in_page_confirmation():
     assert '"/execute_early_exit_plan/"' in early_exit_js
     assert 'method: "POST"' in early_exit_js
     assert "plan_id: planId" in early_exit_js
+    # Recovery copy is already in the HTML; JS must not hide it on load.
+    assert "ready.hidden" not in early_exit_js
+    assert "prepared = true" not in early_exit_js
     # A stale offer is refused by the server; retrying it cannot help.
     assert 'result.error_code === "stale_early_exit_offer"' in early_exit_js
     assert "global.location.reload()" in early_exit_js

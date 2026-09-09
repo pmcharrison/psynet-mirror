@@ -17,6 +17,10 @@
                     <p id="error-text">{{ error_text }}</p>
                 {% endif %}
                 {% if error_page_presentation %}
+                    {# The explanation is already in this document. Show it
+                       immediately. Hide only the action until JS attaches
+                       handlers. The spinner is for the later Submit or
+                       redirect wait, not for first paint. #}
                     <div id="automatic-early-exit"
                          data-assignment-id="{{ assignment_id }}"
                          data-offer-id="{{ automatic_exit_offer_id or '' }}"
@@ -27,9 +31,17 @@
                          data-destination-url="{{ error_page_presentation.destination_url or '' }}"
                          data-auto-redirect-delay-ms="{{ error_page_presentation.auto_redirect_delay_ms or '' }}"
                          aria-live="polite">
-                        <div id="automatic-early-exit-pending" role="status">
+                        <div id="automatic-early-exit-ready">
+                            {% if error_page_presentation.message %}
+                                <p>{{ error_page_presentation.message }}</p>
+                            {% endif %}
+                            {% if error_page_presentation.action_instruction %}
+                                <p>{{ error_page_presentation.action_instruction }}</p>
+                            {% endif %}
+                        </div>
+                        <div id="automatic-early-exit-pending" hidden role="status">
                             <span class="spinner-border" aria-hidden="true"></span>
-                            <span class="visually-hidden">{{ pgettext("early_exit_error", "Please wait.") }}</span>
+                            <span>{{ pgettext("early_exit_error", "Please wait.") }}</span>
                         </div>
                         <p id="automatic-early-exit-failure" hidden>
                             {{ error_page_presentation.failure_message or '' }}
@@ -40,14 +52,6 @@
                                 hidden>
                             {{ pgettext("early_exit_error", "Try again") }}
                         </button>
-                        <div id="automatic-early-exit-ready" hidden>
-                            {% if error_page_presentation.message %}
-                                <p>{{ error_page_presentation.message }}</p>
-                            {% endif %}
-                            {% if error_page_presentation.action_instruction %}
-                                <p>{{ error_page_presentation.action_instruction }}</p>
-                            {% endif %}
-                        </div>
                         {% if error_page_presentation.button_label %}
                             <button type="button"
                                     id="automatic-early-exit-continue"

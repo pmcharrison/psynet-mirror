@@ -63,13 +63,13 @@ test(
                data-assignment-id="assignment-1"
                data-offer-id=""
                data-preparation-post-url="">
-            <p id="automatic-early-exit-pending">Saving...</p>
-            <p id="automatic-early-exit-failure" hidden>Try again.</p>
-            <button id="automatic-early-exit-retry" hidden>Try again</button>
-            <p id="automatic-early-exit-ready" hidden>
+            <p id="automatic-early-exit-ready">
               Unfortunately an error occurred and we cannot continue.
               However, your responses so far have been saved. You may close this page.
             </p>
+            <p id="automatic-early-exit-pending" hidden>Saving...</p>
+            <p id="automatic-early-exit-failure" hidden>Try again.</p>
+            <button id="automatic-early-exit-retry" hidden>Try again</button>
           </div>
         `
       });
@@ -84,6 +84,9 @@ test(
     });
 
     await page.goto("http://psynet.test/error");
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+    await expect(page.locator("#automatic-early-exit-pending")).toBeHidden();
+
     await page.addScriptTag({ content: EARLY_EXIT_JS });
     await page.evaluate(() => window.psynetEarlyExit.init());
 
@@ -108,10 +111,7 @@ test(
                data-offer-id="offer-1"
                data-action-post-url="/prolific-submission-listener"
                data-action-post-data='{"assignmentId":"assignment-1","participantId":"42"}'>
-            <p id="automatic-early-exit-pending">Saving...</p>
-            <p id="automatic-early-exit-failure" hidden>Try again.</p>
-            <button id="automatic-early-exit-retry" hidden>Try again</button>
-            <div id="automatic-early-exit-ready" hidden>
+            <div id="automatic-early-exit-ready">
               <p>
               Unfortunately an error occurred and we cannot continue.
               However, your responses so far have been saved. We will pay you
@@ -119,6 +119,9 @@ test(
               </p>
               <p>Select Submit to Prolific to complete your submission.</p>
             </div>
+            <p id="automatic-early-exit-pending" hidden>Saving...</p>
+            <p id="automatic-early-exit-failure" hidden>Try again.</p>
+            <button id="automatic-early-exit-retry" hidden>Try again</button>
             <button id="automatic-early-exit-continue" hidden>
               Submit to Prolific
             </button>
@@ -160,6 +163,12 @@ test(
     });
 
     await page.goto("http://psynet.test/error");
+    await expect(page.locator("#automatic-early-exit-ready")).toContainText(
+      "you will receive £0.25 through Prolific."
+    );
+    await expect(page.locator("#automatic-early-exit-continue")).toBeHidden();
+    await expect(page.locator("#automatic-early-exit-pending")).toBeHidden();
+
     await page.addScriptTag({ content: EARLY_EXIT_JS });
     await page.evaluate(() => window.psynetEarlyExit.init());
 
@@ -184,6 +193,66 @@ test(
       assignmentId: "assignment-1",
       participantId: "42"
     });
+  }
+);
+
+test(
+  "error recovery shows a wait state only while submitting",
+  { tag: "@both" },
+  async ({ page }) => {
+    let releaseExecute;
+    const executeStarted = new Promise((resolve) => {
+      releaseExecute = resolve;
+    });
+    await page.route("http://psynet.test/error", async (route) => {
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: `
+          <div id="automatic-early-exit"
+               data-assignment-id="assignment-1"
+               data-offer-id="offer-1">
+            <p id="automatic-early-exit-ready">
+              Unfortunately an error occurred and we cannot continue.
+            </p>
+            <div id="automatic-early-exit-pending" hidden>Please wait.</div>
+            <p id="automatic-early-exit-failure" hidden>Try again.</p>
+            <button id="automatic-early-exit-retry" hidden>Try again</button>
+            <button id="automatic-early-exit-continue" hidden>Continue</button>
+          </div>
+        `
+      });
+    });
+    await page.route(
+      "http://psynet.test/execute_early_exit_plan/assignment-1",
+      async (route) => {
+        await executeStarted;
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({ release_url: "http://psynet.test/release" })
+        });
+      }
+    );
+    await page.route("http://psynet.test/release", async (route) => {
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: "<h1>Done</h1>"
+      });
+    });
+
+    await page.goto("http://psynet.test/error");
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+    await expect(page.locator("#automatic-early-exit-pending")).toBeHidden();
+    await page.addScriptTag({ content: EARLY_EXIT_JS });
+    await page.evaluate(() => window.psynetEarlyExit.init());
+
+    await page.locator("#automatic-early-exit-continue").click({
+      noWaitAfter: true
+    });
+    await expect(page.locator("#automatic-early-exit-pending")).toBeVisible();
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+    await expect(page.locator("#automatic-early-exit-continue")).toBeHidden();
+    releaseExecute();
+    await expect(page).toHaveURL("http://psynet.test/release");
   }
 );
 
@@ -317,14 +386,14 @@ test(
                data-offer-id="offer-1"
                data-destination-url="http://psynet.test/lucid"
                data-auto-redirect-delay-ms="250">
-            <div id="automatic-early-exit-pending">Loading</div>
-            <p id="automatic-early-exit-failure" hidden>Try again.</p>
-            <button id="automatic-early-exit-retry" hidden>Try again</button>
-            <p id="automatic-early-exit-ready" hidden>
+            <p id="automatic-early-exit-ready">
               Unfortunately an error occurred and we cannot continue.
               However, your responses so far have been saved. We will return
               you to your panel in a few seconds.
             </p>
+            <div id="automatic-early-exit-pending" hidden>Loading</div>
+            <p id="automatic-early-exit-failure" hidden>Try again.</p>
+            <button id="automatic-early-exit-retry" hidden>Try again</button>
             <button id="automatic-early-exit-continue" hidden>
               Return to your panel
             </button>
@@ -351,6 +420,9 @@ test(
     });
 
     await page.goto("http://psynet.test/error");
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+    await expect(page.locator("#automatic-early-exit-continue")).toBeHidden();
+
     await page.addScriptTag({ content: EARLY_EXIT_JS });
     await page.evaluate(() => window.psynetEarlyExit.init());
 
@@ -376,13 +448,13 @@ test(
                data-offer-id=""
                data-destination-url="http://psynet.test/lucid"
                data-auto-redirect-delay-ms="100">
-            <div id="automatic-early-exit-pending">Loading</div>
-            <p id="automatic-early-exit-failure" hidden></p>
-            <button id="automatic-early-exit-retry" hidden>Try again</button>
-            <p id="automatic-early-exit-ready" hidden>
+            <p id="automatic-early-exit-ready">
               Unfortunately an error occurred and we cannot continue.
               We will return you to your panel in a few seconds.
             </p>
+            <div id="automatic-early-exit-pending" hidden>Loading</div>
+            <p id="automatic-early-exit-failure" hidden></p>
+            <button id="automatic-early-exit-retry" hidden>Try again</button>
             <button id="automatic-early-exit-continue" hidden>
               Return to your panel
             </button>
@@ -402,6 +474,8 @@ test(
     });
 
     await page.goto("http://psynet.test/error");
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+
     await page.addScriptTag({ content: EARLY_EXIT_JS });
     await page.evaluate(() => window.psynetEarlyExit.init());
 
@@ -473,10 +547,10 @@ test(
           <div id="automatic-early-exit"
                data-assignment-id="assignment-1"
                data-offer-id="stale">
-            <div id="automatic-early-exit-pending">Loading</div>
+            <p id="automatic-early-exit-ready">Done.</p>
+            <div id="automatic-early-exit-pending" hidden>Loading</div>
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
-            <p id="automatic-early-exit-ready" hidden>Done.</p>
             <button id="automatic-early-exit-continue" hidden>Continue</button>
           </div>
         `
@@ -499,6 +573,7 @@ test(
 
     await page.locator("#automatic-early-exit-continue").click();
     await expect(page.locator("#automatic-early-exit-failure")).toBeVisible();
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
     expect(pageLoads).toBe(1);
 
     await page.locator("#automatic-early-exit-retry").click();
