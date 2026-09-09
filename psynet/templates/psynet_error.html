@@ -1,5 +1,7 @@
 {% extends "psynet_layout.html" %}
 
+{% block title %}{{ pgettext("error", "An error occurred") }}{% endblock %}
+
 {% block body %}
     <div class="container my-5 psynet-surface">
         <div>
@@ -36,9 +38,14 @@
                                 hidden>
                             {{ pgettext("early_exit_error", "Try again") }}
                         </button>
-                        <p id="automatic-early-exit-ready" hidden>
-                            {{ error_page_presentation.message }}
-                        </p>
+                        <div id="automatic-early-exit-ready" hidden>
+                            {% if error_page_presentation.button_label %}
+                                <h2>{{ error_page_presentation.button_label }}</h2>
+                            {% endif %}
+                            {% if error_page_presentation.message %}
+                                <p>{{ error_page_presentation.message }}</p>
+                            {% endif %}
+                        </div>
                         {% if error_page_presentation.button_label %}
                             <button type="button"
                                     id="automatic-early-exit-continue"

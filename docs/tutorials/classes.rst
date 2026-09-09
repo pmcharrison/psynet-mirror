@@ -184,7 +184,7 @@ looks like:
 
         <p class="vspace"></p>
         <p>
-            Click Finish when you are ready.
+            Click Finish to finalize the session.
         </p>
         <p class="vspace"></p>
 

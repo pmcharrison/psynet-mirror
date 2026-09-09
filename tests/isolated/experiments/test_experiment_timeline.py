@@ -239,7 +239,7 @@ class TestExp(object):
                 (
                     "That's the end! You will receive a reward of $0.36 "
                     "for the time you spent. "
-                    "Thank you for taking part. Click Finish when you are ready. Finish"
+                    "Thank you for taking part. Click Finish to finalize the session. Finish"
                 ),
             )
             # Leaving here would only cost the participant the payment they have

@@ -436,8 +436,7 @@ def test_release_participant_branching(failed, payment_configured, expected):
 @pytest.mark.parametrize("status", ["submitted", "approved", "screened_out"])
 def test_prolific_screen_out_release_confirms_when_submission_already_recorded(status):
     """After Submit, SCREEN_OUT must not send them through Submit to Prolific again."""
-    from psynet.modular_page import NextButton
-    from psynet.page import InfoPage
+    from psynet.end import RecordedSubmissionPage
 
     recruiter = make_prolific_recruiter(make_config())
     participant = MagicMock(
@@ -453,10 +452,11 @@ def test_prolific_screen_out_release_confirms_when_submission_already_recorded(s
         page = recruiter.release_participant(MagicMock(), participant)
 
     submit.assert_not_called()
-    assert isinstance(page, InfoPage)
+    assert isinstance(page, RecordedSubmissionPage)
     assert page.show_early_exit_button is False
-    assert not any(isinstance(button, NextButton) for button in page.buttons)
-    assert "Your submission has been recorded on Prolific" in page.plain_text
+    assert page.heading == "Your submission has been sent to Prolific."
+    assert page.body == "You may close this page."
+    assert "Your submission has been sent to Prolific" in page.plain_text
     assert "You may close this page." in page.plain_text
     assert "You left early" not in page.plain_text
     assert "An error occurred" not in page.plain_text
@@ -1066,9 +1066,12 @@ def test_exit_response_stays_on_psynet_confirmation_page():
     recruiter = make_prolific_recruiter(make_config())
     participant = MagicMock(assignment_id="assignment-1", id=7, status="working")
     experiment = MagicMock()
-    with patch(
-        "psynet.recruiters.render_template_with_translations", return_value="html"
-    ) as render:
+    with (
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+        patch(
+            "psynet.recruiters.render_template_with_translations", return_value="html"
+        ) as render,
+    ):
         assert recruiter.exit_response(experiment, participant) == "html"
     experiment.recruiter_exit_info.assert_called_once_with(participant)
     render.assert_called_once_with(
@@ -1076,7 +1079,12 @@ def test_exit_response_stays_on_psynet_confirmation_page():
         assignment_id="assignment-1",
         participant_id=7,
         submission_recorded=False,
-        confirmation_message=None,
+        confirmation_heading="Your submission has been sent to Prolific.",
+        confirmation_body="You may close this page.",
+        failure_message=(
+            "We could not send your submission to Prolific. Please try again. "
+            "If this keeps happening, message the researcher through Prolific."
+        ),
     )
 
 
@@ -1091,10 +1099,16 @@ def test_prolific_exit_template_does_not_redirect_to_completion_code():
         / "exit_recruiter_prolific_submitted.html"
     ).read_text()
     assert "You do not need to enter a completion code" in text
+    assert "Click below to send your submission to Prolific" in text
     assert "window.location.replace" in text
     assert "prolific.co" not in text
     assert "prolific-exit-done" in text
+    assert "prolific-exit-pending" in text
+    assert "prolific-exit-failure" in text
+    assert "prolific-exit-retry" in text
     assert "/prolific-submission-listener" in text
+    assert "psynetEarlyExit" not in text
+    assert "execute_early_exit_plan" not in text
 
 
 def make_participant_with_recruiter(config, failed=True, status="working"):
@@ -1134,11 +1148,10 @@ def test_prolific_untracked_error_page_uses_structured_platform_support():
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
         presentation = recruiter.error_page_presentation()
 
-    assert "We could not continue from this page." in presentation.message
-    assert (
+    assert presentation.message == (
         "If you had already started, message the researcher through Prolific."
-        in presentation.message
     )
+    assert "could not continue from this page" not in presentation.message
     assert presentation.action_post_url is None
     assert presentation.destination_url is None
 
@@ -1213,8 +1226,11 @@ def test_exit_response_renders_recorded_submission_confirmation():
         assignment_id="assignment-1",
         participant_id=7,
         submission_recorded=True,
-        confirmation_message=(
-            "Your submission has been recorded on Prolific. You may close this page."
+        confirmation_heading="Your submission has been sent to Prolific.",
+        confirmation_body="You may close this page.",
+        failure_message=(
+            "We could not send your submission to Prolific. Please try again. "
+            "If this keeps happening, message the researcher through Prolific."
         ),
     )
 
@@ -1252,7 +1268,7 @@ def test_default_error_recovery_page_is_terminal():
     assert presentation.button_label is None
     assert presentation.preparation_post_url is None
     assert presentation.message == (
-        "Your responses have been saved. You may close this page."
+        "Your responses so far have been saved. You may close this page."
     )
     assert presentation.failure_message is None
     assert presentation.researcher_contact_message == (
@@ -1281,7 +1297,7 @@ def test_default_tracked_error_page_without_a_plan_stays_terminal():
 
     assert "could not continue from this page" not in presentation.message
     assert presentation.message == (
-        "Your responses have been saved. You may close this page."
+        "Your responses so far have been saved. You may close this page."
     )
     assert presentation.preparation_post_url is None
     assert presentation.researcher_contact_message == (
@@ -1290,7 +1306,13 @@ def test_default_tracked_error_page_without_a_plan_stays_terminal():
     )
 
 
-def test_generic_recruiters_skip_the_error_recovery_page():
+def test_generic_untracked_error_page_omits_continue_copy():
+    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
+        presentation = PsyNetRecruiterMixin().error_page_presentation()
+
+    assert presentation.message == ""
+    assert presentation.button_label is None
+    assert "could not continue from this page" not in presentation.message
     plan = _early_exit_test_plan(context=ExitContext.ERROR_RECOVERY)
     assert PsyNetRecruiterMixin().shows_error_recovery_page(plan) is False
 
@@ -1359,13 +1381,15 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
     }
     assert presentation.destination_url is None
     assert presentation.failure_message == (
-        "We could not complete your submission on Prolific. Please try again. "
+        "We could not send your submission to Prolific. Please try again. "
         "If this keeps happening, message the researcher through Prolific."
     )
     assert presentation.researcher_contact_message is None
     assert "Prolific will pay you £0.25" in presentation.message
     assert "£0.35 as a bonus" in presentation.message
     assert "total payment to £0.60" in presentation.message
+    assert "Your responses so far have been saved" in presentation.message
+    assert "We will pay you for your progress so far" in presentation.message
     assert (
         "Select Submit to Prolific to complete your submission" in presentation.message
     )
@@ -1399,6 +1423,7 @@ def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
     assert presentation.researcher_contact_message is None
     assert "return your submission on Prolific" in presentation.message
     assert "£0.60" in presentation.message
+    assert "Your responses so far have been saved" in presentation.message
 
 
 def test_lucid_error_recovery_explains_the_panel_redirect():
@@ -1430,7 +1455,7 @@ def test_lucid_error_recovery_explains_the_panel_redirect():
     )
     assert presentation.researcher_contact_message is None
     assert "panel provider will determine any payment" not in presentation.message
-    assert "Your responses have been saved" in presentation.message
+    assert "Your responses so far have been saved" in presentation.message
 
 
 def test_lucid_untracked_error_page_uses_the_same_structured_delay():
@@ -3756,6 +3781,7 @@ def test_psynet_exit_page_renders_for_recruiters_without_platform_exit_pages(
                 {
                     "base/layout.html": (
                         "<!doctype html><html><head>"
+                        "<title>{% block title %}{% endblock %}</title>"
                         "{% block stylesheets %}{% endblock %}"
                         "{% block scripts %}{% endblock %}"
                         "</head><body>{% block body %}{% endblock %}</body></html>"
@@ -3788,7 +3814,9 @@ def test_psynet_exit_page_renders_for_recruiters_without_platform_exit_pages(
             html = recruiter.exit_response(experiment, participant)
 
     assert html.lstrip().lower().startswith("<!doctype html>")
+    assert "<title>Thank you for taking part.</title>" in html
     assert "Thank you for taking part." in html
+    assert "You chose to leave." not in html
     assert "Your responses have been saved. You may close this page." in html
     assert "Reference" in html
     assert "assignment-123" in html
@@ -3820,6 +3848,7 @@ def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_clas
                 {
                     "base/layout.html": (
                         "<!doctype html><html><head>"
+                        "<title>{% block title %}{% endblock %}</title>"
                         "{% block stylesheets %}{% endblock %}"
                         "{% block scripts %}{% endblock %}"
                         "</head><body>{% block body %}{% endblock %}</body></html>"
@@ -3851,7 +3880,9 @@ def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_clas
         ):
             html = recruiter.exit_response(experiment, participant)
 
-    assert "Thank you for taking part." in html
+    assert "<title>You chose to leave.</title>" in html
+    assert "You chose to leave." in html
+    assert "Thank you for taking part." not in html
     assert "Your responses have been saved. You may close this page." in html
     assert "You left early" not in html
     assert "You have finished" not in html
@@ -3876,6 +3907,7 @@ def test_prolific_exit_page_renders_with_psynet_layout():
                 {
                     "base/layout.html": (
                         "<!doctype html><html><head>"
+                        "<title>{% block title %}{% endblock %}</title>"
                         "{% block head %}{% endblock %}"
                         "{% block stylesheets %}{% endblock %}"
                         "</head><body>{% block body %}{% endblock %}"
@@ -3903,18 +3935,34 @@ def test_prolific_exit_page_renders_with_psynet_layout():
             assignment_id="assignment-123",
             participant_id=7,
             submission_recorded=False,
-            confirmation_message=None,
+            confirmation_heading="Your submission has been sent to Prolific.",
+            confirmation_body="You may close this page.",
+            failure_message=(
+                "We could not send your submission to Prolific. Please try again. "
+                "If this keeps happening, message the researcher through Prolific."
+            ),
         )
 
     assert '<meta name="viewport"' in html
     assert "css/participant.css" in html
     assert "scripts/psynet.layout.js" in html
+    assert "<title>Submit to Prolific</title>" in html
     assert "Submit to Prolific" in html
+    assert "Click below to send your submission to Prolific" in html
     assert "Prolific Study Submission" not in html
     assert "/prolific-submission-listener" in html
     assert "window.location.replace" in html
     assert "prolific-exit-done" not in html
+    assert "prolific-exit-pending" in html
+    assert "prolific-exit-failure" in html
+    assert "prolific-exit-retry" in html
     assert "js-exit-button" in html
+    assert "btn-primary" in html
+    assert "btn-success" not in html
+    assert "btn-large" not in html
+    assert 'class="well"' not in html
+    assert "psynet-surface" in html
+    assert "psynetEarlyExit" not in html
 
 
 def test_prolific_exit_page_reloads_confirmation_after_submit():
@@ -3936,6 +3984,7 @@ def test_prolific_exit_page_reloads_confirmation_after_submit():
                 {
                     "base/layout.html": (
                         "<!doctype html><html><head>"
+                        "<title>{% block title %}{% endblock %}</title>"
                         "{% block head %}{% endblock %}"
                         "{% block stylesheets %}{% endblock %}"
                         "</head><body>{% block body %}{% endblock %}"
@@ -3963,16 +4012,23 @@ def test_prolific_exit_page_reloads_confirmation_after_submit():
             assignment_id="assignment-123",
             participant_id=7,
             submission_recorded=True,
-            confirmation_message=(
-                "Your submission has been recorded on Prolific. You may close this page."
+            confirmation_heading="Your submission has been sent to Prolific.",
+            confirmation_body="You may close this page.",
+            failure_message=(
+                "We could not send your submission to Prolific. Please try again. "
+                "If this keeps happening, message the researcher through Prolific."
             ),
         )
 
     assert "prolific-exit-done" in html
-    assert "Your submission has been recorded on Prolific" in html
+    assert "<title>Your submission has been sent to Prolific.</title>" in html
+    assert "Your submission has been sent to Prolific." in html
+    assert "You may close this page." in html
     assert "js-exit-button" not in html
     assert "Submit to Prolific" not in html
     assert "/prolific-submission-listener" not in html
+    assert 'class="well"' not in html
+    assert "psynet-surface" in html
 
 
 def _review_participant(apparent=0.0, planned=1.50):

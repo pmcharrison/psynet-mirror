@@ -124,7 +124,7 @@ class TestExp:
                 That's the end! You will receive a reward of $0.13
                 for the time you spent. You have also been awarded a performance reward of $9.09.
                 Thank you for taking part.
-                Click Finish when you are ready. Finish
+                Click Finish to finalize the session. Finish
                 """,
             )
 

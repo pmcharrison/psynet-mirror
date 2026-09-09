@@ -15,9 +15,11 @@
 #}
 {% extends "psynet_layout.html" %}
 
+{% block title %}{% if left_early %}{{ pgettext("exit", "You chose to leave.") }}{% else %}{{ gettext("Thank you for taking part.") }}{% endif %}{% endblock %}
+
 {% block body %}
     <div class="container my-5 psynet-surface">
-        <h1 id="header">{{ gettext("Thank you for taking part.") }}</h1>
+        <h1 id="header">{% if left_early %}{{ pgettext("exit", "You chose to leave.") }}{% else %}{{ gettext("Thank you for taking part.") }}{% endif %}</h1>
         <hr>
         <p id="exit-text">
             {{ pgettext("exit", "Your responses have been saved. You may close this page.") }}

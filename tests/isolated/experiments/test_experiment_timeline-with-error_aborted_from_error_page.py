@@ -63,7 +63,7 @@ class TestExp:
             assert_text(
                 driver,
                 "automatic-early-exit-ready",
-                "Your responses have been saved. You may close this page.",
+                "Your responses so far have been saved. You may close this page.",
             )
             assert not driver.find_elements(By.ID, "automatic-early-exit-continue")
             assert not driver.find_elements(By.ID, "early-exit-open")

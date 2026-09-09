@@ -237,7 +237,7 @@ class Exp(psynet.experiment.Experiment):
         text = as_plain_text(page.prompt.text)
         assert (
             text
-            == "That's the end! You will receive a reward of **$0.36** for the time you "
+            == "# That's the end! You will receive a reward of **$0.36** for the time you "
             "spent. Thank "
-            "you for taking part. Click Finish when you are ready."
+            "you for taking part. Click Finish to finalize the session."
         )

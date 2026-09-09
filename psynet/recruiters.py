@@ -354,16 +354,13 @@ class PsyNetRecruiterMixin:
                 ).format(EMAIL=contact_address)
         if participant is None:
             return exit_domain.ErrorRecoveryPresentation(
-                message=_p(
-                    "early_exit_error",
-                    "We could not continue from this page.",
-                ),
+                message="",
                 researcher_contact_message=contact_message,
             )
         return exit_domain.ErrorRecoveryPresentation(
             message=_p(
                 "early_exit_error",
-                "Your responses have been saved. You may close this page.",
+                "Your responses so far have been saved. You may close this page.",
             ),
             researcher_contact_message=contact_message,
         )
@@ -722,6 +719,7 @@ class PsyNetExitPageMixin:
         return render_template_with_translations(
             "psynet_exit_recruiter.html",
             participant_reference=participant.assignment_id,
+            left_early=bool(getattr(participant, "early_exited", False)),
         )
 
 
@@ -955,18 +953,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         _p = get_translator(context=True)
         if participant is None:
             return exit_domain.ErrorRecoveryPresentation(
-                message=" ".join(
-                    [
-                        _p(
-                            "prolific_error",
-                            "We could not continue from this page.",
-                        ),
-                        _p(
-                            "prolific_error",
-                            "If you had already started, message the researcher "
-                            "through Prolific.",
-                        ),
-                    ]
+                message=_p(
+                    "prolific_error",
+                    "If you had already started, message the researcher "
+                    "through Prolific.",
                 )
             )
         if plan is None:
@@ -1018,17 +1008,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
             message = _p(
                 "early_exit_error_prolific",
-                "Your responses have been saved. Select Submit to Prolific to "
-                "complete your submission.",
+                "Your responses so far have been saved. We will pay you for "
+                "your progress so far. Select Submit to Prolific to complete "
+                "your submission.",
             )
             return exit_domain.ErrorRecoveryPresentation(
                 message=f"{message} {payment}",
-                failure_message=_p(
-                    "early_exit_error_prolific",
-                    "We could not complete your submission on Prolific. Please "
-                    "try again. If this keeps happening, message the researcher "
-                    "through Prolific.",
-                ),
+                failure_message=self._submission_failure_copy(),
                 button_label=_p("early_exit_error_prolific", "Submit to Prolific"),
                 action_post_url="/prolific-submission-listener",
                 action_post_data={
@@ -1057,7 +1043,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 "Select Continue to payment instructions to complete these steps.",
             )
             return exit_domain.ErrorRecoveryPresentation(
-                message=f"{_p('early_exit_error_prolific', 'Your responses have been saved.')} {payment} {next_step}",
+                message=f"{_p('early_exit_error_prolific', 'Your responses so far have been saved.')} {payment} {next_step}",
                 failure_message=_p(
                     "early_exit_error_prolific",
                     "We could not open the payment instructions. Please try again. "
@@ -1081,7 +1067,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return InfoPage(
             _p(
                 "early_exit_unpaid_prolific",
-                "Your responses have been saved. Please return your submission "
+                "Your responses so far have been saved. Please return your submission "
                 "on Prolific. You will not receive payment. You can close this "
                 "window.",
             ),
@@ -1339,14 +1325,15 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         if hasattr(experiment, "recruiter_exit_info"):
             experiment.recruiter_exit_info(participant)
         recorded = self._submission_already_recorded(participant)
+        heading, body = self._recorded_submission_copy()
         return render_template_with_translations(
             "exit_recruiter_prolific_submitted.html",
             assignment_id=participant.assignment_id,
             participant_id=participant.id,
             submission_recorded=recorded,
-            confirmation_message=(
-                self._recorded_submission_copy() if recorded else None
-            ),
+            confirmation_heading=heading,
+            confirmation_body=body,
+            failure_message=self._submission_failure_copy(),
         )
 
     def _submission_already_recorded(self, participant) -> bool:
@@ -1357,23 +1344,36 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             "screened_out",
         }
 
-    def _recorded_submission_copy(self) -> str:
-        """Return the done-state copy after Prolific Submit."""
+    def _recorded_submission_copy(self) -> tuple[str, str]:
+        """Return the confirmation heading and body after Prolific Submit."""
+        _p = get_translator(context=True)
+        return (
+            _p(
+                "early_exit_error_prolific",
+                "Your submission has been sent to Prolific.",
+            ),
+            _p(
+                "early_exit_error_prolific",
+                "You may close this page.",
+            ),
+        )
+
+    def _submission_failure_copy(self) -> str:
+        """Return copy when Prolific Submit cannot be sent."""
         _p = get_translator(context=True)
         return _p(
             "early_exit_error_prolific",
-            "Your submission has been recorded on Prolific. You may close this page.",
+            "We could not send your submission to Prolific. Please try again. "
+            "If this keeps happening, message the researcher through Prolific.",
         )
 
     def confirm_recorded_submission(self, participant) -> TimelineLogic:
         """Show that Prolific submission is finished; do not ask again."""
         del participant
-        return InfoPage(
-            self._recorded_submission_copy(),
-            time_estimate=0.0,
-            show_next_button=False,
-            show_early_exit_button=False,
-        )
+        heading, body = self._recorded_submission_copy()
+        from .end import RecordedSubmissionPage
+
+        return RecordedSubmissionPage(heading, body)
 
     def release_participant(
         self, experiment, participant: Participant
@@ -3204,8 +3204,8 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         else:
             message = _p(
                 "early_exit_error_lucid",
-                "Your responses have been saved. We will return you to your "
-                "panel in a few seconds.",
+                "Your responses so far have been saved. We will return you to "
+                "your panel in a few seconds.",
             )
         return exit_domain.ErrorRecoveryPresentation(
             message=message,

@@ -7,6 +7,48 @@ const EARLY_EXIT_JS = fs.readFileSync(
   "utf8"
 );
 
+const PROLIFIC_EXIT_PROCESS_SCRIPT = `
+  (function () {
+    const button = document.getElementById("js-exit-button");
+    const pending = document.getElementById("prolific-exit-pending");
+    const failure = document.getElementById("prolific-exit-failure");
+    const retry = document.getElementById("prolific-exit-retry");
+    function showPending() {
+      button.hidden = true;
+      button.disabled = true;
+      retry.hidden = true;
+      retry.disabled = true;
+      failure.hidden = true;
+      pending.hidden = false;
+    }
+    function showFailure() {
+      pending.hidden = true;
+      button.hidden = true;
+      failure.hidden = false;
+      retry.hidden = false;
+      retry.disabled = false;
+    }
+    function submit() {
+      showPending();
+      const data = new URLSearchParams();
+      data.append("assignmentId", "assignment-123");
+      data.append("participantId", "7");
+      fetch("/prolific-submission-listener", {method: "POST", body: data})
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("submission listener failed");
+          }
+          window.location.replace(
+            window.location.pathname + window.location.search
+          );
+        })
+        .catch(() => { showFailure(); });
+    }
+    button.addEventListener("click", submit);
+    retry.addEventListener("click", submit);
+  })();
+`;
+
 test(
   "untracked error recovery does not execute an exit plan",
   { tag: "@both" },
@@ -25,7 +67,7 @@ test(
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
-              Your responses have been saved. You may close this page.
+              Your responses so far have been saved. You may close this page.
             </p>
           </div>
         `
@@ -104,7 +146,10 @@ test(
     await page.route("http://psynet.test/release", async (route) => {
       await route.fulfill({
         contentType: "text/html; charset=utf-8",
-        body: "<p>Your submission has been recorded on Prolific. You may close this page.</p>"
+        body: `
+          <h1>Your submission has been sent to Prolific.</h1>
+          <p>You may close this page.</p>
+        `
       });
     });
 
@@ -122,9 +167,10 @@ test(
 
     await page.locator("#automatic-early-exit-continue").click();
     await expect(page).toHaveURL("http://psynet.test/release");
-    await expect(page.locator("p")).toHaveText(
-      "Your submission has been recorded on Prolific. You may close this page."
+    await expect(page.locator("h1")).toHaveText(
+      "Your submission has been sent to Prolific."
     );
+    await expect(page.locator("p")).toHaveText("You may close this page.");
     expect(prolificSubmission).toEqual({
       assignmentId: "assignment-1",
       participantId: "42"
@@ -142,39 +188,23 @@ test(
       exitLoads += 1;
       const body = listenerPosted
         ? `
-          <div class="well">
-            <p id="prolific-exit-done">
-              Your submission has been recorded on Prolific. You may close this page.
-            </p>
-          </div>
+          <title>Your submission has been sent to Prolific.</title>
+          <h1>Your submission has been sent to Prolific.</h1>
+          <p id="prolific-exit-done">You may close this page.</p>
         `
         : `
-          <div class="well">
-            <h1>Submit to Prolific</h1>
-            <p id="prolific-exit-instructions">
-              Click the button below. You do not need to enter a completion code.
-            </p>
-            <button id="js-exit-button">Submit to Prolific</button>
-          </div>
-          <script>
-            document.getElementById("js-exit-button").onclick = function () {
-              const button = this;
-              button.disabled = true;
-              const data = new URLSearchParams();
-              data.append("assignmentId", "assignment-123");
-              data.append("participantId", "7");
-              fetch("/prolific-submission-listener", {method: "POST", body: data})
-                .then((response) => {
-                  if (!response.ok) {
-                    throw new Error("submission listener failed");
-                  }
-                  window.location.replace(
-                    window.location.pathname + window.location.search
-                  );
-                })
-                .catch(() => { button.disabled = false; });
-            };
-          </script>
+          <title>Submit to Prolific</title>
+          <h1>Submit to Prolific</h1>
+          <p id="prolific-exit-instructions">
+            Click below to send your submission to Prolific. You do not need to enter a completion code.
+          </p>
+          <div id="prolific-exit-pending" hidden>Please wait.</div>
+          <p id="prolific-exit-failure" hidden>
+            We could not send your submission to Prolific. Please try again. If this keeps happening, message the researcher through Prolific.
+          </p>
+          <button id="prolific-exit-retry" hidden>Try again</button>
+          <button id="js-exit-button">Submit to Prolific</button>
+          <script>${PROLIFIC_EXIT_PROCESS_SCRIPT}</script>
         `;
       await route.fulfill({
         contentType: "text/html; charset=utf-8",
@@ -193,14 +223,74 @@ test(
     );
 
     await page.goto("http://psynet.test/recruiter-exit");
+    await expect(page).toHaveTitle("Submit to Prolific");
     await expect(page.locator("h1")).toHaveText("Submit to Prolific");
     await page.locator("#js-exit-button").click();
     await expect(page.locator("#prolific-exit-done")).toHaveText(
-      "Your submission has been recorded on Prolific. You may close this page."
+      "You may close this page."
     );
-    await expect(page.locator("h1")).toHaveCount(0);
+    await expect(page).toHaveTitle("Your submission has been sent to Prolific.");
+    await expect(page.locator("h1")).toHaveText(
+      "Your submission has been sent to Prolific."
+    );
     await expect(page.locator("#js-exit-button")).toHaveCount(0);
     expect(exitLoads).toBe(2);
+  }
+);
+
+test(
+  "Prolific recruiter-exit Submit can retry after a failed listener post",
+  { tag: "@both" },
+  async ({ page }) => {
+    let listenerPosts = 0;
+    let listenerPosted = false;
+    await page.route("http://psynet.test/recruiter-exit**", async (route) => {
+      const body = listenerPosted
+        ? `
+          <h1>Your submission has been sent to Prolific.</h1>
+          <p id="prolific-exit-done">You may close this page.</p>
+        `
+        : `
+          <h1>Submit to Prolific</h1>
+          <div id="prolific-exit-pending" hidden>Please wait.</div>
+          <p id="prolific-exit-failure" hidden>
+            We could not send your submission to Prolific. Please try again.
+          </p>
+          <button id="prolific-exit-retry" hidden>Try again</button>
+          <button id="js-exit-button">Submit to Prolific</button>
+          <script>${PROLIFIC_EXIT_PROCESS_SCRIPT}</script>
+        `;
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body
+      });
+    });
+    await page.route(
+      "http://psynet.test/prolific-submission-listener",
+      async (route) => {
+        listenerPosts += 1;
+        if (listenerPosts === 1) {
+          await route.fulfill({ status: 500, body: "no" });
+          return;
+        }
+        listenerPosted = true;
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({ status: "success" })
+        });
+      }
+    );
+
+    await page.goto("http://psynet.test/recruiter-exit");
+    await page.locator("#js-exit-button").click();
+    await expect(page.locator("#prolific-exit-failure")).toBeVisible();
+    await expect(page.locator("#prolific-exit-retry")).toBeVisible();
+    await expect(page.locator("#js-exit-button")).toBeHidden();
+    await page.locator("#prolific-exit-retry").click();
+    await expect(page.locator("#prolific-exit-done")).toHaveText(
+      "You may close this page."
+    );
+    expect(listenerPosts).toBe(2);
   }
 );
 
@@ -223,7 +313,7 @@ test(
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
-              Your responses have been saved. We will return you to your panel
+              Your responses so far have been saved. We will return you to your panel
               in a few seconds.
             </p>
             <button id="automatic-early-exit-continue" hidden>

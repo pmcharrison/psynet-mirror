@@ -186,6 +186,19 @@ def test_generic_exit_calls_its_reference_a_reference_code():
     ).read_text(encoding="utf-8")
 
     assert 'pgettext("exit", "Reference code")' in source
+    assert "You chose to leave." in source
+    assert "{% block title %}" in source
+
+
+def test_lucid_exit_page_uses_the_themed_surface():
+    source = (
+        resources.files("psynet") / "templates" / "exit_recruiter_lucid.html"
+    ).read_text(encoding="utf-8")
+
+    assert "{% block title %}" in source
+    assert "Returning you to your panel" in source
+    assert "psynet-surface" in source
+    assert 'class="well"' not in source
 
 
 def test_media_loading_survives_a_missing_progress_bar():
@@ -863,6 +876,10 @@ def test_error_page_automatically_executes_its_server_owned_exit_plan():
     assert 'id="automatic-early-exit-retry"' in error
     assert 'id="automatic-early-exit-continue"' in error
     assert "An error occurred" in error
+    assert "{% block title %}" in error
+    assert "error_page_presentation.button_label" in error
+    assert 'id="automatic-early-exit-ready"' in error
+    assert '<div id="automatic-early-exit-ready"' in error
     assert "Finish session" not in error
     assert 'id="early-exit-modal"' not in error
     # Generic recruitment keeps one useful reference for researcher support,

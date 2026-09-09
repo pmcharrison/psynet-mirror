@@ -10,7 +10,7 @@ import pytest
 from dallinger import db
 from flask import Flask
 
-from psynet.end import ErrorRecoveryPage, SuccessfulEndLogic
+from psynet.end import ErrorRecoveryPage, RecordedSubmissionPage, SuccessfulEndLogic
 from psynet.exit import ExitContext, ExitPath, ExitPlan, ExitPlanStatus, PaymentDecision
 from psynet.experiment import Experiment, get_experiment
 from psynet.page import ExecuteFrontEndJS, InfoPage
@@ -387,8 +387,8 @@ def test_prolific_screen_out_timeline_confirms_after_listener_records_submission
 
         participant.status = "submitted"
         current = experiment.timeline.get_current_elt(experiment, participant)
-        assert type(current) is InfoPage
-        assert "Your submission has been recorded on Prolific" in current.plain_text
+        assert type(current) is RecordedSubmissionPage
+        assert "Your submission has been sent to Prolific" in current.plain_text
         assert "You may close this page." in current.plain_text
         assert "An error occurred" not in current.plain_text
 
@@ -397,12 +397,14 @@ def test_prolific_screen_out_timeline_confirms_after_listener_records_submission
                 f"/timeline?unique_id={participant.unique_id}",
                 environ_base={"REMOTE_ADDR": "127.0.0.1"},
             ),
-            patch.object(InfoPage, "render", return_value="recorded") as render,
+            patch.object(
+                RecordedSubmissionPage, "render", return_value="sent"
+            ) as render,
             patch.object(Experiment, "_render_error_page") as error_page,
         ):
             response = Experiment._route_timeline(experiment, participant, mode=None)
 
-    assert response == "recorded"
+    assert response == "sent"
     render.assert_called_once()
     error_page.assert_not_called()
 

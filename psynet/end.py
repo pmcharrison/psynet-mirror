@@ -158,18 +158,15 @@ class SuccessfulEndLogic(EndLogic):
         html = tags.span()
 
         with html:
-            tags.span(_p("final_page_successful", "That's the end!"))
+            tags.h1(_p("final_page_successful", "That's the end!"))
 
             if self.should_show_reward:
-                tags.span(self.summarize_reward(experiment, participant))
+                tags.p(self.summarize_reward(experiment, participant))
 
-            tags.span(_("Thank you for taking part."))
-
-            # Todo - consider improving our CSS to add automatic spacing after paragraphs
-            tags.p(cls="vspace")
+            tags.p(_("Thank you for taking part."))
 
             if not experiment.with_lucid_recruitment():
-                tags.p(_("Click Finish when you are ready."))
+                tags.p(_("Click Finish to finalize the session."))
 
         return self.debrief_page(html, experiment, participant)
 
@@ -203,6 +200,45 @@ class ErrorRecoveryPage(Page):
             external_submit_url=None,
             locale=get_locale(),
         )
+
+
+class RecordedSubmissionPage(Page):
+    """Timeline wrapper for the shared Prolific confirmation document.
+
+    ``/timeline`` and ``/recruiter-exit`` both render
+    ``exit_recruiter_prolific_submitted.html``, so this page must not use
+    timeline chrome, a progress bar, or a reward footer.
+    """
+
+    requires_full_page_reload = True
+
+    def __init__(self, heading: str, body: str):
+        self.heading = heading
+        self.body = body
+        super().__init__(
+            time_estimate=0.0,
+            delegated_render=True,
+            requires_full_page_reload=True,
+            save_answer=False,
+            show_early_exit_button=False,
+            label="prolific_submission_sent",
+        )
+
+    @property
+    def plain_text(self) -> str:
+        """Return heading and body for tests."""
+        return f"{self.heading} {self.body}"
+
+    def render(self, experiment, participant, partial_mode=False):
+        """Render the shared Prolific confirmation document."""
+        assert not partial_mode
+        from flask import make_response
+
+        response = make_response(
+            experiment.recruiter.exit_response(experiment, participant)
+        )
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
 
 class ImmediateExitLogic(ExitLogic):
@@ -257,7 +293,7 @@ class UnsuccessfulEndLogic(EndLogic):
         html = tags.span()
 
         with html:
-            tags.span(
+            tags.h1(
                 _p(
                     "final_page_unsuccessful",
                     "Unfortunately we have to stop early.",
@@ -265,25 +301,22 @@ class UnsuccessfulEndLogic(EndLogic):
             )
 
             if self.should_show_reward:
-                tags.span(
+                tags.p(
                     _p(
                         "final_page_unsuccessful",
                         "However, you will still be paid for the time you spent already.",
                     )
                 )
-                tags.span(self.summarize_reward(experiment, participant))
+                tags.p(self.summarize_reward(experiment, participant))
 
             # Todo - remove this if we end up removing the redirect logic
             if experiment.with_lucid_recruitment():
-                tags.span(_("We will send you back to your panel in a moment."))
+                tags.p(_("We will send you back to your panel in a moment."))
 
-            tags.span(_("Thank you for taking part."))
-
-            # Todo - consider improving our CSS to add automatic spacing after paragraphs
-            tags.p(cls="vspace")
+            tags.p(_("Thank you for taking part."))
 
             if not experiment.with_lucid_recruitment():
-                tags.p(_("Click Finish when you are ready."))
+                tags.p(_("Click Finish to finalize the session."))
 
         return self.debrief_page(html, experiment, participant)
 
@@ -311,12 +344,12 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
         html = tags.span()
 
         with html:
-            tags.span(_p("final_page_rejected_consent", "You chose not to continue."))
-            tags.span(_p("final_page_rejected_consent", "You may close this page."))
+            tags.h1(_p("final_page_rejected_consent", "You chose not to continue."))
+            tags.p(_p("final_page_rejected_consent", "You may close this page."))
 
             # For Lucid recruitment, auto-redirect back to Lucid
             if experiment.with_lucid_recruitment():
-                tags.span(_("We will send you back to your panel in a moment."))
+                tags.p(_("We will send you back to your panel in a moment."))
                 # Consent reject is a terminate, not a panel Complete: progress
                 # may be 1 after debrief bookkeeping, but that is estimated
                 # timeline used, not Lucid RIS 10.

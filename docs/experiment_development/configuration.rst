@@ -671,10 +671,11 @@ on their behalf. Participants do not enter a completion code. Prolific automatic
 this fixed amount; PsyNet additionally pays a bonus topping them up to their accumulated reward
 (see ``prolific_unsuccessful_topup``). For participants who hit an error page, PsyNet finalizes
 the recovery plan automatically and then explains the payment outcome. **Submit to Prolific**
-records the submission with the same completion code. Participants then see a confirmation
-page and do not enter a completion code. Successful participants click **Finish**, then
-**Submit to Prolific**; after Submit, recruiter-exit reloads that confirmation rather than
-leaving the submit heading on a done page. Successful participants are completed with a researcher-actor
+sends the submission with the same completion code. Participants then see a confirmation
+page that the submission has been sent to Prolific, and do not enter a completion code.
+Successful participants click **Finish**, then **Submit to Prolific**; after Submit, recruiter-exit
+reloads that same confirmation rather than leaving the submit heading on a done page.
+Successful participants are completed with a researcher-actor
 copy of the DEFAULT auto-approve code. Because this feature spends money automatically, Prolific
 deployments must set ``prolific_screen_out_slots`` explicitly (see below); deployment fails with
 an explanatory error otherwise.
