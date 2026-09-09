@@ -388,9 +388,10 @@ def test_prolific_screen_out_timeline_confirms_after_listener_records_submission
         participant.status = "submitted"
         current = experiment.timeline.get_current_elt(experiment, participant)
         assert type(current) is RecordedSubmissionPage
-        assert "Your submission has been sent to Prolific" in current.plain_text
-        assert "You may close this page." in current.plain_text
-        assert "An error occurred" not in current.plain_text
+        heading, body = prolific._recorded_submission_copy()
+        assert heading == "Your submission has been sent to Prolific."
+        assert body == "You may close this page."
+        assert "An error occurred" not in heading
 
         with (
             Flask(__name__).test_request_context(

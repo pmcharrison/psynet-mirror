@@ -211,15 +211,15 @@ class RecordedSubmissionPage(Page):
     """Timeline wrapper for the shared Prolific confirmation document.
 
     ``/timeline`` and ``/recruiter-exit`` both render
-    ``exit_recruiter_prolific_submitted.html``, so this page must not use
-    timeline chrome, a progress bar, or a reward footer.
+    ``exit_recruiter_prolific_submitted.html`` through
+    ``recruiter.exit_response()``, so this page must not use timeline chrome,
+    a progress bar, or a reward footer. It does not store confirmation copy;
+    that lives on the recruiter (``_recorded_submission_copy``).
     """
 
     requires_full_page_reload = True
 
-    def __init__(self, heading: str, body: str):
-        self.heading = heading
-        self.body = body
+    def __init__(self):
         super().__init__(
             time_estimate=0.0,
             delegated_render=True,
@@ -228,11 +228,6 @@ class RecordedSubmissionPage(Page):
             show_early_exit_button=False,
             label="prolific_submission_sent",
         )
-
-    @property
-    def plain_text(self) -> str:
-        """Return heading and body for tests."""
-        return f"{self.heading} {self.body}"
 
     def render(self, experiment, participant, partial_mode=False):
         """Render the shared Prolific confirmation document."""

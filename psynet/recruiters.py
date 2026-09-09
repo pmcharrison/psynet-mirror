@@ -578,7 +578,7 @@ class PsyNetRecruiterMixin:
         return InfoPage(
             _p(
                 "early_exit_unpaid",
-                "Your responses have been saved. You may close this page.",
+                "You may close this page.",
             ),
             time_estimate=0.0,
             show_next_button=False,
@@ -1071,9 +1071,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return exit_domain.ErrorRecoveryPresentation(
                 message=self._error_recovery_body(
                     payment,
-                    next_step,
                     responses_saved=True,
                 ),
+                action_instruction=next_step,
                 failure_message=_p(
                     "early_exit_error_prolific",
                     "We could not open the payment instructions. Please try again. "
@@ -1400,10 +1400,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def confirm_recorded_submission(self, participant) -> TimelineLogic:
         """Show that Prolific submission is finished; do not ask again."""
         del participant
-        heading, body = self._recorded_submission_copy()
         from .end import RecordedSubmissionPage
 
-        return RecordedSubmissionPage(heading, body)
+        return RecordedSubmissionPage()
 
     def release_participant(
         self, experiment, participant: Participant

@@ -454,12 +454,12 @@ def test_prolific_screen_out_release_confirms_when_submission_already_recorded(s
     submit.assert_not_called()
     assert isinstance(page, RecordedSubmissionPage)
     assert page.show_early_exit_button is False
-    assert page.heading == "Your submission has been sent to Prolific."
-    assert page.body == "You may close this page."
-    assert "Your submission has been sent to Prolific" in page.plain_text
-    assert "You may close this page." in page.plain_text
-    assert "You left early" not in page.plain_text
-    assert "An error occurred" not in page.plain_text
+    heading, body = recruiter._recorded_submission_copy()
+    assert heading == "Your submission has been sent to Prolific."
+    assert body == "You may close this page."
+    assert "You left early" not in heading
+    assert "An error occurred" not in heading
+    assert "An error occurred" not in body
 
 
 @pytest.mark.parametrize(
@@ -1333,9 +1333,8 @@ def test_unpaid_leave_release_uses_the_shared_close_page_sentence():
             make_config()
         ).release_early_exit_without_payment(SimpleNamespace())
 
-    assert generic.content == (
-        "Your responses have been saved. You may close this page."
-    )
+    assert generic.content == "You may close this page."
+    assert "Your responses have been saved" not in generic.content
     assert "recruitment platform" not in generic.content
     assert "payment through PsyNet" not in generic.content
     assert prolific.content.endswith("You may close this page.")
@@ -1456,8 +1455,10 @@ def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
         "Unfortunately an error occurred and we cannot continue. "
         "However, your responses so far have been saved. To receive £0.60 for "
         "the work you completed, you will need to return your submission on "
-        "Prolific. Select Continue to payment instructions to complete these "
-        "steps."
+        "Prolific."
+    )
+    assert presentation.action_instruction == (
+        "Select Continue to payment instructions to complete these steps."
     )
 
 
