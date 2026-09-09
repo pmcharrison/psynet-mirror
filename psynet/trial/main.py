@@ -204,10 +204,6 @@ class Trial(SQLBase, SQLMixin, AssetParentMixin):
         The ID of the associated participant.
         The user should not typically change this directly.
 
-    position : int
-        Zero-based position within this participant's current trial maker.
-        Stored when the trial is created.
-
     node
         The :class:`dallinger.models.Node` to which the :class:`~psynet.trial.main.Trial`
         belongs.

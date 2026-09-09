@@ -108,7 +108,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     scaffold and update. If you are upgrading an older experiment that never had
     a ``config.txt`` and you keep settings in ``Experiment.config``, create a
     blank file with ``touch config.txt`` rather than scaffolding a full
-    template; see :ref:`configuration`.
+    template; see :doc:`/experiment_development/configuration`.
 
 -   ``constraints.txt`` stores the locked versions of Python packages used when
     you install or deploy a **standalone** experiment. It is generated

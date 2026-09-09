@@ -1,6 +1,6 @@
-=====================
+======================
 Upgrading to PsyNet 14
-=====================
+======================
 
 This checklist migrates an existing experiment onto PsyNet 14's default
 in-place timeline transitions. It is the single source of truth for
@@ -55,7 +55,7 @@ Search author-owned templates for ``<style>`` and
 See the same tutorial section for details.
 
 3. Find deprecated page JavaScript APIs
---------------------------------------
+---------------------------------------
 
 Search for ``js_links=``, ``scripts=``, and ``<script>`` tags in author-owned
 templates or component ``external_template`` files. Classify each script
@@ -83,7 +83,7 @@ See :doc:`/tutorials/writing_custom_frontends` for ``activate(context)``
 examples and cleanup guidance.
 
 6. Migrate page variables to ``psynet.var``
-------------------------------------------
+-------------------------------------------
 
 Replace legacy ``window`` reads of ``js_vars`` keys with ``psynet.var``.
 Optionally set ``legacy_js_var_globals = error`` while testing.
