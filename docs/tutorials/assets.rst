@@ -329,7 +329,7 @@ See :ref:`data` for the export layout.
             ~/Downloads/my-experiment-assets
 
     If you are unfamiliar with the ``scp`` command, you can read more about it
-    `here <https://linux.die.net/man/1/scp>`_.
+    `here <https://man7.org/linux/man-pages/man1/scp.1.html>`_.
 
     If you are using S3 storage, you can download the assets using the ``aws s3 cp`` command.
     for example:

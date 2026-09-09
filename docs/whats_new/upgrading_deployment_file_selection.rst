@@ -37,7 +37,7 @@ the ``[exclude]`` section of ``deploy.toml``, then run the preview again.
 directory, and ``suffixes`` are literal filename endings. Git globs and
 negation are not supported, so translate custom ``.gitignore`` rules
 deliberately instead of copying them verbatim. See Dallinger's
-`deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_
+`deploy.toml guide <https://github.com/Dallinger/Dallinger/blob/master/docs/source/deploy_toml.rst>`_
 for the complete format.
 
 Remove old Docker selection files
