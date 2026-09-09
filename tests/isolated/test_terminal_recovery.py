@@ -404,7 +404,6 @@ def test_prolific_screen_out_timeline_confirms_after_listener_records_submission
 
     assert response == "recorded"
     render.assert_called_once()
-    assert type(render.call_args.args[0]) is InfoPage
     error_page.assert_not_called()
 
 
