@@ -1357,7 +1357,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return InfoPage(
             _p(
                 "early_exit_error_prolific",
-                "Your participation has been recorded. You may close this page.",
+                "Your submission has been recorded on Prolific. You may close this page.",
             ),
             time_estimate=0.0,
             show_next_button=False,

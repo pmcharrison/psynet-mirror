@@ -388,7 +388,7 @@ def test_prolific_screen_out_timeline_confirms_after_listener_records_submission
         participant.status = "submitted"
         current = experiment.timeline.get_current_elt(experiment, participant)
         assert type(current) is InfoPage
-        assert "Your participation has been recorded" in current.plain_text
+        assert "Your submission has been recorded on Prolific" in current.plain_text
         assert "You may close this page." in current.plain_text
         assert "An error occurred" not in current.plain_text
 

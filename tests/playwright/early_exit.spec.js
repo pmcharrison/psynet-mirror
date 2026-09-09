@@ -104,7 +104,7 @@ test(
     await page.route("http://psynet.test/release", async (route) => {
       await route.fulfill({
         contentType: "text/html; charset=utf-8",
-        body: "<p>Your participation has been recorded. You may close this page.</p>"
+        body: "<p>Your submission has been recorded on Prolific. You may close this page.</p>"
       });
     });
 
@@ -123,7 +123,7 @@ test(
     await page.locator("#automatic-early-exit-continue").click();
     await expect(page).toHaveURL("http://psynet.test/release");
     await expect(page.locator("p")).toHaveText(
-      "Your participation has been recorded. You may close this page."
+      "Your submission has been recorded on Prolific. You may close this page."
     );
     expect(prolificSubmission).toEqual({
       assignmentId: "assignment-1",

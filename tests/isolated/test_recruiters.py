@@ -456,7 +456,7 @@ def test_prolific_screen_out_release_confirms_when_submission_already_recorded(s
     assert isinstance(page, InfoPage)
     assert page.show_early_exit_button is False
     assert not any(isinstance(button, NextButton) for button in page.buttons)
-    assert "Your participation has been recorded" in page.plain_text
+    assert "Your submission has been recorded on Prolific" in page.plain_text
     assert "You may close this page." in page.plain_text
     assert "You left early" not in page.plain_text
     assert "An error occurred" not in page.plain_text
