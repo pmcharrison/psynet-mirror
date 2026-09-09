@@ -199,6 +199,17 @@ def test_generic_exit_calls_its_reference_a_reference_code():
     assert 'pgettext("exit", "Reference code")' in source
     assert "You chose to leave." in source
     assert "{% block title %}" in source
+    exit_text = source[
+        source.index('id="exit-text"') : source.index("participant_reference")
+    ]
+    assert 'pgettext("exit", "You may close this page.")' in exit_text
+    assert (
+        'pgettext("exit", "Your responses have been saved. You may close this page.")'
+        in exit_text
+    )
+    assert exit_text.index("You may close this page.") < exit_text.index(
+        "Your responses have been saved"
+    )
 
 
 def test_lucid_exit_page_uses_the_themed_surface():

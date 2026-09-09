@@ -3871,7 +3871,7 @@ def test_psynet_exit_page_renders_for_recruiters_without_platform_exit_pages(
     "recruiter_class_name", ["GenericRecruiter", "HotAirRecruiter", "LabRecruiter"]
 )
 def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_class_name):
-    """Early leave uses the same saved-and-close copy as a finished session."""
+    """Early leave only needs a close instruction; the modal already covered data."""
     from importlib import resources
 
     from flask import Flask, render_template
@@ -3926,7 +3926,8 @@ def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_clas
     assert "<title>You chose to leave.</title>" in html
     assert "You chose to leave." in html
     assert "Thank you for taking part." not in html
-    assert "Your responses have been saved. You may close this page." in html
+    assert "Your responses have been saved" not in html
+    assert "You may close this page." in html
     assert "You left early" not in html
     assert "You have finished" not in html
 
