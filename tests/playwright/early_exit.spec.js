@@ -133,6 +133,78 @@ test(
 );
 
 test(
+  "Prolific recruiter-exit Submit reloads confirmation instead of rewriting in place",
+  { tag: "@both" },
+  async ({ page }) => {
+    let listenerPosted = false;
+    let exitLoads = 0;
+    await page.route("http://psynet.test/recruiter-exit**", async (route) => {
+      exitLoads += 1;
+      const body = listenerPosted
+        ? `
+          <div class="well">
+            <p id="prolific-exit-done">
+              Your submission has been recorded on Prolific. You may close this page.
+            </p>
+          </div>
+        `
+        : `
+          <div class="well">
+            <h1>Submit to Prolific</h1>
+            <p id="prolific-exit-instructions">
+              Click the button below. You do not need to enter a completion code.
+            </p>
+            <button id="js-exit-button">Submit to Prolific</button>
+          </div>
+          <script>
+            document.getElementById("js-exit-button").onclick = function () {
+              const button = this;
+              button.disabled = true;
+              const data = new URLSearchParams();
+              data.append("assignmentId", "assignment-123");
+              data.append("participantId", "7");
+              fetch("/prolific-submission-listener", {method: "POST", body: data})
+                .then((response) => {
+                  if (!response.ok) {
+                    throw new Error("submission listener failed");
+                  }
+                  window.location.replace(
+                    window.location.pathname + window.location.search
+                  );
+                })
+                .catch(() => { button.disabled = false; });
+            };
+          </script>
+        `;
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body
+      });
+    });
+    await page.route(
+      "http://psynet.test/prolific-submission-listener",
+      async (route) => {
+        listenerPosted = true;
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({ status: "success" })
+        });
+      }
+    );
+
+    await page.goto("http://psynet.test/recruiter-exit");
+    await expect(page.locator("h1")).toHaveText("Submit to Prolific");
+    await page.locator("#js-exit-button").click();
+    await expect(page.locator("#prolific-exit-done")).toHaveText(
+      "Your submission has been recorded on Prolific. You may close this page."
+    );
+    await expect(page.locator("h1")).toHaveCount(0);
+    await expect(page.locator("#js-exit-button")).toHaveCount(0);
+    expect(exitLoads).toBe(2);
+  }
+);
+
+test(
   "Lucid recovery keeps its readable page before redirecting",
   { tag: "@both" },
   async ({ page }) => {
@@ -141,7 +213,7 @@ test(
         contentType: "text/html; charset=utf-8",
         body: `
           <h1>An error occurred</h1>
-          <p>We're sorry, but an error means you cannot continue with this study.</p>
+          <p>You cannot continue.</p>
           <div id="automatic-early-exit"
                data-assignment-id="rid-1"
                data-offer-id="offer-1"
@@ -152,7 +224,7 @@ test(
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
               Your responses have been saved. We will return you to your panel
-              provider in a few seconds.
+              in a few seconds.
             </p>
             <button id="automatic-early-exit-continue" hidden>
               Return to your panel
@@ -209,7 +281,7 @@ test(
             <p id="automatic-early-exit-failure" hidden></p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
-              We will return you to your panel provider in a few seconds.
+              We will return you to your panel in a few seconds.
             </p>
             <button id="automatic-early-exit-continue" hidden>
               Return to your panel

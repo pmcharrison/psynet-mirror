@@ -298,7 +298,8 @@ Participants who hit a technical error are offered a "Submit to Prolific" button
 That records the submission locally; PsyNet then completes it on Prolific with the unsuccessful
 code. Participants then see a confirmation page and do not enter a completion code. Prolific pays the
 fixed screen-out amount automatically, and PsyNet tops them up to their accumulated reward with a
-bonus. Respond to Prolific messages promptly, and look the person up by Prolific ID on the
+bonus. Participants who finish normally click Finish, then Submit to Prolific, and see the same
+kind of confirmation after recruiter-exit reloads. Respond to Prolific messages promptly, and look the person up by Prolific ID on the
 Participants dashboard to confirm that PsyNet recorded the screen-out and any bonus. You should
 not ask them to return the submission or pay them by hand unless they never submitted (for
 example they closed the error page) or you disabled automatic screen-out payment

@@ -44,7 +44,8 @@ Key design constraints for maintainers:
   platform rejected the transfer. PsyNet does not call Dallinger's unused
   ``data_check`` / ``attention_check`` hooks.
 - After Submit, Prolific participants go to a PsyNet confirmation page
-  on the timeline. They are not redirected to enter a completion code.
+  (timeline after error Submit, recruiter-exit after Finish). They are
+  not redirected to enter a completion code.
 """
 
 import hashlib
@@ -355,8 +356,7 @@ class PsyNetRecruiterMixin:
             return exit_domain.ErrorRecoveryPresentation(
                 message=_p(
                     "early_exit_error",
-                    "We could not identify an active study session for automatic "
-                    "recovery.",
+                    "We could not continue from this page.",
                 ),
                 researcher_contact_message=contact_message,
             )
@@ -722,7 +722,6 @@ class PsyNetExitPageMixin:
         return render_template_with_translations(
             "psynet_exit_recruiter.html",
             participant_reference=participant.assignment_id,
-            left_early=bool(getattr(participant, "early_exited", False)),
         )
 
 
@@ -960,13 +959,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     [
                         _p(
                             "prolific_error",
-                            "We could not identify an active study session for "
-                            "automatic recovery.",
+                            "We could not continue from this page.",
                         ),
                         _p(
                             "prolific_error",
-                            "Please message the researcher through Prolific and "
-                            "describe what led to this error.",
+                            "If you had already started, message the researcher "
+                            "through Prolific.",
                         ),
                     ]
                 )
@@ -1020,14 +1018,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
             message = _p(
                 "early_exit_error_prolific",
-                "Your responses have been saved. To record your participation "
-                "and return to Prolific, select Submit to Prolific.",
+                "Your responses have been saved. Select Submit to Prolific to "
+                "complete your submission.",
             )
             return exit_domain.ErrorRecoveryPresentation(
                 message=f"{message} {payment}",
                 failure_message=_p(
                     "early_exit_error_prolific",
-                    "We could not record your participation on Prolific. Please "
+                    "We could not complete your submission on Prolific. Please "
                     "try again. If this keeps happening, message the researcher "
                     "through Prolific.",
                 ),
@@ -1333,13 +1331,22 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return True
 
     def exit_response(self, experiment, participant) -> str:
-        """Stay on a PsyNet confirmation page; stamp the issued completion code."""
+        """Stay on a PsyNet page; stamp the issued completion code.
+
+        After Submit, reload this route so the confirmation is a new document
+        rather than a rewrite of the submit heading.
+        """
         if hasattr(experiment, "recruiter_exit_info"):
             experiment.recruiter_exit_info(participant)
+        recorded = self._submission_already_recorded(participant)
         return render_template_with_translations(
             "exit_recruiter_prolific_submitted.html",
             assignment_id=participant.assignment_id,
             participant_id=participant.id,
+            submission_recorded=recorded,
+            confirmation_message=(
+                self._recorded_submission_copy() if recorded else None
+            ),
         )
 
     def _submission_already_recorded(self, participant) -> bool:
@@ -1350,15 +1357,19 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             "screened_out",
         }
 
+    def _recorded_submission_copy(self) -> str:
+        """Return the done-state copy after Prolific Submit."""
+        _p = get_translator(context=True)
+        return _p(
+            "early_exit_error_prolific",
+            "Your submission has been recorded on Prolific. You may close this page.",
+        )
+
     def confirm_recorded_submission(self, participant) -> TimelineLogic:
         """Show that Prolific submission is finished; do not ask again."""
         del participant
-        _p = get_translator(context=True)
         return InfoPage(
-            _p(
-                "early_exit_error_prolific",
-                "Your submission has been recorded on Prolific. You may close this page.",
-            ),
+            self._recorded_submission_copy(),
             time_estimate=0.0,
             show_next_button=False,
             show_early_exit_button=False,
@@ -1738,8 +1749,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                                 logic_if_true=InfoPage(
                                     _p(
                                         "return_for_bonus_completed",
-                                        "That worked! You have been credited for the time spent on the experiment. "
-                                        "Thank you for participating. You can now close this browser window.",
+                                        "That worked. You have been credited for the time you spent. "
+                                        "Thank you for taking part. You can now close this page.",
                                     ),
                                     show_next_button=False,
                                     time_estimate=0.0,
@@ -1748,8 +1759,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                                     _p(
                                         "return_for_bonus_payment_failed",
                                         "Your return was recorded, but we could not complete the bonus payment automatically. "
-                                        "The experimenter has been notified and will arrange payment. "
-                                        "You can now close this browser window.",
+                                        "The researcher has been notified and will arrange payment. "
+                                        "You can now close this page.",
                                     ),
                                     show_next_button=False,
                                     time_estimate=0.0,
@@ -1759,9 +1770,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         logic_if_false=InfoPage(
                             _p(
                                 "assignment_return_retry",
-                                "That didn't work. Are you sure you returned the submission for this study? "
-                                "Please go to the Prolific interface, make sure you have returned the submission, "
-                                "then click the 'Next' button.",
+                                "That didn't work. Are you sure you returned the submission? "
+                                "Return it on Prolific, then click Next.",
                             ),
                             time_estimate=0.5,
                         ),
@@ -1772,61 +1782,32 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
 
     def return_for_bonus_logic(self, enable_return_for_bonus) -> TimelineLogic:
-        """Create the TimelineLogic for returning the assignment in order to receive the bonus."""
+        """Return-on-Prolific instructions, without a second intro page."""
         if not enable_return_for_bonus:
             return None
-
-        _p = get_translator(context=True)
-
-        return conditional(
-            "return_for_bonus_enabled",
-            lambda participant: enable_return_for_bonus,
-            join(
-                InfoPage(
-                    _p(
-                        "return_for_bonus_enabled",
-                        "We are sorry that you could not proceed to the main experiment, "
-                        "but we will still pay you for your time spent so far. "
-                        "To receive this payment, we need you to return this assignment "
-                        "via the Prolific interface, then click the 'Next' button below.",
-                    ),
-                    time_estimate=0.5,
-                ),
-                self.assignment_returned_logic(),
-            ),
-            None,
-        )
+        return self.assignment_returned_logic()
 
     def return_and_message_experimenter_logic(self) -> TimelineLogic:
-        """Create the TimelineLogic for returning the assignment and messaging the experimenter."""
+        """Ask them to return on Prolific and message the researcher."""
         _p = get_translator(context=True)
 
         return InfoPage(
             _p(
                 "screen_out_return_and_message_experimenter",
-                "We are sorry that you could not proceed to the main experiment. "
-                "To receive this payment for your time, please return your assignment in Prolific "
-                "and send a message to the experimenter via the Prolific messaging system. "
-                "The experimenter will review your case and arrange payment if appropriate. "
-                "Thank you for your understanding. "
-                "You can now close this browser window.",
+                "To receive payment for the time you spent, return your "
+                "submission on Prolific and message the researcher there. "
+                "They will review your case and arrange payment if it is due. "
+                "You can now close this page.",
             ),
             show_next_button=False,
             time_estimate=0.5,
         )
 
     def _request_return_for_bonus(self, participant) -> TimelineLogic:
-        enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
-
-        logic_return_for_bonus = self.return_for_bonus_logic(enable_return_for_bonus)
-        logic_return_and_message_experimenter = (
-            self.return_and_message_experimenter_logic()
-        )
-
-        return join(
-            logic_return_for_bonus,
-            logic_return_and_message_experimenter,
-        )
+        del participant
+        if get_config().get("prolific_enable_return_for_bonus"):
+            return self.assignment_returned_logic()
+        return self.return_and_message_experimenter_logic()
 
     @staticmethod
     def check_assignment_return_status(participant) -> bool:
@@ -3218,14 +3199,13 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         if participant is None or plan is None:
             message = _p(
                 "lucid_error",
-                "We will return you to your panel provider in a few seconds.",
+                "We will return you to your panel in a few seconds.",
             )
         else:
             message = _p(
                 "early_exit_error_lucid",
                 "Your responses have been saved. We will return you to your "
-                "panel provider in a few seconds. Your panel provider will "
-                "determine any payment according to its own rules.",
+                "panel in a few seconds.",
             )
         return exit_domain.ErrorRecoveryPresentation(
             message=message,

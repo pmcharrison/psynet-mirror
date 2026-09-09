@@ -124,8 +124,7 @@ class EndLogic(ExitLogic):
 
         text = _p(
             "final-page-rewards",
-            "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for the time you spent "
-            "on the experiment. ",
+            "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for the time you spent. ",
         ).format(
             CURRENCY=currency,
             TIME_REWARD=f"{participant.time_reward:.2f}",
@@ -159,7 +158,7 @@ class SuccessfulEndLogic(EndLogic):
         html = tags.span()
 
         with html:
-            tags.span(_p("final_page_successful", "That's the end of the experiment!"))
+            tags.span(_p("final_page_successful", "That's the end!"))
 
             if self.should_show_reward:
                 tags.span(self.summarize_reward(experiment, participant))
@@ -170,7 +169,7 @@ class SuccessfulEndLogic(EndLogic):
             tags.p(cls="vspace")
 
             if not experiment.with_lucid_recruitment():
-                tags.p(_('Please click "Finish" to finalize the session.'))
+                tags.p(_("Click Finish when you are ready."))
 
         return self.debrief_page(html, experiment, participant)
 
@@ -261,7 +260,7 @@ class UnsuccessfulEndLogic(EndLogic):
             tags.span(
                 _p(
                     "final_page_unsuccessful",
-                    "Unfortunately the experiment must end early.",
+                    "Unfortunately we have to stop early.",
                 )
             )
 
@@ -276,7 +275,7 @@ class UnsuccessfulEndLogic(EndLogic):
 
             # Todo - remove this if we end up removing the redirect logic
             if experiment.with_lucid_recruitment():
-                tags.span(_("You will be redirected."))
+                tags.span(_("We will send you back to your panel in a moment."))
 
             tags.span(_("Thank you for taking part."))
 
@@ -284,7 +283,7 @@ class UnsuccessfulEndLogic(EndLogic):
             tags.p(cls="vspace")
 
             if not experiment.with_lucid_recruitment():
-                tags.p(_('Please click "Finish" to finalize the session.'))
+                tags.p(_("Click Finish when you are ready."))
 
         return self.debrief_page(html, experiment, participant)
 
@@ -312,12 +311,12 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
         html = tags.span()
 
         with html:
-            tags.span(_p("final_page_rejected_consent", "Consent was rejected."))
-            tags.span(_p("final_page_rejected_consent", "End of experiment."))
+            tags.span(_p("final_page_rejected_consent", "You chose not to continue."))
+            tags.span(_p("final_page_rejected_consent", "You may close this page."))
 
             # For Lucid recruitment, auto-redirect back to Lucid
             if experiment.with_lucid_recruitment():
-                tags.span(_("You will be redirected."))
+                tags.span(_("We will send you back to your panel in a moment."))
                 # Consent reject is a terminate, not a panel Complete: progress
                 # may be 1 after debrief bookkeeping, but that is estimated
                 # timeline used, not Lucid RIS 10.

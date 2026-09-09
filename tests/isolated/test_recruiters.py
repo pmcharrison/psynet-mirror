@@ -435,7 +435,7 @@ def test_release_participant_branching(failed, payment_configured, expected):
 
 @pytest.mark.parametrize("status", ["submitted", "approved", "screened_out"])
 def test_prolific_screen_out_release_confirms_when_submission_already_recorded(status):
-    """After Submit, SCREEN_OUT must not send them through Submit Study again."""
+    """After Submit, SCREEN_OUT must not send them through Submit to Prolific again."""
     from psynet.modular_page import NextButton
     from psynet.page import InfoPage
 
@@ -1064,7 +1064,7 @@ def test_fetch_prolific_submission_delegates_to_dallinger():
 
 def test_exit_response_stays_on_psynet_confirmation_page():
     recruiter = make_prolific_recruiter(make_config())
-    participant = MagicMock(assignment_id="assignment-1", id=7)
+    participant = MagicMock(assignment_id="assignment-1", id=7, status="working")
     experiment = MagicMock()
     with patch(
         "psynet.recruiters.render_template_with_translations", return_value="html"
@@ -1075,6 +1075,8 @@ def test_exit_response_stays_on_psynet_confirmation_page():
         "exit_recruiter_prolific_submitted.html",
         assignment_id="assignment-1",
         participant_id=7,
+        submission_recorded=False,
+        confirmation_message=None,
     )
 
 
@@ -1089,7 +1091,8 @@ def test_prolific_exit_template_does_not_redirect_to_completion_code():
         / "exit_recruiter_prolific_submitted.html"
     ).read_text()
     assert "You do not need to enter a completion code" in text
-    assert "window.location" not in text
+    assert "window.location.replace" in text
+    assert "prolific.co" not in text
     assert "prolific-exit-done" in text
     assert "/prolific-submission-listener" in text
 
@@ -1117,7 +1120,7 @@ def test_prolific_tracked_error_page_without_a_plan_does_not_claim_an_unknown_se
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
         presentation = recruiter.error_page_presentation(participant=participant)
 
-    assert "could not identify an active study session" not in presentation.message
+    assert "could not continue from this page" not in presentation.message
     assert "message the researcher through Prolific" in presentation.message
     assert presentation.action_post_url is None
 
@@ -1131,7 +1134,11 @@ def test_prolific_untracked_error_page_uses_structured_platform_support():
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
         presentation = recruiter.error_page_presentation()
 
-    assert "message the researcher through Prolific" in presentation.message
+    assert "We could not continue from this page." in presentation.message
+    assert (
+        "If you had already started, message the researcher through Prolific."
+        in presentation.message
+    )
     assert presentation.action_post_url is None
     assert presentation.destination_url is None
 
@@ -1186,6 +1193,28 @@ def _early_exit_test_plan(
             )
             if context is ExitContext.VOLUNTARY
             else None
+        ),
+    )
+
+
+def test_exit_response_renders_recorded_submission_confirmation():
+    recruiter = make_prolific_recruiter(make_config())
+    participant = MagicMock(assignment_id="assignment-1", id=7, status="submitted")
+    experiment = MagicMock()
+    with (
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+        patch(
+            "psynet.recruiters.render_template_with_translations", return_value="html"
+        ) as render,
+    ):
+        assert recruiter.exit_response(experiment, participant) == "html"
+    render.assert_called_once_with(
+        "exit_recruiter_prolific_submitted.html",
+        assignment_id="assignment-1",
+        participant_id=7,
+        submission_recorded=True,
+        confirmation_message=(
+            "Your submission has been recorded on Prolific. You may close this page."
         ),
     )
 
@@ -1250,7 +1279,7 @@ def test_default_tracked_error_page_without_a_plan_stays_terminal():
             contact_address="researcher@example.test",
         )
 
-    assert "could not identify an active study session" not in presentation.message
+    assert "could not continue from this page" not in presentation.message
     assert presentation.message == (
         "Your responses have been saved. You may close this page."
     )
@@ -1330,13 +1359,16 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
     }
     assert presentation.destination_url is None
     assert presentation.failure_message == (
-        "We could not record your participation on Prolific. Please try again. "
+        "We could not complete your submission on Prolific. Please try again. "
         "If this keeps happening, message the researcher through Prolific."
     )
     assert presentation.researcher_contact_message is None
     assert "Prolific will pay you £0.25" in presentation.message
     assert "£0.35 as a bonus" in presentation.message
     assert "total payment to £0.60" in presentation.message
+    assert (
+        "Select Submit to Prolific to complete your submission" in presentation.message
+    )
 
 
 def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
@@ -1397,7 +1429,8 @@ def test_lucid_error_recovery_explains_the_panel_redirect():
         "happening, contact your panel provider."
     )
     assert presentation.researcher_contact_message is None
-    assert "panel provider will determine any payment" in presentation.message
+    assert "panel provider will determine any payment" not in presentation.message
+    assert "Your responses have been saved" in presentation.message
 
 
 def test_lucid_untracked_error_page_uses_the_same_structured_delay():
@@ -1408,7 +1441,7 @@ def test_lucid_untracked_error_page_uses_the_same_structured_delay():
             external_submit_url="https://lucid.test/terminate",
         )
 
-    assert "return you to your panel provider in a few seconds" in presentation.message
+    assert "return you to your panel in a few seconds" in presentation.message
     assert presentation.auto_redirect_delay_ms == 5000
     assert presentation.destination_url == "https://lucid.test/terminate"
     assert presentation.button_label == "Return to your panel"
@@ -3756,7 +3789,7 @@ def test_psynet_exit_page_renders_for_recruiters_without_platform_exit_pages(
 
     assert html.lstrip().lower().startswith("<!doctype html>")
     assert "Thank you for taking part." in html
-    assert "You have finished. Your responses have been saved." in html
+    assert "Your responses have been saved. You may close this page." in html
     assert "Reference" in html
     assert "assignment-123" in html
     assert "Bonus" not in html
@@ -3767,7 +3800,7 @@ def test_psynet_exit_page_renders_for_recruiters_without_platform_exit_pages(
     "recruiter_class_name", ["GenericRecruiter", "HotAirRecruiter", "LabRecruiter"]
 )
 def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_class_name):
-    """Early leave should not reuse the finished-session thank-you wording."""
+    """Early leave uses the same saved-and-close copy as a finished session."""
     from importlib import resources
 
     from flask import Flask, render_template
@@ -3818,8 +3851,10 @@ def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_clas
         ):
             html = recruiter.exit_response(experiment, participant)
 
-    assert "You left early. Your responses have been saved." in html
-    assert "You have finished." not in html
+    assert "Thank you for taking part." in html
+    assert "Your responses have been saved. You may close this page." in html
+    assert "You left early" not in html
+    assert "You have finished" not in html
 
 
 def test_prolific_exit_page_renders_with_psynet_layout():
@@ -3867,15 +3902,77 @@ def test_prolific_exit_page_renders_with_psynet_layout():
             config=SimpleNamespace(color_mode="light"),
             assignment_id="assignment-123",
             participant_id=7,
+            submission_recorded=False,
+            confirmation_message=None,
         )
 
     assert '<meta name="viewport"' in html
     assert "css/participant.css" in html
     assert "scripts/psynet.layout.js" in html
-    assert "Prolific Study Submission" in html
+    assert "Submit to Prolific" in html
+    assert "Prolific Study Submission" not in html
     assert "/prolific-submission-listener" in html
-    assert "window.location" not in html
+    assert "window.location.replace" in html
+    assert "prolific-exit-done" not in html
+    assert "js-exit-button" in html
+
+
+def test_prolific_exit_page_reloads_confirmation_after_submit():
+    """After Submit, recruiter-exit is a new document, not a rewritten heading."""
+    from importlib import resources
+
+    from flask import Flask, render_template
+    from jinja2 import ChoiceLoader, DictLoader, FileSystemLoader
+
+    app = Flask("psynet_platform_exit_done")
+    app.jinja_env.globals.update(
+        gettext=lambda text: text,
+        pgettext=lambda _context, text: text,
+    )
+    app.jinja_loader = ChoiceLoader(
+        [
+            FileSystemLoader(str(resources.files("psynet") / "templates")),
+            DictLoader(
+                {
+                    "base/layout.html": (
+                        "<!doctype html><html><head>"
+                        "{% block head %}{% endblock %}"
+                        "{% block stylesheets %}{% endblock %}"
+                        "</head><body>{% block body %}{% endblock %}"
+                        "{% block scripts %}{% endblock %}</body></html>"
+                    )
+                }
+            ),
+        ]
+    )
+    experiment = MagicMock(psynet_logo="", logos=[])
+    participant = SimpleNamespace(
+        id=7,
+        assignment_id="assignment-123",
+        hit_id="hit-456",
+        unique_id="worker-789:assignment-123",
+        worker_id="worker-789",
+    )
+
+    with app.test_request_context("/recruiter-exit"):
+        html = render_template(
+            "exit_recruiter_prolific_submitted.html",
+            experiment=experiment,
+            participant=participant,
+            config=SimpleNamespace(color_mode="light"),
+            assignment_id="assignment-123",
+            participant_id=7,
+            submission_recorded=True,
+            confirmation_message=(
+                "Your submission has been recorded on Prolific. You may close this page."
+            ),
+        )
+
     assert "prolific-exit-done" in html
+    assert "Your submission has been recorded on Prolific" in html
+    assert "js-exit-button" not in html
+    assert "Submit to Prolific" not in html
+    assert "/prolific-submission-listener" not in html
 
 
 def _review_participant(apparent=0.0, planned=1.50):

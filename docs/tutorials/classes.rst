@@ -176,7 +176,7 @@ looks like:
     {% extends "timeline-page.html" %}
 
     {% block main_body %}
-        That's the end of the experiment!
+        That's the end!
         {% if experiment.show_reward %}
             {% include "final-page-rewards.html" %}
         {% endif %}
@@ -184,7 +184,7 @@ looks like:
 
         <p class="vspace"></p>
         <p>
-            Please click "Finish" to finalize the session.
+            Click Finish when you are ready.
         </p>
         <p class="vspace"></p>
 

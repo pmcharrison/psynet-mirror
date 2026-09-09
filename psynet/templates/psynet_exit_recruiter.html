@@ -20,11 +20,7 @@
         <h1 id="header">{{ gettext("Thank you for taking part.") }}</h1>
         <hr>
         <p id="exit-text">
-            {% if left_early %}
-                {{ pgettext("exit", "You left early. Your responses have been saved. You may close this window.") }}
-            {% else %}
-                {{ pgettext("exit", "You have finished. Your responses have been saved. You may close this window.") }}
-            {% endif %}
+            {{ pgettext("exit", "Your responses have been saved. You may close this page.") }}
         </p>
         {% if participant_reference %}
             <p id="participant-reference" class="text-body-secondary">

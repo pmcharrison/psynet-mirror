@@ -58,7 +58,7 @@ class TestExp:
             assert_text(
                 driver,
                 "error-text",
-                "We're sorry, but an error means you cannot continue with this study.",
+                "You cannot continue.",
             )
             assert_text(
                 driver,

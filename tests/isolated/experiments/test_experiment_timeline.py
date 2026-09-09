@@ -237,9 +237,9 @@ class TestExp(object):
                 driver,
                 "main-body",
                 (
-                    "That's the end of the experiment! You will receive a reward of $0.36 "
-                    "for the time you spent on the experiment. "
-                    'Thank you for taking part. Please click "Finish" to finalize the session. Finish'
+                    "That's the end! You will receive a reward of $0.36 "
+                    "for the time you spent. "
+                    "Thank you for taking part. Click Finish when you are ready. Finish"
                 ),
             )
             # Leaving here would only cost the participant the payment they have

@@ -18,8 +18,8 @@ def _reward_html(monkeypatch, time_reward, performance_reward):
 def test_summarize_reward_omits_zero_performance_reward(monkeypatch):
     html = _reward_html(monkeypatch, time_reward=0.12, performance_reward=0.0)
     assert (
-        "You will receive a reward of <strong>$0.12</strong> for the time you spent "
-        "on the experiment. " == html
+        "You will receive a reward of <strong>$0.12</strong> for the time you spent. "
+        == html
     )
     assert "performance reward" not in html
 
@@ -27,8 +27,8 @@ def test_summarize_reward_omits_zero_performance_reward(monkeypatch):
 def test_summarize_reward_includes_nonzero_performance_reward(monkeypatch):
     html = _reward_html(monkeypatch, time_reward=0.13, performance_reward=9.09)
     assert (
-        "You will receive a reward of <strong>$0.13</strong> for the time you spent "
-        "on the experiment. You have also been awarded a performance reward of "
+        "You will receive a reward of <strong>$0.13</strong> for the time you spent. "
+        "You have also been awarded a performance reward of "
         "<strong>$9.09</strong>. " == html
     )
     assert "!" not in html
