@@ -331,7 +331,9 @@ General
     copy and any POST, button, or redirect required by the platform. Whether
     tracked fatal recovery *shows* that page is a separate recruiter policy,
     :meth:`~psynet.recruiters.PsyNetRecruiterMixin.shows_error_recovery_page`,
-    not an inference from a missing button. Override
+    not an inference from a missing button. The mixin default is to skip that
+    page; a custom recruiter that presents recovery UI must override the
+    policy. Override
     ``error_page_presentation`` on a custom recruiter to customize error pages;
     ``Experiment.error_page_content`` and recruiter ``error_page_content``
     overrides are no longer supported. A tracked participant is never treated

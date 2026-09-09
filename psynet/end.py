@@ -219,6 +219,7 @@ class ImmediateExitLogic(ExitLogic):
             ErrorRecoveryPage()
             if plan is not None
             and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            and plan.status is exit_domain.ExitPlanStatus.PREPARED
             and experiment.recruiter.shows_error_recovery_page(plan)
             else None
         )

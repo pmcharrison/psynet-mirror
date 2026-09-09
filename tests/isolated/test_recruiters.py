@@ -1910,7 +1910,7 @@ def test_error_recovery_route_survives_a_queued_unsuccessful_redirect():
     experiment.recruiter.execute_early_exit_plan.assert_called_once()
     assert participant.exit_plan["context"] == "error_recovery"
     assert participant.exit_plan["status"] == "committed"
-    assert participant.pending_redirect is None
+    assert participant.pending_redirect == "early_exit_release"
     experiment.timeline.advance_page.assert_called_once_with(experiment, participant)
 
 

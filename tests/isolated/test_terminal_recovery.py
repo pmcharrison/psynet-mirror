@@ -13,7 +13,7 @@ from flask import Flask
 from psynet.end import ErrorRecoveryPage, SuccessfulEndLogic
 from psynet.exit import ExitContext, ExitPath, ExitPlan, ExitPlanStatus, PaymentDecision
 from psynet.experiment import Experiment, get_experiment
-from psynet.page import ExecuteFrontEndJS, InfoPage
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 
@@ -77,14 +77,6 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
     event = MagicMock()
     event.process_response.side_effect = ValueError("boom")
     experiment = get_experiment()
-    original_get_current_elt = experiment.timeline.get_current_elt
-    seen_current_elt = {"n": 0}
-
-    def failing_page_then_real_timeline(*args, **kwargs):
-        if seen_current_elt["n"] == 0:
-            seen_current_elt["n"] += 1
-            return event
-        return original_get_current_elt(*args, **kwargs)
 
     with (
         patch.object(
@@ -98,11 +90,7 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
                 )
             ),
         ),
-        patch.object(
-            experiment.timeline,
-            "get_current_elt",
-            side_effect=failing_page_then_real_timeline,
-        ),
+        patch.object(experiment.timeline, "get_current_elt", return_value=event),
         patch.object(Experiment, "report_error"),
         patch(
             "psynet.experiment.error_response", return_value="json error"
@@ -136,7 +124,7 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
     participant = _make_participant(page_uuid="page-1")
     participant_id = participant.id
     experiment = get_experiment()
-    Experiment._prepare_error_recovery_plan(
+    plan = Experiment._prepare_error_recovery_plan(
         experiment,
         experiment.recruiter,
         participant,
@@ -144,19 +132,15 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
     db.session.commit()
     unique_id = participant.unique_id
 
-    assert experiment.timeline.get_participant_branch(participant) == (
+    assert plan.status is ExitPlanStatus.COMMITTED
+    assert ExitPlan.from_dict(participant.exit_plan).status is ExitPlanStatus.COMMITTED
+    assert experiment.timeline.get_participant_branch(participant) != (
         "early_exit_release"
     )
     assert not isinstance(
         experiment.timeline.get_current_elt(experiment, participant),
         ErrorRecoveryPage,
     )
-    assert isinstance(
-        experiment.timeline.get_current_elt(experiment, participant),
-        ExecuteFrontEndJS,
-    )
-    plan = ExitPlan.from_dict(participant.exit_plan)
-    assert plan.status is ExitPlanStatus.COMMITTED
     assert participant.early_exited is True
 
     with (
@@ -175,7 +159,7 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
 
 
 def test_prepare_commits_a_leftover_prepared_generic_recovery_plan(db_session):
-    """A leftover prepared generic plan is committed instead of shown as chrome."""
+    """A leftover prepared generic plan is committed; /timeline then hands off."""
     participant = _make_participant(page_uuid="page-1")
     experiment = get_experiment()
     with patch.object(
@@ -189,17 +173,46 @@ def test_prepare_commits_a_leftover_prepared_generic_recovery_plan(db_session):
     assert ExitPlan.from_dict(participant.exit_plan).status is ExitPlanStatus.PREPARED
     assert participant.early_exited is False
 
-    Experiment._prepare_error_recovery_plan(
+    plan = Experiment._prepare_error_recovery_plan(
         experiment,
         experiment.recruiter,
         participant,
     )
-    assert ExitPlan.from_dict(participant.exit_plan).status is ExitPlanStatus.COMMITTED
+    assert plan.status is ExitPlanStatus.COMMITTED
     assert participant.early_exited is True
-    assert not isinstance(
-        experiment.timeline.get_current_elt(experiment, participant),
-        ErrorRecoveryPage,
+
+    with (
+        Flask(__name__).test_request_context(
+            f"/timeline?unique_id={participant.unique_id}",
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ),
+        patch.object(experiment, "participant_task_completed"),
+        patch("dallinger.experiment_server.worker_events.worker_function"),
+    ):
+        response = Experiment._route_timeline(experiment, participant, mode=None)
+
+    assert response.status_code in (301, 302)
+    assert f"/recruiter-exit?participant_id={participant.id}" in response.location
+
+
+def test_commit_stored_early_exit_plan_is_idempotent(db_session):
+    """The stored plan is the source of truth; a second commit is a no-op."""
+    participant = _make_participant(page_uuid="page-1")
+    experiment = get_experiment()
+    first = Experiment._prepare_error_recovery_plan(
+        experiment,
+        experiment.recruiter,
+        participant,
     )
+    with patch.object(experiment.recruiter, "execute_early_exit_plan") as execute:
+        second = Experiment._commit_stored_early_exit_plan(experiment, participant)
+
+    assert first.status is ExitPlanStatus.COMMITTED
+    assert second is not None
+    assert second.status is ExitPlanStatus.COMMITTED
+    assert second.plan_id == first.plan_id
+    assert second.to_dict() == ExitPlan.from_dict(participant.exit_plan).to_dict()
+    execute.assert_not_called()
 
 
 def test_prepared_recovery_is_the_first_early_exit_release_page(db_session):
@@ -286,7 +299,9 @@ def test_committed_return_for_bonus_continue_renders_payment_instructions(db_ses
             experiment.timeline.get_current_elt(experiment, participant),
             ErrorRecoveryPage,
         )
-        Experiment._commit_early_exit_plan(experiment, participant, plan)
+        committed = Experiment._commit_stored_early_exit_plan(experiment, participant)
+        assert committed.status is ExitPlanStatus.COMMITTED
+        Experiment._enter_early_exit_release(experiment, participant)
         current = experiment.timeline.get_current_elt(experiment, participant)
         assert not isinstance(current, ErrorRecoveryPage)
         assert payment_copy in current.plain_text
