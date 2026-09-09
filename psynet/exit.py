@@ -150,6 +150,21 @@ class ErrorRecoveryPresentation:
             if not self.destination_url:
                 raise ValueError("An automatic redirect requires a destination URL.")
 
+    def without_handoff(self) -> "ErrorRecoveryPresentation":
+        """Return a copy that explains the error without a participant action."""
+        return replace(
+            self,
+            action_instruction=None,
+            failure_message=None,
+            button_label=None,
+            preparation_post_url=None,
+            preparation_post_data={},
+            action_post_url=None,
+            action_post_data={},
+            destination_url=None,
+            auto_redirect_delay_ms=None,
+        )
+
 
 @dataclass(frozen=True)
 class ExitPlan:

@@ -8,6 +8,7 @@ from dallinger import db
 from psynet.error import ErrorRecord
 from psynet.exit import (
     EarlyExitConfirmation,
+    ErrorRecoveryPresentation,
     ExitContext,
     ExitPath,
     ExitPlan,
@@ -405,6 +406,138 @@ def test_error_page_presents_an_executed_voluntary_plan_instead_of_untracked_cop
         external_submit_url=None,
         contact_address="researcher@example.test",
     )
+
+
+def _handoff_presentation():
+    return ErrorRecoveryPresentation(
+        message="We will pay you for your progress.",
+        action_instruction="Select Submit to Prolific to complete your submission.",
+        failure_message="We could not send your submission.",
+        button_label="Submit to Prolific",
+        action_post_url="/prolific-submission-listener",
+        action_post_data={"assignmentId": "assignment-1", "participantId": "42"},
+    )
+
+
+def test_render_error_page_keeps_handoff_while_recovery_is_prepared():
+    from flask import Flask
+
+    presentation = _handoff_presentation()
+    recruiter = MagicMock()
+    recruiter.error_page_presentation.return_value = presentation
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+    )
+
+    with (
+        Flask(__name__).test_request_context("/error-page"),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        Experiment._render_error_page(
+            participant=SimpleNamespace(assignment_id="assignment-1"),
+            plan=plan,
+            recruiter=recruiter,
+            error_text=None,
+            external_submit_url=None,
+            locale="en",
+        )
+
+    rendered = render.call_args.kwargs["error_page_presentation"]
+    assert rendered is presentation
+    assert rendered.button_label == "Submit to Prolific"
+    assert rendered.action_post_url == "/prolific-submission-listener"
+    assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.plan_id
+
+
+def test_render_error_page_disarms_handoff_on_a_committed_voluntary_plan():
+    from flask import Flask
+
+    presentation = _handoff_presentation()
+    recruiter = MagicMock()
+    recruiter.error_page_presentation.return_value = presentation
+    plan = ExitPlan.create(
+        context=ExitContext.VOLUNTARY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+        confirmation=exit_confirmation(),
+    ).mark_committed()
+
+    with (
+        Flask(__name__).test_request_context("/error-page"),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        Experiment._render_error_page(
+            participant=SimpleNamespace(assignment_id="assignment-1"),
+            plan=plan,
+            recruiter=recruiter,
+            error_text=None,
+            external_submit_url=None,
+            locale="en",
+        )
+
+    rendered = render.call_args.kwargs["error_page_presentation"]
+    assert rendered.button_label is None
+    assert rendered.action_post_url is None
+    assert rendered.action_instruction is None
+    assert rendered.message == "We will pay you for your progress."
+    assert render.call_args.kwargs["automatic_exit_offer_id"] is None
+
+
+def test_render_error_page_disarms_handoff_after_skip_page_commit():
+    from flask import Flask
+
+    presentation = ErrorRecoveryPresentation(
+        message="Something went wrong.",
+        failure_message="The session failed.",
+        button_label="Continue",
+        destination_url="/custom-exit",
+    )
+    recruiter = MagicMock()
+    recruiter.error_page_presentation.return_value = presentation
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+    ).mark_committed()
+
+    with (
+        Flask(__name__).test_request_context("/error-page"),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        Experiment._render_error_page(
+            participant=SimpleNamespace(assignment_id="assignment-1"),
+            plan=plan,
+            recruiter=recruiter,
+            error_text=None,
+            external_submit_url=None,
+            locale="en",
+        )
+
+    rendered = render.call_args.kwargs["error_page_presentation"]
+    assert rendered.button_label is None
+    assert rendered.destination_url is None
+    assert rendered.message == "Something went wrong."
+    assert render.call_args.kwargs["automatic_exit_offer_id"] is None
 
 
 def test_fail_participant_on_error_records_the_exception_without_failing():

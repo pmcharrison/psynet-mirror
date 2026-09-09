@@ -194,3 +194,29 @@ def test_error_recovery_presentation_rejects_an_incomplete_handoff():
             failure_message="Try again.",
             destination_url="https://example.test/exit",
         )
+
+
+def test_error_recovery_presentation_without_handoff_keeps_the_explanation():
+    presentation = ErrorRecoveryPresentation(
+        message="An error occurred.",
+        action_instruction="Select Submit.",
+        failure_message="Try again.",
+        researcher_contact_message="Email the researcher.",
+        button_label="Submit",
+        action_post_url="/prolific-submission-listener",
+        action_post_data={"assignmentId": "assignment-1"},
+        destination_url="https://example.test/exit",
+        auto_redirect_delay_ms=1000,
+    )
+
+    disarmed = presentation.without_handoff()
+
+    assert disarmed.message == "An error occurred."
+    assert disarmed.researcher_contact_message == "Email the researcher."
+    assert disarmed.button_label is None
+    assert disarmed.action_instruction is None
+    assert disarmed.failure_message is None
+    assert disarmed.action_post_url is None
+    assert disarmed.action_post_data == {}
+    assert disarmed.destination_url is None
+    assert disarmed.auto_redirect_delay_ms is None

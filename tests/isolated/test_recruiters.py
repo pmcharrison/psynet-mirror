@@ -1248,7 +1248,7 @@ def test_execute_early_exit_plan_marks_early_exited_and_fails():
     )
     assert participant.early_exited is True
     participant.module_state.mark_early_exited.assert_called_once()
-    participant.fail.assert_called_once_with("early_exit")
+    participant.fail.assert_called_once_with("early_exit", redirect_to_end=False)
 
 
 def test_execute_error_recovery_plan_records_the_error_context():
@@ -1259,7 +1259,7 @@ def test_execute_error_recovery_plan_records_the_error_context():
         _early_exit_test_plan(context=ExitContext.ERROR_RECOVERY),
     )
 
-    participant.fail.assert_called_once_with("error_recovery")
+    participant.fail.assert_called_once_with("error_recovery", redirect_to_end=False)
 
 
 def test_default_error_recovery_page_is_terminal():
@@ -2120,7 +2120,9 @@ def test_return_without_payment_plan_skips_payment():
 
     PsyNetRecruiterMixin().execute_early_exit_plan(MagicMock(), participant, plan)
 
-    participant.fail.assert_called_once_with("early_exit_without_payment")
+    participant.fail.assert_called_once_with(
+        "early_exit_without_payment", redirect_to_end=False
+    )
     participant.exit_plan = plan.mark_committed().to_dict()
     decision = PsyNetRecruiterMixin().decide_payment(
         participant, experiment=MagicMock(base_payment=1.0)
@@ -2321,7 +2323,7 @@ def test_lucid_early_exit_terminates_the_panel_session():
     assert recruiter.reward_bonus(participant, 0.0, "settlement") is True
     recruiter.lucidservice.terminate_respondent.assert_called_once()
     # Lucid exits fail incomplete trials like every other recruiter's exit.
-    participant.fail.assert_called_once_with("early_exit")
+    participant.fail.assert_called_once_with("early_exit", redirect_to_end=False)
     assert participant.early_exited is True
 
 
@@ -2339,7 +2341,7 @@ def test_lucid_error_recovery_preserves_redirect_owned_termination():
     )
 
     recruiter.lucidservice.terminate_respondent.assert_not_called()
-    participant.fail.assert_called_once_with("error_recovery")
+    participant.fail.assert_called_once_with("error_recovery", redirect_to_end=False)
     assert participant.early_exited is True
 
 

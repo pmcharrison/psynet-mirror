@@ -277,7 +277,11 @@ class PsyNetRecruiterMixin:
     def execute_early_exit_plan(
         self, experiment, participant, plan: exit_domain.ExitPlan
     ) -> None:
-        """Execute a server-owned early-exit plan."""
+        """Execute a server-owned early-exit plan.
+
+        Marks the participant as having left and fails them without entering
+        ``unsuccessful_end``. Callers choose the terminal branch afterwards.
+        """
         del experiment
         if plan.path not in self.supported_early_exit_paths:
             raise ValueError(
@@ -294,7 +298,10 @@ class PsyNetRecruiterMixin:
                 reason = "early_exit_without_payment"
             else:
                 reason = "early_exit"
-            participant.fail(reason)
+            # Leave and recovery Continue choose the terminal branch after
+            # this call. Skip-page recovery has already failed the
+            # participant without entering unsuccessful_end.
+            participant.fail(reason, redirect_to_end=False)
 
     def shows_error_recovery_page(self, plan: exit_domain.ExitPlan) -> bool:
         """Return whether tracked fatal recovery presents a participant page.

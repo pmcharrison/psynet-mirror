@@ -204,7 +204,8 @@ Search for ``show_abort_button``, ``show_termination_button``,
 * Replace ``error_page_content`` with recruiter
   ``error_page_presentation``. A custom recruiter that shows recovery UI
   must also override ``shows_error_recovery_page``; a button in the
-  presentation is not enough::
+  presentation is not enough. Handoff controls are armed only while the
+  recovery plan is still prepared::
 
       from psynet.exit import ExitContext
 

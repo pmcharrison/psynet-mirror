@@ -114,6 +114,7 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
     assert after_fatal.failed is True
     assert after_fatal.exit_plan is not None
     assert after_fatal.early_exited is True
+    assert after_fatal.page_uuid != "page-1"
     assert ExitPlan.from_dict(after_fatal.exit_plan).status is ExitPlanStatus.COMMITTED
     assert "error_recovery" in (after_fatal.failure_tags or [])
     assert "ValueError" in (after_fatal.failure_tags or [])
@@ -141,6 +142,7 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
         ErrorRecoveryPage,
     )
     assert participant.early_exited is True
+    assert participant.page_uuid != "page-1"
 
     with (
         Flask(__name__).test_request_context(
@@ -161,6 +163,96 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
     assert render.call_args.kwargs["error_page_presentation"] is not None
     assert render.call_args.kwargs["automatic_exit_offer_id"] is None
     assert participant.end_time is not None
+
+
+def test_skipped_recovery_reload_keeps_the_error_page(db_session):
+    """A second /timeline after skip finalize still explains the error."""
+    participant = _make_participant(page_uuid="page-1")
+    experiment = get_experiment()
+    Experiment._prepare_error_recovery_plan(
+        experiment,
+        experiment.recruiter,
+        participant,
+    )
+    db.session.commit()
+    unique_id = participant.unique_id
+
+    with (
+        Flask(__name__).test_request_context(
+            f"/timeline?unique_id={unique_id}",
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ),
+        patch.object(experiment, "participant_task_completed"),
+        patch("dallinger.experiment_server.worker_events.worker_function") as worker,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        first = Experiment._route_timeline(experiment, participant, mode=None)
+        assert first.status_code == 200
+        assert participant.end_time is not None
+        worker_calls = worker.call_count
+        second = Experiment._route_timeline(experiment, participant, mode=None)
+
+    assert second.status_code == 200
+    assert worker.call_count == worker_calls
+    assert render.call_count == 2
+    assert render.call_args.kwargs["automatic_exit_offer_id"] is None
+    assert render.call_args.kwargs["error_page_presentation"] is not None
+
+
+def test_skipped_recovery_rejects_a_later_timeline_response(db_session):
+    """Skip-page recovery must not let a stale or matching /response advance."""
+    participant = _make_participant(page_uuid="page-1")
+    original_uuid = participant.page_uuid
+    experiment = get_experiment()
+    Experiment._prepare_error_recovery_plan(
+        experiment,
+        experiment.recruiter,
+        participant,
+    )
+    db.session.commit()
+    event = MagicMock()
+
+    with (
+        Flask(__name__).test_request_context("/response"),
+        patch.object(
+            experiment,
+            "_participant_request_query",
+            return_value=SimpleNamespace(
+                with_for_update=lambda **kwargs: SimpleNamespace(
+                    populate_existing=lambda: SimpleNamespace(
+                        get=lambda _id: participant
+                    )
+                )
+            ),
+        ),
+        patch.object(experiment.timeline, "get_current_elt", return_value=event),
+        patch("psynet.experiment.get_translator", return_value=lambda *args: args[-1]),
+    ):
+        stale = experiment.process_response(
+            participant_id=participant.id,
+            raw_answer="answer",
+            blobs={},
+            metadata={},
+            page_uuid=original_uuid,
+            client_ip_address="127.0.0.1",
+        )
+        matching = experiment.process_response(
+            participant_id=participant.id,
+            raw_answer="answer",
+            blobs={},
+            metadata={},
+            page_uuid=participant.page_uuid,
+            client_ip_address="127.0.0.1",
+        )
+
+    event.process_response.assert_not_called()
+    for result in (stale, matching):
+        payload = result.get_json()
+        assert payload["submission"] == "rejected"
+        assert "already ended" in payload["message"]
 
 
 def test_prepare_commits_a_leftover_prepared_generic_recovery_plan(db_session):

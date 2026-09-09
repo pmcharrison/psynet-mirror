@@ -1714,6 +1714,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             external_submit_url=external_submit_url,
             contact_address=contact_address,
         )
+        if isinstance(
+            error_page_presentation, exit_domain.ErrorRecoveryPresentation
+        ) and not Experiment._error_recovery_handoff_is_live(plan):
+            error_page_presentation = error_page_presentation.without_handoff()
 
         response = make_response(
             render_template_with_translations(
@@ -1723,9 +1727,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assignment_id=assignment_id,
                 automatic_exit_offer_id=(
                     plan.plan_id
-                    if plan is not None
-                    and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
-                    and plan.status is exit_domain.ExitPlanStatus.PREPARED
+                    if Experiment._error_recovery_handoff_is_live(plan)
                     else None
                 ),
                 error_page_presentation=error_page_presentation,
@@ -3260,6 +3262,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             if not isinstance(participant, Bot):
                 participant.client_ip_address = client_ip_address
+            # Use Experiment. so mocked experiment instances still run this
+            # guard. Skip-page recovery leaves the trial cursor in place, so
+            # a second tab must not keep advancing after the plan is committed.
+            if Experiment._skipped_error_recovery_should_render_error_page(
+                self, participant
+            ):
+                return self.response_rejected(
+                    message=_p(
+                        "timeline_problem",
+                        "This session has already ended. Please reload the page.",
+                    )
+                )
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
                 return self.response_rejected(
@@ -4881,14 +4895,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @staticmethod
+    def _error_recovery_handoff_is_live(plan) -> bool:
+        """Return whether the error page may run a recruiter handoff.
+
+        Submit, Continue, and auto-redirect are only valid while a tracked
+        recovery plan is still prepared. Reused committed plans keep their
+        explanation copy but must not arm those actions.
+        """
+        return (
+            plan is not None
+            and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            and plan.status is exit_domain.ExitPlanStatus.PREPARED
+        )
+
+    @staticmethod
     def _commit_stored_early_exit_plan(experiment, participant, recruiter=None):
         """Execute the stored plan if it is still prepared.
 
         The stored plan is the source of truth. Already committed plans are
-        returned unchanged. This helper does not move the timeline; Leave and
-        recovery Continue own that navigation themselves. Pass the same
-        recruiter used for the skip-page policy when one is already in hand;
-        otherwise use the live session recruiter.
+        returned unchanged. This helper does not move the timeline cursor;
+        Leave and recovery Continue own that navigation themselves. Skip-page
+        recovery does rotate ``page_uuid`` so a stale ``/response`` cannot
+        keep advancing. Pass the same recruiter used for the skip-page policy
+        when one is already in hand; otherwise use the live session recruiter.
         """
         plan = exit_domain._stored_exit_plan(participant)
         if plan is None:
@@ -4899,6 +4928,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         recruiter.execute_early_exit_plan(experiment, participant, plan)
         committed = plan.mark_committed()
         participant.exit_plan = committed.to_dict()
+        if Experiment._skips_error_recovery_ui(recruiter, committed):
+            participant.page_uuid = experiment.make_uuid()
         return committed
 
     @staticmethod

@@ -341,9 +341,12 @@ General
     overrides are no longer supported. A tracked participant is never treated
     as an unidentified session: if they already left through a voluntary plan,
     that plan's presentation is reused; if they have no plan, the recruiter
-    still addresses them as a known participant. Fatal errors record the
+    still addresses them     as a known participant. Fatal errors record the
     exception type on ``failure_tags`` and fail the session with
-    ``error_recovery`` when a recovery plan is stored.
+    ``error_recovery`` when a recovery plan is stored. Error-page Submit,
+    Continue, and auto-redirect are armed only while that recovery plan is
+    still prepared; a reused committed plan keeps its explanation copy without
+    those controls.
 
     Once a participant has been created, PsyNet stores fatal recovery during
     the failing request. Recruiters that present recovery UI render it from
