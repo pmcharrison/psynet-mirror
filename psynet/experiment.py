@@ -4956,10 +4956,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The participant is still told that an error occurred; recruiter exit
         is reserved for finished and voluntary-leave sessions.
         """
-        return Experiment._skips_error_recovery_ui(
-            experiment.recruiter,
-            exit_domain._stored_exit_plan(participant),
-        )
+        plan = exit_domain._stored_exit_plan(participant)
+        if plan is None:
+            # Ordinary /response has no stored plan; skip recruiter lookup
+            # so tests and pages without a loaded Dallinger config still work.
+            return False
+        return Experiment._skips_error_recovery_ui(experiment.recruiter, plan)
 
     @classmethod
     def _render_skipped_error_recovery(
