@@ -133,7 +133,6 @@ class ErrorRecoveryPresentation:
     action_post_data: dict[str, str] = field(default_factory=dict)
     destination_url: str | None = None
     auto_redirect_delay_ms: int | None = None
-    done_message: str | None = None
 
     def __post_init__(self):
         """Reject presentations whose declared handoff cannot be executed."""

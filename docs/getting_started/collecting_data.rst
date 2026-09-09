@@ -296,7 +296,7 @@ efficiency of your own code.
 
 Participants who hit a technical error are offered a "Submit to Prolific" button on the error page.
 That records the submission locally; PsyNet then completes it on Prolific with the unsuccessful
-code. Participants stay on the error page and do not enter a completion code. Prolific pays the
+code. Participants then see a confirmation page and do not enter a completion code. Prolific pays the
 fixed screen-out amount automatically, and PsyNet tops them up to their accumulated reward with a
 bonus. Respond to Prolific messages promptly, and look the person up by Prolific ID on the
 Participants dashboard to confirm that PsyNet recorded the screen-out and any bonus. You should

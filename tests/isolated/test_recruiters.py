@@ -433,6 +433,35 @@ def test_release_participant_branching(failed, payment_configured, expected):
         submit.assert_not_called()
 
 
+@pytest.mark.parametrize("status", ["submitted", "approved", "screened_out"])
+def test_prolific_screen_out_release_confirms_when_submission_already_recorded(status):
+    """After Submit, SCREEN_OUT must not send them through Submit Study again."""
+    from psynet.modular_page import NextButton
+    from psynet.page import InfoPage
+
+    recruiter = make_prolific_recruiter(make_config())
+    participant = MagicMock(
+        early_exited=True,
+        status=status,
+        exit_plan=_early_exit_test_plan(ExitPath.SCREEN_OUT).mark_committed().to_dict(),
+    )
+
+    with (
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+        patch.object(recruiter, "submit_assignment") as submit,
+    ):
+        page = recruiter.release_participant(MagicMock(), participant)
+
+    submit.assert_not_called()
+    assert isinstance(page, InfoPage)
+    assert page.show_early_exit_button is False
+    assert not any(isinstance(button, NextButton) for button in page.buttons)
+    assert "Your participation has been recorded" in page.plain_text
+    assert "You may close this page." in page.plain_text
+    assert "You left early" not in page.plain_text
+    assert "An error occurred" not in page.plain_text
+
+
 @pytest.mark.parametrize(
     "path,expected_method",
     [
@@ -448,6 +477,7 @@ def test_prolific_release_follows_the_executed_plan(path, expected_method):
     recruiter = make_prolific_recruiter(make_config())
     participant = MagicMock(
         early_exited=True,
+        status="working",
         exit_plan=_early_exit_test_plan(path).mark_committed().to_dict(),
     )
 
@@ -1307,9 +1337,6 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
     assert "Prolific will pay you £0.25" in presentation.message
     assert "£0.35 as a bonus" in presentation.message
     assert "total payment to £0.60" in presentation.message
-    assert presentation.done_message == (
-        "Your participation has been recorded. You may close this page."
-    )
 
 
 def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():

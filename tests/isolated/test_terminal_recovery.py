@@ -13,7 +13,7 @@ from flask import Flask
 from psynet.end import ErrorRecoveryPage, SuccessfulEndLogic
 from psynet.exit import ExitContext, ExitPath, ExitPlan, ExitPlanStatus, PaymentDecision
 from psynet.experiment import Experiment, get_experiment
-from psynet.page import InfoPage
+from psynet.page import ExecuteFrontEndJS, InfoPage
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 
@@ -332,6 +332,80 @@ def test_committed_return_for_bonus_continue_renders_payment_instructions(db_ses
         assert response == payment_copy
         render.assert_called_once()
         error_page.assert_not_called()
+
+
+def test_prolific_screen_out_timeline_confirms_after_listener_records_submission(
+    db_session,
+):
+    """Submit's listener runs after execute; /timeline must re-evaluate release."""
+    from psynet.recruiters import PsyNetProlificRecruiterMixin
+
+    participant = _make_participant(page_uuid="page-1", status="working")
+    experiment = get_experiment()
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.SCREEN_OUT,
+        payment=PaymentDecision("screened_out", 0.25, 0.0),
+        currency="£",
+    )
+    prolific = object.__new__(PsyNetProlificRecruiterMixin)
+
+    def _identity_translator(context, message):
+        return message
+
+    with (
+        patch.object(
+            experiment.recruiter, "shows_error_recovery_page", return_value=True
+        ),
+        patch.object(experiment.recruiter, "plan_exit", return_value=plan),
+        patch.object(experiment.recruiter, "execute_early_exit_plan"),
+        patch.object(
+            experiment.recruiter,
+            "release_participant",
+            prolific.release_participant,
+        ),
+        patch(
+            "psynet.recruiters.get_translator",
+            return_value=_identity_translator,
+        ),
+    ):
+        Experiment._prepare_error_recovery_plan(
+            experiment,
+            experiment.recruiter,
+            participant,
+        )
+        assert isinstance(
+            experiment.timeline.get_current_elt(experiment, participant),
+            ErrorRecoveryPage,
+        )
+        Experiment._commit_stored_early_exit_plan(experiment, participant)
+        Experiment._enter_early_exit_release(experiment, participant)
+        assert isinstance(
+            experiment.timeline.get_current_elt(experiment, participant),
+            ExecuteFrontEndJS,
+        )
+
+        participant.status = "submitted"
+        current = experiment.timeline.get_current_elt(experiment, participant)
+        assert type(current) is InfoPage
+        assert "Your participation has been recorded" in current.plain_text
+        assert "You may close this page." in current.plain_text
+        assert "An error occurred" not in current.plain_text
+
+        with (
+            Flask(__name__).test_request_context(
+                f"/timeline?unique_id={participant.unique_id}",
+                environ_base={"REMOTE_ADDR": "127.0.0.1"},
+            ),
+            patch.object(InfoPage, "render", return_value="recorded") as render,
+            patch.object(Experiment, "_render_error_page") as error_page,
+        ):
+            response = Experiment._route_timeline(experiment, participant, mode=None)
+
+    assert response == "recorded"
+    render.assert_called_once()
+    assert type(render.call_args.args[0]) is InfoPage
+    error_page.assert_not_called()
 
 
 def test_complete_timeline_visit_backstops_worker_complete(db_session):

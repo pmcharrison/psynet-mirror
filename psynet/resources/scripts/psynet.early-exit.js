@@ -117,7 +117,6 @@
         automatic.dataset.actionPostData || "{}",
       );
       const destinationUrl = automatic.dataset.destinationUrl;
-      const doneMessage = automatic.dataset.doneMessage;
       const autoRedirectDelay = Number(
         automatic.dataset.autoRedirectDelayMs || 0,
       );
@@ -159,12 +158,10 @@
           }
           if (actionPostUrl) {
             await postForm(actionPostUrl, actionPostData);
-            if (!destinationUrl) {
-              if (finish) finish.hidden = true;
-              if (doneMessage) ready.textContent = doneMessage;
-              return;
-            }
           }
+          // Recruiter-specific POSTs (for example Prolific Submit) run first.
+          // Confirmation is a later timeline page reached through release_url,
+          // not a rewrite of this error document.
           continueToRelease(destinationUrl || releaseUrl);
         } catch (error) {
           showFailure(error);

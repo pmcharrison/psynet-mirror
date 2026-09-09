@@ -64,8 +64,7 @@ test(
                data-assignment-id="assignment-1"
                data-offer-id="offer-1"
                data-action-post-url="/prolific-submission-listener"
-               data-action-post-data='{"assignmentId":"assignment-1","participantId":"42"}'
-               data-done-message="Your participation has been recorded. You may close this page.">
+               data-action-post-data='{"assignmentId":"assignment-1","participantId":"42"}'>
             <p id="automatic-early-exit-pending">Saving...</p>
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
@@ -102,10 +101,10 @@ test(
         });
       }
     );
-    await page.route("http://psynet.test/prolific", async (route) => {
+    await page.route("http://psynet.test/release", async (route) => {
       await route.fulfill({
-        contentType: "text/html",
-        body: "<h1>Prolific</h1>"
+        contentType: "text/html; charset=utf-8",
+        body: "<p>Your participation has been recorded. You may close this page.</p>"
       });
     });
 
@@ -122,11 +121,10 @@ test(
     expect(prolificSubmission).toBeUndefined();
 
     await page.locator("#automatic-early-exit-continue").click();
-    await expect(page.locator("#automatic-early-exit-continue")).toBeHidden();
-    await expect(page.locator("#automatic-early-exit-ready")).toHaveText(
+    await expect(page).toHaveURL("http://psynet.test/release");
+    await expect(page.locator("p")).toHaveText(
       "Your participation has been recorded. You may close this page."
     );
-    await expect(page).toHaveURL("http://psynet.test/error");
     expect(prolificSubmission).toEqual({
       assignmentId: "assignment-1",
       participantId: "42"

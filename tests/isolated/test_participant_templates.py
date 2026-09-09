@@ -174,7 +174,7 @@ def test_error_recovery_uses_one_researcher_reference_code():
     assert "data-preparation-post-url" in source
     assert "data-action-post-url" in source
     assert "data-destination-url" in source
-    assert "data-done-message" in source
+    assert "data-done-message" not in source
     assert "Error type" not in source
     assert "Study ID" not in source
     assert "Worker ID" not in source
