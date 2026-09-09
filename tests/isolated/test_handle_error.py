@@ -117,7 +117,7 @@ def test_render_error_page_does_not_change_recovery_state():
         ),
     ):
         config.return_value.get.return_value = "researcher@example.test"
-        Experiment._render_error_page(
+        response = Experiment._render_error_page(
             participant=participant,
             plan=plan,
             recruiter=recruiter,
@@ -126,6 +126,7 @@ def test_render_error_page_does_not_change_recovery_state():
             locale="en",
         )
 
+    assert response.status_code == 200
     assert participant.exit_plan == {"unchanged": True}
     participant.fail.assert_not_called()
     recruiter.prepare_error_recovery.assert_not_called()
@@ -269,7 +270,7 @@ def test_error_page_finalizes_skipped_recovery_without_a_unique_id():
         config.return_value.get.return_value = "researcher@example.test"
         response = Experiment.error_page(participant=participant, recruiter=recruiter)
 
-    assert response.status_code == 500
+    assert response.status_code == 200
     finalize.assert_called_once_with(experiment, participant)
     render.assert_called_once()
     recruiter.prepare_error_recovery.assert_not_called()
@@ -494,6 +495,7 @@ def test_untracked_error_page_uses_the_same_structured_recruiter_hook(method):
 
     assert render.call_args.kwargs["automatic_exit_offer_id"] is None
     assert render.call_args.kwargs["error_page_presentation"] is presentation
+    assert response.status_code == 200
     # A cached copy would keep claiming the plan has not run yet.
     assert response.headers["Cache-Control"] == "no-store"
     recruiter.error_page_presentation.assert_called_once_with(

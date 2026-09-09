@@ -191,7 +191,7 @@ class ErrorRecoveryPage(Page):
         )
 
     def render(self, experiment, participant, partial_mode=False):
-        """Render recruiter-specific recovery copy with an HTTP error status."""
+        """Render recruiter-specific recovery copy as a successful timeline page."""
         assert not partial_mode
         from psynet.utils import get_locale
 

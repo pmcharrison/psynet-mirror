@@ -1690,7 +1690,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         external_submit_url,
         locale,
     ):
-        """Render an error page without changing participant recovery state."""
+        """Render an error page without changing participant recovery state.
+
+        The page reports that the experiment failed. The HTTP status is 200
+        because this request successfully rendered that page; the original
+        crash is a separate failed request.
+        """
         from flask import make_response, request
 
         _p = get_translator(context=True)
@@ -1729,7 +1734,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 error_page_presentation=error_page_presentation,
             ),
-            500,
+            200,
         )
         # The page reports whether the recovery plan has run, so a reload or a
         # Back navigation must ask the server again rather than restore a

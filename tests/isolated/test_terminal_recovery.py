@@ -156,7 +156,7 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
     ):
         response = Experiment._route_timeline(experiment, participant, mode=None)
 
-    assert response.status_code == 500
+    assert response.status_code == 200
     assert render.called
     assert render.call_args.kwargs["error_page_presentation"] is not None
     assert render.call_args.kwargs["automatic_exit_offer_id"] is None
@@ -200,7 +200,7 @@ def test_prepare_commits_a_leftover_prepared_generic_recovery_plan(db_session):
     ):
         response = Experiment._route_timeline(experiment, participant, mode=None)
 
-    assert response.status_code == 500
+    assert response.status_code == 200
     assert render.called
     assert render.call_args.kwargs["automatic_exit_offer_id"] is None
 
@@ -264,7 +264,7 @@ def test_prepared_recovery_is_the_first_early_exit_release_page(db_session):
         ):
             response = Experiment._route_timeline(experiment, participant, mode=None)
 
-        assert response.status_code == 500
+        assert response.status_code == 200
         assert render.called
         assert render.call_args.kwargs["automatic_exit_offer_id"] is not None
         assert (
