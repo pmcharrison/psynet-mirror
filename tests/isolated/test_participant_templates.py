@@ -878,6 +878,7 @@ def test_error_page_automatically_executes_its_server_owned_exit_plan():
     assert "An error occurred" in error
     assert "{% block title %}" in error
     assert "error_page_presentation.button_label" in error
+    assert "<h2>{{ error_page_presentation.button_label }}</h2>" not in error
     assert 'id="automatic-early-exit-ready"' in error
     assert '<div id="automatic-early-exit-ready"' in error
     assert "Finish session" not in error

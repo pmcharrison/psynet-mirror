@@ -67,7 +67,8 @@ test(
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
-              Your responses so far have been saved. You may close this page.
+              Unfortunately an error occurred and we cannot continue.
+              However, your responses so far have been saved. You may close this page.
             </p>
           </div>
         `
@@ -111,7 +112,10 @@ test(
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
-              Prolific will pay you £0.25.
+              Unfortunately an error occurred and we cannot continue.
+              However, your responses so far have been saved. We will pay you
+              for your progress so far. Select Submit to Prolific to complete
+              your submission. Prolific will pay you £0.25.
             </p>
             <button id="automatic-early-exit-continue" hidden>
               Submit to Prolific
@@ -196,7 +200,7 @@ test(
           <title>Submit to Prolific</title>
           <h1>Submit to Prolific</h1>
           <p id="prolific-exit-instructions">
-            Click below to send your submission to Prolific. You do not need to enter a completion code.
+            Click below to send your submission to Prolific. You will not need to enter a completion code.
           </p>
           <div id="prolific-exit-pending" hidden>Please wait.</div>
           <p id="prolific-exit-failure" hidden>
@@ -303,7 +307,6 @@ test(
         contentType: "text/html; charset=utf-8",
         body: `
           <h1>An error occurred</h1>
-          <p>You cannot continue.</p>
           <div id="automatic-early-exit"
                data-assignment-id="rid-1"
                data-offer-id="offer-1"
@@ -313,8 +316,9 @@ test(
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
-              Your responses so far have been saved. We will return you to your panel
-              in a few seconds.
+              Unfortunately an error occurred and we cannot continue.
+              However, your responses so far have been saved. We will return
+              you to your panel in a few seconds.
             </p>
             <button id="automatic-early-exit-continue" hidden>
               Return to your panel
@@ -371,6 +375,7 @@ test(
             <p id="automatic-early-exit-failure" hidden></p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
+              Unfortunately an error occurred and we cannot continue.
               We will return you to your panel in a few seconds.
             </p>
             <button id="automatic-early-exit-continue" hidden>

@@ -354,16 +354,35 @@ class PsyNetRecruiterMixin:
                 ).format(EMAIL=contact_address)
         if participant is None:
             return exit_domain.ErrorRecoveryPresentation(
-                message="",
+                message=self._error_recovery_body(responses_saved=False),
                 researcher_contact_message=contact_message,
             )
         return exit_domain.ErrorRecoveryPresentation(
-            message=_p(
-                "early_exit_error",
-                "Your responses so far have been saved. You may close this page.",
+            message=self._error_recovery_body(
+                _p("early_exit_error", "You may close this page."),
+                responses_saved=True,
             ),
             researcher_contact_message=contact_message,
         )
+
+    def _error_recovery_body(self, *continuations: str, responses_saved: bool) -> str:
+        """Build the error-page paragraph under ``An error occurred``."""
+        _p = get_translator(context=True)
+        parts = [
+            _p(
+                "early_exit_error",
+                "Unfortunately an error occurred and we cannot continue.",
+            )
+        ]
+        if responses_saved:
+            parts.append(
+                _p(
+                    "early_exit_error",
+                    "However, your responses so far have been saved.",
+                )
+            )
+        parts.extend(part for part in continuations if part)
+        return " ".join(parts)
 
     def prepare_error_recovery(self, participant) -> None:
         """Perform recruiter bookkeeping before rendering error recovery."""
@@ -953,18 +972,24 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         _p = get_translator(context=True)
         if participant is None:
             return exit_domain.ErrorRecoveryPresentation(
-                message=_p(
-                    "prolific_error",
-                    "If you had already started, message the researcher "
-                    "through Prolific.",
+                message=self._error_recovery_body(
+                    _p(
+                        "prolific_error",
+                        "If you had already started, message the researcher "
+                        "through Prolific.",
+                    ),
+                    responses_saved=False,
                 )
             )
         if plan is None:
             return exit_domain.ErrorRecoveryPresentation(
-                message=_p(
-                    "prolific_error",
-                    "Please message the researcher through Prolific and describe "
-                    "what led to this error.",
+                message=self._error_recovery_body(
+                    _p(
+                        "prolific_error",
+                        "Please message the researcher through Prolific and describe "
+                        "what led to this error.",
+                    ),
+                    responses_saved=True,
                 )
             )
         if plan.path is exit_domain.ExitPath.SCREEN_OUT:
@@ -1006,14 +1031,17 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     "Any additional amount you earned will be paid as a bonus.",
                 )
 
-            message = _p(
-                "early_exit_error_prolific",
-                "Your responses so far have been saved. We will pay you for "
-                "your progress so far. Select Submit to Prolific to complete "
-                "your submission.",
+            message = self._error_recovery_body(
+                _p(
+                    "early_exit_error_prolific",
+                    "We will pay you for your progress so far. Select Submit to "
+                    "Prolific to complete your submission.",
+                ),
+                payment,
+                responses_saved=True,
             )
             return exit_domain.ErrorRecoveryPresentation(
-                message=f"{message} {payment}",
+                message=message,
                 failure_message=self._submission_failure_copy(),
                 button_label=_p("early_exit_error_prolific", "Submit to Prolific"),
                 action_post_url="/prolific-submission-listener",
@@ -1043,7 +1071,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 "Select Continue to payment instructions to complete these steps.",
             )
             return exit_domain.ErrorRecoveryPresentation(
-                message=f"{_p('early_exit_error_prolific', 'Your responses so far have been saved.')} {payment} {next_step}",
+                message=self._error_recovery_body(
+                    payment,
+                    next_step,
+                    responses_saved=True,
+                ),
                 failure_message=_p(
                     "early_exit_error_prolific",
                     "We could not open the payment instructions. Please try again. "
@@ -3197,15 +3229,20 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             else:
                 external_submit_url = self._panel_termination_url(participant)
         if participant is None or plan is None:
-            message = _p(
-                "lucid_error",
-                "We will return you to your panel in a few seconds.",
+            message = self._error_recovery_body(
+                _p(
+                    "lucid_error",
+                    "We will return you to your panel in a few seconds.",
+                ),
+                responses_saved=False,
             )
         else:
-            message = _p(
-                "early_exit_error_lucid",
-                "Your responses so far have been saved. We will return you to "
-                "your panel in a few seconds.",
+            message = self._error_recovery_body(
+                _p(
+                    "early_exit_error_lucid",
+                    "We will return you to your panel in a few seconds.",
+                ),
+                responses_saved=True,
             )
         return exit_domain.ErrorRecoveryPresentation(
             message=message,

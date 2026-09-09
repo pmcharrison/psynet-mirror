@@ -1698,12 +1698,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         from flask import make_response, request
 
-        _p = get_translator(context=True)
         if error_text is None:
-            error_text = _p(
-                "error-msg",
-                "You cannot continue.",
-            )
+            error_text = ""
 
         if participant is not None:
             assignment_id = participant.assignment_id

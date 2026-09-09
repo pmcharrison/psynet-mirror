@@ -1098,7 +1098,7 @@ def test_prolific_exit_template_does_not_redirect_to_completion_code():
         / "templates"
         / "exit_recruiter_prolific_submitted.html"
     ).read_text()
-    assert "You do not need to enter a completion code" in text
+    assert "You will not need to enter a completion code" in text
     assert "Click below to send your submission to Prolific" in text
     assert "window.location.replace" in text
     assert "prolific.co" not in text
@@ -1134,8 +1134,12 @@ def test_prolific_tracked_error_page_without_a_plan_does_not_claim_an_unknown_se
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
         presentation = recruiter.error_page_presentation(participant=participant)
 
+    assert presentation.message == (
+        "Unfortunately an error occurred and we cannot continue. "
+        "However, your responses so far have been saved. Please message the "
+        "researcher through Prolific and describe what led to this error."
+    )
     assert "could not continue from this page" not in presentation.message
-    assert "message the researcher through Prolific" in presentation.message
     assert presentation.action_post_url is None
 
 
@@ -1149,6 +1153,7 @@ def test_prolific_untracked_error_page_uses_structured_platform_support():
         presentation = recruiter.error_page_presentation()
 
     assert presentation.message == (
+        "Unfortunately an error occurred and we cannot continue. "
         "If you had already started, message the researcher through Prolific."
     )
     assert "could not continue from this page" not in presentation.message
@@ -1268,7 +1273,8 @@ def test_default_error_recovery_page_is_terminal():
     assert presentation.button_label is None
     assert presentation.preparation_post_url is None
     assert presentation.message == (
-        "Your responses so far have been saved. You may close this page."
+        "Unfortunately an error occurred and we cannot continue. "
+        "However, your responses so far have been saved. You may close this page."
     )
     assert presentation.failure_message is None
     assert presentation.researcher_contact_message == (
@@ -1297,7 +1303,8 @@ def test_default_tracked_error_page_without_a_plan_stays_terminal():
 
     assert "could not continue from this page" not in presentation.message
     assert presentation.message == (
-        "Your responses so far have been saved. You may close this page."
+        "Unfortunately an error occurred and we cannot continue. "
+        "However, your responses so far have been saved. You may close this page."
     )
     assert presentation.preparation_post_url is None
     assert presentation.researcher_contact_message == (
@@ -1306,13 +1313,18 @@ def test_default_tracked_error_page_without_a_plan_stays_terminal():
     )
 
 
-def test_generic_untracked_error_page_omits_continue_copy():
+def test_generic_untracked_error_page_explains_we_cannot_continue():
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
         presentation = PsyNetRecruiterMixin().error_page_presentation()
 
-    assert presentation.message == ""
+    assert presentation.message == (
+        "Unfortunately an error occurred and we cannot continue."
+    )
     assert presentation.button_label is None
     assert "could not continue from this page" not in presentation.message
+
+
+def test_generic_recruiters_skip_the_error_recovery_page():
     plan = _early_exit_test_plan(context=ExitContext.ERROR_RECOVERY)
     assert PsyNetRecruiterMixin().shows_error_recovery_page(plan) is False
 
@@ -1385,13 +1397,12 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
         "If this keeps happening, message the researcher through Prolific."
     )
     assert presentation.researcher_contact_message is None
-    assert "Prolific will pay you £0.25" in presentation.message
-    assert "£0.35 as a bonus" in presentation.message
-    assert "total payment to £0.60" in presentation.message
-    assert "Your responses so far have been saved" in presentation.message
-    assert "We will pay you for your progress so far" in presentation.message
-    assert (
-        "Select Submit to Prolific to complete your submission" in presentation.message
+    assert presentation.message == (
+        "Unfortunately an error occurred and we cannot continue. "
+        "However, your responses so far have been saved. We will pay you for "
+        "your progress so far. Select Submit to Prolific to complete your "
+        "submission. Prolific will pay you £0.25. We will also pay £0.35 as a "
+        "bonus, bringing your total payment to £0.60."
     )
 
 
@@ -1421,9 +1432,13 @@ def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
         "keeps happening, message the researcher through Prolific."
     )
     assert presentation.researcher_contact_message is None
-    assert "return your submission on Prolific" in presentation.message
-    assert "£0.60" in presentation.message
-    assert "Your responses so far have been saved" in presentation.message
+    assert presentation.message == (
+        "Unfortunately an error occurred and we cannot continue. "
+        "However, your responses so far have been saved. To receive £0.60 for "
+        "the work you completed, you will need to return your submission on "
+        "Prolific. Select Continue to payment instructions to complete these "
+        "steps."
+    )
 
 
 def test_lucid_error_recovery_explains_the_panel_redirect():
@@ -1455,7 +1470,11 @@ def test_lucid_error_recovery_explains_the_panel_redirect():
     )
     assert presentation.researcher_contact_message is None
     assert "panel provider will determine any payment" not in presentation.message
-    assert "Your responses so far have been saved" in presentation.message
+    assert presentation.message == (
+        "Unfortunately an error occurred and we cannot continue. "
+        "However, your responses so far have been saved. We will return you to "
+        "your panel in a few seconds."
+    )
 
 
 def test_lucid_untracked_error_page_uses_the_same_structured_delay():
@@ -1466,7 +1485,11 @@ def test_lucid_untracked_error_page_uses_the_same_structured_delay():
             external_submit_url="https://lucid.test/terminate",
         )
 
-    assert "return you to your panel in a few seconds" in presentation.message
+    assert presentation.message == (
+        "Unfortunately an error occurred and we cannot continue. "
+        "We will return you to your panel in a few seconds."
+    )
+    assert "However, your responses so far have been saved" not in presentation.message
     assert presentation.auto_redirect_delay_ms == 5000
     assert presentation.destination_url == "https://lucid.test/terminate"
     assert presentation.button_label == "Return to your panel"
@@ -3949,6 +3972,7 @@ def test_prolific_exit_page_renders_with_psynet_layout():
     assert "<title>Submit to Prolific</title>" in html
     assert "Submit to Prolific" in html
     assert "Click below to send your submission to Prolific" in html
+    assert "You will not need to enter a completion code" in html
     assert "Prolific Study Submission" not in html
     assert "/prolific-submission-listener" in html
     assert "window.location.replace" in html

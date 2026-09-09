@@ -57,13 +57,9 @@ class TestExp:
             assert_text(driver, "header", "An error occurred")
             assert_text(
                 driver,
-                "error-text",
-                "You cannot continue.",
-            )
-            assert_text(
-                driver,
                 "automatic-early-exit-ready",
-                "Your responses so far have been saved. You may close this page.",
+                "Unfortunately an error occurred and we cannot continue. "
+                "However, your responses so far have been saved. You may close this page.",
             )
             assert not driver.find_elements(By.ID, "automatic-early-exit-continue")
             assert not driver.find_elements(By.ID, "early-exit-open")

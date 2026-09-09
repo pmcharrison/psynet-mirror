@@ -13,7 +13,9 @@
             <h1 id="header">{{ pgettext("error", "An error occurred") }}</h1>
             <hr>
             <div>
-                <p id="error-text">{{ error_text }}</p>
+                {% if error_text %}
+                    <p id="error-text">{{ error_text }}</p>
+                {% endif %}
                 {% if error_page_presentation %}
                     <div id="automatic-early-exit"
                          data-assignment-id="{{ assignment_id }}"
@@ -39,9 +41,6 @@
                             {{ pgettext("early_exit_error", "Try again") }}
                         </button>
                         <div id="automatic-early-exit-ready" hidden>
-                            {% if error_page_presentation.button_label %}
-                                <h2>{{ error_page_presentation.button_label }}</h2>
-                            {% endif %}
                             {% if error_page_presentation.message %}
                                 <p>{{ error_page_presentation.message }}</p>
                             {% endif %}
