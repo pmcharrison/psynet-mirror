@@ -1,1 +1,0 @@
-Deprecated ``Page(show_termination_button=...)`` and ``Page(show_abort_button=...)`` in favour of ``show_early_exit_button=...``. The old arguments still work and emit a ``FutureWarning``. Recruiter ``show_termination_button`` / ``show_abort_button`` remain compatibility aliases of ``show_early_exit_button``.

@@ -1,1 +1,0 @@
-After Finish then Submit to Prolific, recruiter-exit reloads a confirmation page instead of rewriting the submit heading in place. The error-page and recruiter-exit Submit paths share that confirmation document, without timeline chrome. Error, debrief, and exit copy no longer talks about the study or experiment on those pages.
