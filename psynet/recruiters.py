@@ -301,7 +301,9 @@ class PsyNetRecruiterMixin:
         Generic, HotAir, and lab recruiters have nothing to ask after an
         error, so PsyNet commits the plan on the server and the participant
         sees the normal recruiter exit. Do not infer this from
-        ``button_label is None``.
+        ``button_label is None``. Custom recruiters that present recovery UI
+        must override this method; a custom ``error_page_presentation`` with
+        a button is not enough.
         """
         del plan
         return False

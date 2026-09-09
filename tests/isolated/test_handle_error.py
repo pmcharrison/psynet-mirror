@@ -11,6 +11,7 @@ from psynet.exit import (
     ExitContext,
     ExitPath,
     ExitPlan,
+    ExitPlanStatus,
     PaymentState,
 )
 from psynet.experiment import Experiment
@@ -227,6 +228,87 @@ def test_error_page_redirects_generic_tracked_recovery_to_timeline():
     recruiter.prepare_error_recovery.assert_not_called()
     recruiter.error_page_presentation.assert_not_called()
     experiment.plan_exit.assert_not_called()
+
+
+def test_error_page_finalizes_skipped_recovery_without_a_unique_id():
+    from flask import Flask
+
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+    ).mark_committed()
+    participant = SimpleNamespace(
+        id=42,
+        unique_id=None,
+        hit_id="study-1",
+        assignment_id="assignment-1",
+        worker_id="worker-1",
+        complete=False,
+        failed=True,
+        early_exited=True,
+        exit_plan=plan.to_dict(),
+        fail=MagicMock(),
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
+    recruiter = MagicMock()
+    recruiter.shows_error_recovery_page.return_value = False
+
+    with (
+        Flask(__name__).test_request_context("/error-page"),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+        patch.object(Experiment, "_ensure_worker_complete") as finalize,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        response = Experiment.error_page(participant=participant, recruiter=recruiter)
+
+    assert response.status_code in (301, 302)
+    assert "/recruiter-exit?participant_id=42" in response.location
+    finalize.assert_called_once_with(experiment, participant)
+    render.assert_not_called()
+    recruiter.prepare_error_recovery.assert_not_called()
+    recruiter.error_page_presentation.assert_not_called()
+    experiment.plan_exit.assert_not_called()
+
+
+def test_prepare_commits_with_the_policy_recruiter():
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+    )
+    participant = SimpleNamespace(
+        id=42,
+        complete=False,
+        failed=True,
+        early_exited=False,
+        exit_plan=plan.to_dict(),
+        fail=MagicMock(),
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
+    policy_recruiter = MagicMock()
+    policy_recruiter.shows_error_recovery_page.return_value = False
+
+    result = Experiment._prepare_error_recovery_plan(
+        experiment, policy_recruiter, participant
+    )
+
+    assert result.status is ExitPlanStatus.COMMITTED
+    assert result.plan_id == plan.plan_id
+    policy_recruiter.execute_early_exit_plan.assert_called_once()
+    executed_plan = policy_recruiter.execute_early_exit_plan.call_args.args[2]
+    assert executed_plan.plan_id == plan.plan_id
+    assert executed_plan.status is ExitPlanStatus.PREPARED
+    experiment.recruiter.execute_early_exit_plan.assert_not_called()
 
 
 def test_a_get_reload_reuses_the_prepared_error_recovery_plan():

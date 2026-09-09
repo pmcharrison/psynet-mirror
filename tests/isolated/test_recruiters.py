@@ -11,6 +11,7 @@ from dallinger.prolific import ProlificServiceException
 
 from psynet.exit import (
     EarlyExitConfirmation,
+    ErrorRecoveryPresentation,
     ExitContext,
     ExitPath,
     ExitPlan,
@@ -1233,6 +1234,23 @@ def test_default_tracked_error_page_without_a_plan_stays_terminal():
 def test_generic_recruiters_skip_the_error_recovery_page():
     plan = _early_exit_test_plan(context=ExitContext.ERROR_RECOVERY)
     assert PsyNetRecruiterMixin().shows_error_recovery_page(plan) is False
+
+
+def test_custom_recruiter_must_opt_in_to_show_the_error_recovery_page():
+    class RecruiterWithRecoveryButton(PsyNetRecruiterMixin):
+        def error_page_presentation(self, **kwargs):
+            return ErrorRecoveryPresentation(
+                message="Something went wrong.",
+                failure_message="The session failed.",
+                button_label="Continue",
+                destination_url="/custom-exit",
+            )
+
+    plan = _early_exit_test_plan(context=ExitContext.ERROR_RECOVERY)
+    recruiter = RecruiterWithRecoveryButton()
+    presentation = recruiter.error_page_presentation()
+    assert presentation.button_label == "Continue"
+    assert recruiter.shows_error_recovery_page(plan) is False
 
 
 def test_prolific_and_lucid_show_the_error_recovery_page():

@@ -1605,7 +1605,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         idempotent. The separate ``/error-page`` route stays untracked.
         Recruiters with nothing to ask skip the recovery page: the plan is
         committed on the server and this helper redirects to ``/timeline``,
-        which then hands the participant to recruiter exit.
+        which then hands the participant to recruiter exit. Without a
+        ``unique_id`` it finalizes worker-complete itself and redirects to
+        recruiter exit.
         """
         experiment = get_experiment()
         active_recruiter = recruiter or experiment.recruiter
@@ -1621,6 +1623,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ):
             if unique_id:
                 return redirect(f"/timeline?unique_id={unique_id}")
+            cls._ensure_worker_complete(experiment, participant)
             return redirect(f"/recruiter-exit?participant_id={participant_id}")
         return cls._render_error_page(
             participant=participant,
@@ -1648,7 +1651,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             or plan.status is exit_domain.ExitPlanStatus.COMMITTED
         ):
             if cls._skips_error_recovery_ui(recruiter, plan):
-                return cls._commit_stored_early_exit_plan(experiment, participant)
+                return cls._commit_stored_early_exit_plan(
+                    experiment, participant, recruiter
+                )
             return plan
         if participant.early_exited or experiment.timeline.participant_is_in_end_logic(
             participant
@@ -1666,7 +1671,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if recruiter.shows_error_recovery_page(plan):
             cls._enter_early_exit_release(experiment, participant)
             return plan
-        return cls._commit_stored_early_exit_plan(experiment, participant)
+        return cls._commit_stored_early_exit_plan(experiment, participant, recruiter)
 
     @staticmethod
     def _render_error_page(
@@ -4868,19 +4873,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @staticmethod
-    def _commit_stored_early_exit_plan(experiment, participant):
+    def _commit_stored_early_exit_plan(experiment, participant, recruiter=None):
         """Execute the stored plan if it is still prepared.
 
         The stored plan is the source of truth. Already committed plans are
         returned unchanged. This helper does not move the timeline; Leave and
-        recovery Continue own that navigation themselves.
+        recovery Continue own that navigation themselves. Pass the same
+        recruiter used for the skip-page policy when one is already in hand;
+        otherwise use the live session recruiter.
         """
         plan = exit_domain._stored_exit_plan(participant)
         if plan is None:
             return None
         if plan.status is exit_domain.ExitPlanStatus.COMMITTED:
             return plan
-        experiment.recruiter.execute_early_exit_plan(experiment, participant, plan)
+        recruiter = recruiter or experiment.recruiter
+        recruiter.execute_early_exit_plan(experiment, participant, plan)
         committed = plan.mark_committed()
         participant.exit_plan = committed.to_dict()
         return committed
