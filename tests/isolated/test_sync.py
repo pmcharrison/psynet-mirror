@@ -455,7 +455,7 @@ def test_group_allocator(in_experiment_directory, db_session):
     grouper = SimpleGrouper(group_type="main", initial_group_size=3)
     participants = [new_participant(exp) for _ in range(6)]
 
-    grouper.receive_participant(participants[0])
+    _arrive_at_group_barrier(exp, grouper, participants[0])
     db.session.commit()
 
     assert BarrierDefinition.query.get("main_grouper") is not None
@@ -466,7 +466,7 @@ def test_group_allocator(in_experiment_directory, db_session):
     for participant in participants:
         assert participant.sync_group is None
 
-    grouper.receive_participant(participants[1])
+    _arrive_at_group_barrier(exp, grouper, participants[1])
     db.session.commit()
 
     assert not grouper.can_participant_exit(participants[0])
@@ -474,8 +474,7 @@ def test_group_allocator(in_experiment_directory, db_session):
     for participant in participants:
         assert participant.sync_group is None
 
-    grouper.receive_participant(participants[2])
-    grouper.check()
+    _arrive_at_group_barrier(exp, grouper, participants[2])
 
     db.session.commit()
 
