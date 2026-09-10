@@ -5643,6 +5643,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return page
 
+    @classmethod
+    def _prepare_approved_inplace_page(cls, experiment, participant, page, payload):
+        """Prepare an inplace page in the write phase and refresh its JSON.
+
+        ``process_response`` serializes ``payload["page"]`` before this
+        preparation. Same-session clients consume that object, so it must
+        include contents and attributes assigned by ``pre_render()``.
+        """
+        page.pre_render()
+        if page.early_exit_available(experiment, participant):
+            experiment.prepare_voluntary_exit_plan(participant)
+        payload["page"] = page.__json__(participant)
+        return participant.page_uuid
+
     @staticmethod
     def _render_prepared_partial_timeline_payload(page, experiment, participant):
         """
@@ -5755,10 +5769,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if not page.is_timeline_hold:
                     render_fragment = not page.requires_full_page_reload
                     if render_fragment:
-                        page.pre_render()
-                        if page.early_exit_available(exp, participant):
-                            exp.prepare_voluntary_exit_plan(participant)
-                        page_uuid_after_response = participant.page_uuid
+                        page_uuid_after_response = cls._prepare_approved_inplace_page(
+                            exp, participant, page, payload
+                        )
             db.session.commit()
         except Exception as err:
             return cls._handle_response_prepare_error(exp, participant_id, err)

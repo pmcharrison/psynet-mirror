@@ -223,6 +223,22 @@ def test_prepared_partial_fragment_rendering_does_not_repeat_pre_render():
     assert payload == {"html": "<html>", "page_uuid": "uuid-123"}
 
 
+def test_same_session_page_payload_uses_pre_render_contents():
+    page = SimpleNamespace(contents="before")
+    page.pre_render = lambda: setattr(page, "contents", "after")
+    page.early_exit_available = lambda experiment, participant: False
+    page.__json__ = lambda participant: {"contents": page.contents}
+    payload = {"submission": "approved", "page": {"contents": "before"}}
+    participant = SimpleNamespace(page_uuid="uuid-after")
+
+    page_uuid = Experiment._prepare_approved_inplace_page(
+        MagicMock(), participant, page, payload
+    )
+
+    assert page_uuid == "uuid-after"
+    assert payload["page"]["contents"] == "after"
+
+
 def test_template_fragment_input_wraps_main_body_content():
     page = Page(template_fragment_str="<p id='fragment-only'>Fragment content</p>")
 
