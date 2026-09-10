@@ -102,6 +102,14 @@ When participants reach this barrier, they will wait until all participants in t
 are also waiting at that barrier. An optional ``on_release`` function can be provided to the barrier,
 which will be executed on the group of participants at the point when they leave the barrier.
 
+Treat a barrier's ``id_`` as the identity of one kind of waiting point. Reusing
+an ID with a different barrier class is an error. Within one active waiting
+pool, its release behavior and callbacks must also remain consistent; use a
+different ID for different release behavior. Waiting presentation may vary
+between participants sharing a pool. Group barriers keep separate waiting pools
+for each group and visit, so different groups may safely use callbacks bound to
+their own group-specific objects.
+
 By default, a barrier keeps the participant's current page visible, disables
 interaction, and displays a small waiting indicator. Pass ``content`` to
 customize that overlay (for example ``"Waiting for your partner"``).

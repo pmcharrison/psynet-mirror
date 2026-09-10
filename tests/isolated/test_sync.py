@@ -1,4 +1,5 @@
 import json
+import threading
 import uuid
 from datetime import timedelta
 from types import SimpleNamespace
@@ -61,6 +62,9 @@ def new_participant(experiment):
 
 
 processed_barriers = []
+two_poller_checks = []
+two_poller_check_started = threading.Event()
+two_poller_check_can_finish = threading.Event()
 
 
 class ExplodingBarrier(Barrier):
@@ -78,9 +82,27 @@ class ReleaseAllBarrier(Barrier):
         return waiting_participants
 
 
+class BlockingReleaseBarrier(ReleaseAllBarrier):
+    def check_waiting_participants(self, waiting_participants):
+        two_poller_checks.append(self.id)
+        two_poller_check_started.set()
+        assert two_poller_check_can_finish.wait(timeout=2)
+
+
 class WaitForTwoBarrier(Barrier):
     def choose_who_to_release(self, waiting_participants):
         if len(waiting_participants) < 2:
+            return []
+        return waiting_participants
+
+
+class ConfigurableBarrier(Barrier):
+    def __init__(self, id_, required):
+        super().__init__(id_)
+        self.required = required
+
+    def choose_who_to_release(self, waiting_participants):
+        if len(waiting_participants) < self.required:
             return []
         return waiting_participants
 
@@ -271,6 +293,61 @@ def test_group_barrier_reuses_one_instance_per_group_visit(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_existing_barrier_instance_does_not_take_creation_lock(
+    in_experiment_directory, db_session, monkeypatch
+):
+    exp = get_experiment()
+    first, second = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="instance_fast_path", group_type="main")
+    barrier.receive_participant(first)
+    db_session.commit()
+
+    def reject_creation_lock(instance_id, *, wait=False):
+        if wait:
+            raise AssertionError("Existing instances must not take the creation lock.")
+        return True
+
+    monkeypatch.setattr("psynet.sync._claim_barrier_instance", reject_creation_lock)
+    barrier.receive_participant(second)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_barrier_id_rejects_a_different_class(in_experiment_directory, db_session):
+    exp = get_experiment()
+    first = new_participant(exp)
+    second = new_participant(exp)
+    first.status = second.status = "working"
+    ReleaseAllBarrier(id_="stable_definition").receive_participant(first)
+    db_session.commit()
+
+    with pytest.raises(ValueError, match="already identifies"):
+        WaitForTwoBarrier(id_="stable_definition").receive_participant(second)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_shared_barrier_id_rejects_different_behavior(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    first = new_participant(exp)
+    second = new_participant(exp)
+    first.status = second.status = "working"
+    ConfigurableBarrier(id_="stable_behavior", required=2).receive_participant(first)
+    db_session.commit()
+
+    with pytest.raises(ValueError, match="different behavior"):
+        ConfigurableBarrier(id_="stable_behavior", required=3).receive_participant(
+            second
+        )
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_same_group_barrier_id_uses_distinct_instances_per_group(
     in_experiment_directory, db_session
 ):
@@ -286,6 +363,12 @@ def test_same_group_barrier_id_uses_distinct_instances_per_group(
     second_instance = second_group[0].active_barriers[barrier.id].barrier_instance
     assert first_instance.id != second_instance.id
     assert first_instance.group_id != second_instance.group_id
+    assert barrier.get_waiting_participants(barrier_instance_id=first_instance.id) == [
+        first_group[0]
+    ]
+    assert barrier.get_waiting_participants(barrier_instance_id=second_instance.id) == [
+        second_group[0]
+    ]
 
 
 @pytest.mark.parametrize(
@@ -857,6 +940,44 @@ def test_check_barriers_skips_locked_waiters_and_continues(
 
     check_barriers()
     assert _barrier_link_released(locked_id, "a_locked") is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_two_pollers_process_one_barrier_instance_once(
+    in_experiment_directory, db_session
+):
+    participant = new_participant(get_experiment())
+    participant.status = "working"
+    BlockingReleaseBarrier(id_="single_claim").receive_participant(participant)
+    db_session.commit()
+    two_poller_checks.clear()
+    two_poller_check_started.clear()
+    two_poller_check_can_finish.clear()
+    errors = []
+
+    def run_poller():
+        try:
+            check_barriers()
+        except Exception as err:  # pragma: no cover - surfaced below
+            errors.append(err)
+        finally:
+            db.session.remove()
+
+    first = threading.Thread(target=run_poller, daemon=True)
+    second = threading.Thread(target=run_poller, daemon=True)
+    first.start()
+    assert two_poller_check_started.wait(timeout=2)
+    second.start()
+    second.join(timeout=2)
+    two_poller_check_can_finish.set()
+    first.join(timeout=2)
+
+    assert errors == []
+    assert not first.is_alive()
+    assert not second.is_alive()
+    assert two_poller_checks == ["single_claim"]
 
 
 @pytest.mark.parametrize(

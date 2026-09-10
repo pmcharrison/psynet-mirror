@@ -1,1 +1,1 @@
-Barrier definitions, group visits, and poller claims now have separate identities, preventing arrival requests from deadlocking with the barrier poller.
+Barrier definitions, group visits, and poller claims now have separate identities, preventing arrival requests from deadlocking with the barrier poller and rejecting incompatible reuse of an active waiting pool.

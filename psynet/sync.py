@@ -76,10 +76,10 @@ Callable attributes on barriers (e.g., ``on_release``) are serialized via
 """
 
 import copy
+import hashlib
 import random
 import uuid
 from contextlib import contextmanager
-from contextvars import ContextVar
 from math import floor
 from typing import Callable, List, Literal, Optional, Union
 
@@ -127,19 +127,20 @@ from psynet.utils import call_function_with_context, get_config, get_logger
 
 logger = get_logger()
 
-_current_barrier_instance_id = ContextVar(
-    "psynet_current_barrier_instance_id", default=None
-)
-
 
 @contextmanager
-def _barrier_instance_context(instance_id):
-    """Scope barrier queries to one persisted visit."""
-    token = _current_barrier_instance_id.set(instance_id)
+def _bound_barrier_instance(barrier, instance_id):
+    """Bind legacy ``check()`` overrides to one visit for the duration of a call."""
+    marker = object()
+    previous = getattr(barrier, "_bound_instance_id", marker)
+    barrier._bound_instance_id = instance_id
     try:
         yield
     finally:
-        _current_barrier_instance_id.reset(token)
+        if previous is marker:
+            del barrier._bound_instance_id
+        else:
+            barrier._bound_instance_id = previous
 
 
 def _claim_barrier_instance(instance_id, *, wait=False):
@@ -413,9 +414,12 @@ class Barrier(EltCollection):
         try:
             with (
                 db.session.begin_nested(),
-                _barrier_instance_context(barrier_instance.id),
+                _bound_barrier_instance(registered_barrier, barrier_instance.id),
             ):
-                waiting = registered_barrier.check()
+                waiting = call_function_with_context(
+                    registered_barrier.check,
+                    barrier_instance_id=barrier_instance.id,
+                )
         except Exception as err:
             if is_transient_transaction_error(err):
                 logger.debug(
@@ -439,9 +443,20 @@ class Barrier(EltCollection):
         link = participant.active_barriers.get(self.id)
         return link is not None and not bool(link.released)
 
-    def get_waiting_participants(self, for_update: bool = False, nowait: bool = False):
+    def get_waiting_participants(
+        self,
+        for_update: bool = False,
+        nowait: bool = False,
+        barrier_instance_id: Optional[str] = None,
+    ):
+        barrier_instance_id = barrier_instance_id or getattr(
+            self, "_bound_instance_id", None
+        )
         return self.get_waiting_participants_from_barrier_id(
-            self.id, for_update=for_update, nowait=nowait
+            self.id,
+            for_update=for_update,
+            nowait=nowait,
+            barrier_instance_id=barrier_instance_id,
         )
 
     @classmethod
@@ -490,10 +505,9 @@ class Barrier(EltCollection):
             .options(joinedload(ParticipantLinkBarrier.participant, innerjoin=True))
             .order_by(Participant.id)
         )
-        instance_id = barrier_instance_id or _current_barrier_instance_id.get()
-        if instance_id is not None:
+        if barrier_instance_id is not None:
             query = query.filter(
-                ParticipantLinkBarrier.barrier_instance_id == instance_id
+                ParticipantLinkBarrier.barrier_instance_id == barrier_instance_id
             )
 
         if for_update:
@@ -523,7 +537,7 @@ class Barrier(EltCollection):
     def check_waiting_participants(self, waiting_participants: List[Participant]):
         """Run any side-effecting checks before deciding who to release."""
 
-    def check(self):
+    def check(self, barrier_instance_id: Optional[str] = None):
         """Lock waiters, release whoever is ready, and return the locked waiters.
 
         Returns
@@ -534,7 +548,9 @@ class Barrier(EltCollection):
             before the rest of the HTTP request continues.
         """
         waiting_participants = self.get_waiting_participants(
-            for_update=True, nowait=True
+            for_update=True,
+            nowait=True,
+            barrier_instance_id=barrier_instance_id,
         )
         waiting_participants.sort(key=lambda p: p.id)
 
@@ -559,7 +575,7 @@ class Barrier(EltCollection):
 
             for participant in participants_to_release:
                 self.release(participant)
-        instance_id = _current_barrier_instance_id.get()
+        instance_id = barrier_instance_id or getattr(self, "_bound_instance_id", None)
         if instance_id is not None:
             instance = BarrierInstance.query.get(instance_id)
             if instance is not None and instance.group_id is not None:
@@ -1429,6 +1445,13 @@ class BarrierDefinition(SQLBase, SQLMixin):
             .values(**values)
             .on_conflict_do_nothing(index_elements=["id"])
         )
+        existing = cls.query.get(barrier_id)
+        if existing.barrier_class is not barrier_class:
+            raise ValueError(
+                f"Barrier ID '{barrier_id}' already identifies "
+                f"{existing.barrier_class.__name__}, not {barrier_class.__name__}. "
+                "Use a different barrier ID."
+            )
 
 
 @register_table
@@ -1442,6 +1465,7 @@ class BarrierInstance(SQLBase, SQLMixin):
     group_id = Column(Integer, ForeignKey("sync_group.id"), nullable=True, index=True)
     active = Column(Boolean, default=True, index=True)
     barrier = deferred(Column(PythonObject))
+    behavior_hash = Column(String(64))
 
     definition = relationship("BarrierDefinition", back_populates="instances")
     group = relationship("SyncGroup")
@@ -1457,29 +1481,75 @@ class BarrierInstance(SQLBase, SQLMixin):
         db.session.flush()
         BarrierDefinition.ensure_exists(barrier.id, barrier.__class__)
         group_id = cls._group_id(barrier, participant)
+        registered_barrier = barrier.for_registry()
+        behavior_hash = cls._behavior_hash(registered_barrier)
+        instance = cls._active_instance(barrier.id, group_id)
+        if instance is not None:
+            instance._validate_behavior(behavior_hash)
+            return instance
+
         scope = f"{barrier.id}:group:{group_id}" if group_id is not None else barrier.id
         _claim_barrier_instance(scope, wait=True)
 
-        instance = (
-            cls.query.filter_by(
-                barrier_id=barrier.id,
-                group_id=group_id,
-                active=True,
-            )
-            .order_by(cls.id)
-            .first()
-        )
+        instance = cls._active_instance(barrier.id, group_id)
         if instance is None:
             instance = cls(
                 id=str(uuid.uuid4()),
                 barrier_id=barrier.id,
                 group_id=group_id,
                 active=True,
-                barrier=barrier.for_registry(),
+                barrier=registered_barrier,
+                behavior_hash=behavior_hash,
             )
             db.session.add(instance)
             db.session.flush()
+        else:
+            instance._validate_behavior(behavior_hash)
         return instance
+
+    @classmethod
+    def _active_instance(cls, barrier_id, group_id):
+        """Return the active instance for one waiting pool."""
+        return (
+            cls.query.filter_by(
+                barrier_id=barrier_id,
+                group_id=group_id,
+                active=True,
+            )
+            .order_by(cls.id)
+            .first()
+        )
+
+    @staticmethod
+    def _behavior_hash(barrier):
+        """Return a stable fingerprint for release-relevant barrier behavior."""
+        presentation_fields = {
+            "_uses_timeline_hold",
+            "content",
+            "expected_wait",
+            "fix_time_credit",
+            "max_wait_action",
+            "max_wait_time",
+            "notify_arrivals",
+            "on_arrival_message",
+            "waiting_logic",
+            "waiting_logic_expected_repetitions",
+        }
+        state = {
+            key: value
+            for key, value in vars(barrier).items()
+            if key not in presentation_fields
+        }
+        serialized = PythonObject.serialize((barrier.__class__, state))
+        return hashlib.sha256(serialized.encode()).hexdigest()
+
+    def _validate_behavior(self, behavior_hash):
+        """Reject incompatible reuse of one active waiting pool."""
+        if self.behavior_hash != behavior_hash:
+            raise ValueError(
+                f"Barrier ID '{self.barrier_id}' was reused with different behavior "
+                "while its waiting pool is active. Use a different barrier ID."
+            )
 
     @staticmethod
     def _group_id(barrier, participant):
@@ -1564,23 +1634,29 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         return barrier.get_waiting_participants(for_update=for_update, nowait=nowait)
 
 
-def _next_waiting_barrier_instance(excluded_ids):
-    """Return the next eligible barrier visit, if any."""
-    query = BarrierInstance.query.filter(
-        BarrierInstance.active,
-        db.session.query(ParticipantLinkBarrier.id)
-        .join(Participant)
-        .filter(
-            ParticipantLinkBarrier.barrier_instance_id == BarrierInstance.id,
-            ~ParticipantLinkBarrier.released,
-            ~Participant.failed,
-            Participant.status == "working",
-        )
-        .exists(),
-    )
-    if excluded_ids:
-        query = query.filter(~BarrierInstance.id.in_(excluded_ids))
-    return query.order_by(BarrierInstance.id).first()
+def _waiting_barrier_instance_ids():
+    """Snapshot eligible barrier visits for one poller sweep."""
+    with Session(bind=db.engine) as session:
+        return [
+            instance_id
+            for (instance_id,) in (
+                session.query(BarrierInstance.id)
+                .filter(
+                    BarrierInstance.active,
+                    session.query(ParticipantLinkBarrier.id)
+                    .join(Participant)
+                    .filter(
+                        ParticipantLinkBarrier.barrier_instance_id
+                        == BarrierInstance.id,
+                        ~ParticipantLinkBarrier.released,
+                        ~Participant.failed,
+                        Participant.status == "working",
+                    )
+                    .exists(),
+                )
+                .order_by(BarrierInstance.id)
+            )
+        ]
 
 
 def pending_arrival_notice_for(participant):
@@ -1620,90 +1696,59 @@ def pending_arrival_notice_for(participant):
     return notice
 
 
+def _process_barrier_instance(instance_id, *, retry=False):
+    """Try one barrier visit and report whether waiter contention deferred it."""
+    barrier_id = None
+    try:
+        with transaction():
+            _set_transaction_lock_timeout(
+                get_config().get("timeline_lock_timeout_seconds")
+            )
+            instance = BarrierInstance.query.get(instance_id)
+            if instance is None or not instance.active:
+                return False
+            barrier_id = instance.barrier_id
+            if not _claim_barrier_instance(instance_id):
+                return False
+            barrier = instance.barrier
+            if not isinstance(barrier, Barrier):
+                raise RuntimeError(
+                    f"Barrier instance '{instance_id}' is missing or invalid."
+                )
+            with _bound_barrier_instance(barrier, instance_id):
+                call_function_with_context(
+                    barrier.check,
+                    barrier_instance_id=instance_id,
+                )
+    except Exception as err:
+        if is_transient_transaction_error(err):
+            qualifier = " still locked on retry" if retry else " deferred"
+            logger.debug(
+                "Barrier '%s' instance %s%s because a waiter is locked.",
+                barrier_id,
+                instance_id,
+                qualifier,
+            )
+            return True
+        qualifier = " on retry" if retry else ""
+        logger.exception(
+            "Failed to process barrier '%s' instance %s%s.",
+            barrier_id,
+            instance_id,
+            qualifier,
+        )
+    return False
+
+
 def check_barriers():
-    """Process waiting barriers, isolating failures to individual barriers.
-
-    An advisory lock claims each visit without locking its metadata row.
-    When waiter rows are locked (``NOWAIT``), the visit is deferred and retried
-    once at the end of the sweep in case the lock has cleared.
-    """
-    excluded_ids = set()
-    deferred_ids = set()
-
-    while True:
-        instance_id = None
-        barrier_id = None
-        try:
-            with transaction():
-                _set_transaction_lock_timeout(
-                    get_config().get("timeline_lock_timeout_seconds")
-                )
-                instance = _next_waiting_barrier_instance(excluded_ids)
-                if instance is None:
-                    break
-                instance_id = instance.id
-                barrier_id = instance.barrier_id
-                if not _claim_barrier_instance(instance_id):
-                    continue
-                barrier = instance.barrier
-                if not isinstance(barrier, Barrier):
-                    raise RuntimeError(
-                        f"Barrier instance '{instance_id}' is missing or invalid."
-                    )
-                with _barrier_instance_context(instance_id):
-                    barrier.check()
-        except Exception as err:
-            if instance_id is None:
-                raise
-            if is_transient_transaction_error(err):
-                deferred_ids.add(instance_id)
-                logger.debug(
-                    "Barrier '%s' instance %s deferred because a waiter is locked.",
-                    barrier_id,
-                    instance_id,
-                )
-            else:
-                logger.exception(
-                    "Failed to process barrier '%s' instance %s.",
-                    barrier_id,
-                    instance_id,
-                )
-        finally:
-            if instance_id is not None:
-                excluded_ids.add(instance_id)
-
-    for instance_id in sorted(deferred_ids):
-        try:
-            with transaction():
-                _set_transaction_lock_timeout(
-                    get_config().get("timeline_lock_timeout_seconds")
-                )
-                instance = BarrierInstance.query.get(instance_id)
-                if instance is None or not instance.active:
-                    continue
-                barrier_id = instance.barrier_id
-                if not _claim_barrier_instance(instance_id):
-                    continue
-                barrier = instance.barrier
-                if not isinstance(barrier, Barrier):
-                    raise RuntimeError(
-                        f"Barrier instance '{instance_id}' is missing or invalid."
-                    )
-                with _barrier_instance_context(instance_id):
-                    barrier.check()
-        except Exception as err:
-            if is_transient_transaction_error(err):
-                logger.debug(
-                    "Barrier '%s' instance %s still locked on retry.",
-                    barrier_id,
-                    instance_id,
-                )
-            else:
-                logger.exception(
-                    "Failed to process barrier '%s' instance %s on retry.",
-                    barrier_id,
-                    instance_id,
-                )
+    """Process waiting barrier visits independently, retrying lock misses once."""
+    deferred_ids = [
+        instance_id
+        for instance_id in _waiting_barrier_instance_ids()
+        if _process_barrier_instance(instance_id)
+    ]
+    for instance_id in deferred_ids:
+        _process_barrier_instance(instance_id, retry=True)
 
 
 def check_sync_groups():
