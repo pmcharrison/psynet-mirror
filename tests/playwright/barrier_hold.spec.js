@@ -135,6 +135,12 @@ test("default barriers hold the current page until websocket release", { tag: "@
       "title",
       "Your partner is ready to continue."
     );
+    if (process.env.ARTIFACT_DIR) {
+      await secondParticipant.setViewportSize({ width: 375, height: 667 });
+      await secondParticipant.screenshot({
+        path: `${process.env.ARTIFACT_DIR}/rps_arrival_notice_phone_default.png`,
+      });
+    }
     const longNoticeText =
       "Your partner is ready to continue. Please wait a little longer while we get everything ready for the next trial.";
     await secondParticipant.evaluate((message) => {
