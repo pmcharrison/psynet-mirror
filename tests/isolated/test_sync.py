@@ -104,7 +104,7 @@ class DummyModel(SQLBase):
     def on_release(
         self, group, participants, participant=None, barrier=None, experiment=None
     ):
-        return None
+        group.var.callback_owner = self.id
 
 
 def test_random_partition():
@@ -286,6 +286,41 @@ def test_same_group_barrier_id_uses_distinct_instances_per_group(
     second_instance = second_group[0].active_barriers[barrier.id].barrier_instance
     assert first_instance.id != second_instance.id
     assert first_instance.group_id != second_instance.group_id
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_same_barrier_id_keeps_each_group_visits_callback(
+    in_experiment_directory, db_session
+):
+    """Each group's instance must retain its first arrival's bound callback."""
+    DummyModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    exp = get_experiment()
+    first_group, first_sync_group = _pair_sync_group(exp, db_session)
+    second_group, second_sync_group = _pair_sync_group(exp, db_session)
+    first_owner = DummyModel(id=get_random_id())
+    second_owner = DummyModel(id=get_random_id())
+    db_session.add_all([first_owner, second_owner])
+    db_session.flush()
+    first_barrier = GroupBarrier(
+        id_="callback_scoped", group_type="main", on_release=first_owner.on_release
+    )
+    second_barrier = GroupBarrier(
+        id_="callback_scoped", group_type="main", on_release=second_owner.on_release
+    )
+
+    _arrive_at_group_barrier(exp, first_barrier, first_group[0])
+    _arrive_at_group_barrier(exp, second_barrier, second_group[0])
+    db_session.commit()
+    _arrive_at_group_barrier(exp, first_barrier, first_group[1])
+    _arrive_at_group_barrier(exp, second_barrier, second_group[1])
+    db_session.commit()
+
+    db_session.refresh(first_sync_group)
+    db_session.refresh(second_sync_group)
+    assert first_sync_group.var.callback_owner == first_owner.id
+    assert second_sync_group.var.callback_owner == second_owner.id
 
 
 def test_group_barrier_resolved_timeout_uses_overridden_handler():
