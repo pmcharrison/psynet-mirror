@@ -21,6 +21,7 @@ from psynet.dashboard.sync_groups import (
 from psynet.data import SQLBase
 from psynet.db import _set_transaction_lock_timeout, transaction
 from psynet.experiment import Experiment, get_experiment
+from psynet.modular_page import ModularPage
 from psynet.page import WaitPage
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
@@ -32,12 +33,14 @@ from psynet.sync import (
     GroupBarrier,
     SimpleGrouper,
     SimpleSyncGroup,
+    _check_claimed_barrier_instance,
     _run_pending_barrier_checks,
     _take_pending_barrier_checks,
     check_barriers,
     check_sync_groups,
     pending_arrival_notice_for,
 )
+from psynet.timeline import Timeline
 from psynet.timeline_hold import (
     TimelineHoldRecord,
     _enqueue_timeline_hold_wake,
@@ -957,6 +960,9 @@ class _DummyFinalizePage:
 
     is_timeline_hold = False
 
+    def pre_render(self):
+        return None
+
     def __json__(self, participant):
         return {"participant_id": participant.id}
 
@@ -1080,6 +1086,7 @@ def test_finalize_barrier_arrivals_does_not_relock_after_losing_claim(monkeypatc
     """A peer that owns the check may keep participant rows locked."""
     events = []
     participant = SimpleNamespace(id=1)
+    hold = SimpleNamespace(is_timeline_hold=True)
 
     class Query:
         def with_for_update(self, **kwargs):
@@ -1090,7 +1097,66 @@ def test_finalize_barrier_arrivals_does_not_relock_after_losing_claim(monkeypatc
             events.append("participant_read")
             return participant
 
-    experiment = SimpleNamespace(_participant_request_query=lambda: Query())
+    experiment = SimpleNamespace(
+        _participant_request_query=lambda: Query(),
+        timeline=SimpleNamespace(
+            get_current_elt=lambda _experiment, _participant: hold
+        ),
+    )
+    result = SimpleNamespace(page=hold, payload={"page": "hold"})
+
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout", lambda seconds: None
+    )
+    monkeypatch.setattr(
+        "psynet.sync._run_pending_barrier_checks",
+        lambda checks: events.append("check") or False,
+    )
+    monkeypatch.setattr(db.session, "commit", lambda: events.append("commit"))
+
+    returned = Experiment._finalize_barrier_arrivals(
+        experiment,
+        participant_id=1,
+        checks=["instance"],
+        result=result,
+    )
+
+    assert returned is participant
+    assert events == ["check", "commit", "participant_read"]
+    assert result.page is hold
+    assert result.payload == {"page": "hold"}
+
+
+def test_finalize_barrier_arrivals_uses_already_advanced_page_after_lost_claim(
+    monkeypatch,
+):
+    """If the winner already left the hold, the loser must not first-paint it."""
+    events = []
+    participant = SimpleNamespace(id=1)
+
+    class Page:
+        is_timeline_hold = False
+
+        def __json__(self, _participant):
+            return {"label": "choose_action"}
+
+    page = Page()
+
+    class Query:
+        def with_for_update(self, **kwargs):
+            events.append("participant_relock")
+            return self
+
+        def get(self, participant_id):
+            events.append("participant_read")
+            return participant
+
+    experiment = SimpleNamespace(
+        _participant_request_query=lambda: Query(),
+        timeline=SimpleNamespace(
+            get_current_elt=lambda _experiment, _participant: page
+        ),
+    )
     result = SimpleNamespace(page=object(), payload={"page": "hold"})
 
     monkeypatch.setattr(
@@ -1111,7 +1177,8 @@ def test_finalize_barrier_arrivals_does_not_relock_after_losing_claim(monkeypatc
 
     assert returned is participant
     assert events == ["check", "commit", "participant_read"]
-    assert result.payload == {"page": "hold"}
+    assert result.page is page
+    assert result.payload["page"] == {"label": "choose_action"}
 
 
 @pytest.mark.parametrize(
@@ -1128,7 +1195,10 @@ def test_finalize_loser_does_not_wait_on_winner_waiter_locks(
     finish = threading.Event()
     enabled = [False]
     _pause_group_barrier_checks(monkeypatch, barrier.id, started, finish, enabled)
-    page = _stub_finalize_timeline(exp)
+    page = _DummyFinalizePage()
+    hold_page = SimpleNamespace(is_timeline_hold=True)
+    exp.timeline = SimpleNamespace(get_current_elt=lambda _e, _p: hold_page)
+    exp._advance_past_ready_holds = lambda participant, current_page: page
     checks = _queued_last_arrival_checks(exp, barrier, first, last)
     enabled[0] = True
 
@@ -1327,16 +1397,134 @@ def test_two_response_finalizers_claim_one_barrier_instance(
     assert first_errors == []
     assert last_errors == []
     assert _group_release_calls == [group_id]
-    kept_hold = [
-        result
-        for result, hold in ((first_result, first_hold), (last_result, last_hold))
-        if result.page is hold
-    ]
     advanced = [result for result in (first_result, last_result) if result.page is page]
-    assert len(kept_hold) == 1
-    assert len(advanced) == 1
+    assert len(advanced) >= 1
     assert _barrier_link_released(first.id, barrier.id) is True
     assert _barrier_link_released(last.id, barrier.id) is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_barrier_release_advances_every_released_hold_waiter(
+    in_experiment_directory, db_session
+):
+    """Released partners must leave the hold in the same check, not their next request."""
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="advance_all_released", group_type="main")
+    advanced = []
+    exp.timeline = SimpleNamespace(
+        get_current_elt=lambda _experiment, participant: barrier.waiting_logic
+    )
+    exp._advance_past_ready_holds = lambda participant, page: (
+        advanced.append(participant.id) or page
+    )
+
+    _arrive_at_group_barrier(exp, barrier, first)
+    _commit_barrier_arrivals()
+    _arrive_at_group_barrier(exp, barrier, last)
+    _commit_barrier_arrivals()
+
+    assert set(advanced) == {first.id, last.id}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_timeline_finalizes_queued_arrivals_before_render(
+    in_experiment_directory, db_session
+):
+    """The last arriver's first ``/timeline`` paint must run the fast release."""
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="timeline_finalize", group_type="main")
+    page = _stub_finalize_timeline(exp)
+    _arrive_at_group_barrier(exp, barrier, first)
+    _commit_barrier_arrivals()
+    _arrive_at_group_barrier(exp, barrier, last)
+    db.session.commit()
+
+    returned_participant, returned_page = (
+        Experiment._finalize_pending_timeline_barriers(exp, last, barrier.waiting_logic)
+    )
+
+    assert returned_participant.id == last.id
+    assert returned_page is page
+    assert _barrier_link_released(first.id, barrier.id) is True
+    assert _barrier_link_released(last.id, barrier.id) is True
+
+
+def test_check_claimed_barrier_instance_treats_finished_work_as_success():
+    """A completed or missing instance is not a lost in-flight claim."""
+    assert _check_claimed_barrier_instance(None) is True
+    assert (
+        _check_claimed_barrier_instance(SimpleNamespace(active=False, id="done"))
+        is True
+    )
+
+
+def _stacked_partner_timeline(group_type):
+    """RPS-like grouper plus two entry barriers before the first action page."""
+    return Timeline(
+        SimpleGrouper(
+            group_type=group_type,
+            initial_group_size=2,
+            content="Waiting for your partner",
+        ),
+        GroupBarrier(
+            id_=f"{group_type}_init",
+            group_type=group_type,
+            content="Waiting for your partner",
+        ),
+        GroupBarrier(
+            id_=f"{group_type}_prepare",
+            group_type=group_type,
+            content="Waiting for your partner",
+        ),
+        ModularPage("choose_action", "Choose your action", time_estimate=1),
+    )
+
+
+def _open_timeline_like_browser(experiment, participant):
+    """Mirror GET /timeline: consume, commit the arrival, then finalize."""
+    page = Experiment.get_current_page(experiment, participant)
+    db.session.commit()
+    return Experiment._finalize_pending_timeline_barriers(experiment, participant, page)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_last_timeline_arrival_skips_stacked_partner_holds(
+    in_experiment_directory, db_session
+):
+    """The second group member's first /timeline paint must skip every entry hold."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type)
+    try:
+        first, last = [new_participant(exp) for _ in range(2)]
+        for participant in (first, last):
+            participant.status = "working"
+        db.session.commit()
+
+        first, first_page = _open_timeline_like_browser(exp, first)
+        assert getattr(first_page, "is_timeline_hold", False)
+        assert first.sync_group is None
+
+        last, last_page = _open_timeline_like_browser(exp, last)
+        assert not getattr(last_page, "is_timeline_hold", False)
+        assert last_page.label == "choose_action"
+
+        first_page = exp.timeline.get_current_elt(exp, first)
+        assert not getattr(first_page, "is_timeline_hold", False)
+        assert first_page.label == "choose_action"
+        assert last.sync_group is not None
+        assert first.sync_group.id == last.sync_group.id
+    finally:
+        exp.timeline = original_timeline
 
 
 @pytest.mark.parametrize(

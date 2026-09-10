@@ -151,7 +151,10 @@ class Exp(psynet.experiment.Experiment):
     test_mode = "serial"
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
-        advance_past_wait_pages(bots)
+        for bot in bots:
+            bot._render_page()
+            bot._fetch_status()
+            _assert_arrived_without_hold(bot, "choose_action")
 
         assert bots[0].current_page_label == "choose_action"
         bots[0].take_page(response="rock")
