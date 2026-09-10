@@ -27,12 +27,6 @@ class RockPaperScissorsTrial(StaticTrial):
 
     def show_trial(self, experiment, participant):
         return join(
-            GroupBarrier(
-                id_="wait_for_trial",
-                group_type="rock_paper_scissors",
-                content="Waiting for your partner",
-                max_wait_time=PARTNER_WAIT_SECONDS,
-            ),
             self.choose_action(color=self.definition["color"]),
             GroupBarrier(
                 id_="finished_trial",
