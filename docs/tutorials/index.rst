@@ -7,6 +7,7 @@ Tutorials
    creating_a_new_experiment
    classes
    timeline
+   participant_and_trial_failure
    assets
    specifying_dependencies
    tests
@@ -15,6 +16,7 @@ Tutorials
    chatroom
    ad_page
    modular_page
+   theming
    graphics
    demography
    large_stimulus_sets

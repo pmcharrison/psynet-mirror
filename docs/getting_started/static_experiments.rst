@@ -272,6 +272,12 @@ There are many other optional parameters available too. See in particular:
 - ``check_performance_every_trial``
     If ``True``, the participant's performance is evaluated after each trial.
     Defaults to ``False``.
+- ``fail_trials_on_participant_performance_check``
+    If ``True`` (the static default), failing a performance check also fails
+    that participant's completed trials for this trial maker, because those
+    responses are treated as unusable. Incomplete trials are always failed
+    when the participant leaves or is failed. Premature exit does not fail
+    completed trials.
 - ``recruit_mode``
     Selects a recruitment criterion for determining whether to recruit
     another participant. The built-in criteria are ``"n_participants"``
@@ -625,6 +631,15 @@ gives the participant a score, and decides whether or not that participant shoul
 Typically a failed participant would be ejected from the experiment at that point.
 This is helpful for implementing performance-based screening tasks.
 
+Failing the participant is not the same as failing their trials. If someone
+leaves early, PsyNet fails unfinished trials and keeps the ones they already
+submitted. Completed trials are failed only when
+``fail_trials_on_participant_performance_check`` is ``True`` (the static
+default) and the participant fails a performance check. Use
+``recruit_mode="n_participants"`` or ``"n_trials"`` to control how many
+people or ratings you collect; do not fail submitted trials for that purpose.
+See :doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`.
+
 To implement a performance check, one needs to create a custom subclass for the trial maker,
 and define a custom ``performance_check`` method. Arbitrary logic is possible here,
 but a straightforward pattern is to override the trial method ``score_answer``,
@@ -842,14 +857,16 @@ and implement the following changes:
 5. Add a performance check at the end of the trial maker,
    where participants fail if they score less than 50%.
 
-6. Use ``psynet simulate`` to run automated bots through your experiment.
-   Explore the exported dataset at ``data/simulated_data``.
+6. Initialize an audit with ``psynet audit init``, then use
+   ``psynet audit simulate`` to run automated bots through your experiment.
+   Explore the exported dataset at
+   ``audit/simulate/analysis/simulated_export``.
    Can you find the csv file containing your trial data?
    Can you find all you'd need to do a proper analysis?
 
 .. hint::
 
-    You can customize the number of bots used by ``psynet simulate``
+    You can customize the number of bots used by ``psynet audit simulate``
     by setting ``test_n_bots = ...`` in your experiment class.
 
 7. So far we have been using a fixed audio file for all nodes.

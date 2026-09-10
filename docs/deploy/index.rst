@@ -7,6 +7,11 @@ step-by-step lab workflow around these pieces, including recruiter
 setup, piloting, monitoring participants, and teardown, see the
 :doc:`Lab research workflow </lab_deployments/index>`.
 
+.. warning::
+
+   ``deploy.toml`` planning currently requires a POSIX filesystem and is not
+   supported on Windows.
+
 .. toctree::
    :maxdepth: 1
 
