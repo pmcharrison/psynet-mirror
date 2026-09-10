@@ -549,10 +549,11 @@ class GroupBarrier(Barrier):
         ``sync_group_wait_content``.
 
     notify_arrivals
-        If ``True`` (default), waiting participants see live arrival progress
-        on the hold overlay, and group members who have not reached this
-        barrier yet see a pill on the progress bar. Set ``False`` to keep
-        the hold title only. Passing ``on_arrival_message`` implies ``True``.
+        If ``True`` (default), group members who have not reached this barrier
+        yet see a pill on the progress bar, and waiting participants in groups
+        of three or more see remaining-not-ready copy on the hold overlay.
+        Pairs keep the hold title only. Set ``False`` to disable both.
+        Passing ``on_arrival_message`` implies ``True``.
 
     on_arrival_message
         Optional callable that returns copy for one recipient. It receives
@@ -560,10 +561,12 @@ class GroupBarrier(Barrier):
         ``group_size``, and the usual context arguments (``recipient``,
         ``group``, ``barrier``, ``experiment``). Return ``None`` to hide that
         surface. Same serialization rules as ``on_release``. The default pair
-        notice is "Your partner is ready." Notice copy stays on one line
-        (overflow ellipsizes) and sits on the progress bar, so keep
-        ``kind="notice"`` return values to a short sentence. Hold overlay
-        copy may use a second line.
+        notice is "Your partner is ready."; pair holds omit a second line.
+        Groups of three or more default to ``"{n} of {total} not ready yet"``
+        on the hold and ``"{n}/{total} of your group are ready."`` on the
+        pill. Notice copy stays on one line (overflow ellipsizes) and sits
+        on the progress bar, so keep ``kind="notice"`` return values to a
+        short sentence. Hold overlay copy may use a second line.
 
     """
 
@@ -697,14 +700,12 @@ class GroupBarrier(Barrier):
                 recipient=member,
                 group=group,
             )
-            if not text:
-                continue
             if is_waiting:
                 hold_html = None
                 if self._uses_timeline_hold:
                     hold_html = self.waiting_logic.overlay_html(member)
                 _queue_arrival_update(member.id, hold_message=hold_html)
-            else:
+            elif text:
                 _queue_arrival_update(member.id, notice=str(text))
 
     def handle_max_wait_timeout(self, participant: Participant):

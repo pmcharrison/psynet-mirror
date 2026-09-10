@@ -49,7 +49,9 @@ If participants exchange live actions or messages within a trial, also read
   members together. Pass `content` to customize the hold overlay; omit
   `waiting_logic` unless you need a full wait page or filler task. Arrival
   notices are on by default. The partner-ready pill sits on the progress
-  bar; keep `on_arrival_message` notice copy to one short sentence.
+  bar. Pair holds keep the title only; groups of three or more show
+  remaining-not-ready copy (`2 of 3 not ready yet`). Keep
+  `on_arrival_message` notice copy to one short sentence.
 - Use `GroupBarrier(on_release=...)` for atomic shared updates such as role
   assignment, scoring, aggregation, or recording round outcomes.
 - Sort `sync_group.participants` by participant ID before deterministic role

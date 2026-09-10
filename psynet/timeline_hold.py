@@ -105,11 +105,19 @@ def _queue_arrival_update(participant_id, *, hold_message=None, notice=None):
 def default_group_barrier_arrival_message(
     *, kind, waiting_count, group_size, **_kwargs
 ):
-    """Return default GroupBarrier arrival copy for one recipient."""
+    """Return default GroupBarrier arrival copy for one recipient.
+
+    Pair holds keep the title only. Larger groups report how many members are
+    not ready yet. Notices tell people still on an earlier page that partners
+    are already waiting.
+    """
     _p = get_translator(context=True)
+    remaining = max(group_size - waiting_count, 0)
     if kind == "hold":
-        return _p("timeline_hold", "{arrived} of {total} arrived").format(
-            arrived=waiting_count,
+        if group_size <= 2 or remaining == 0:
+            return None
+        return _p("timeline_hold", "{remaining} of {total} not ready yet").format(
+            remaining=remaining,
             total=group_size,
         )
     if group_size == 2:

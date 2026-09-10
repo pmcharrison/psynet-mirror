@@ -725,16 +725,16 @@ def _custom_arrival_message(*, kind, waiting_count=None, group_size=None, **kwar
     return "custom"
 
 
-def _pair_sync_group(exp, db_session, group_type="main"):
-    participants = [new_participant(exp) for _ in range(2)]
+def _sync_group_of(exp, db_session, n, group_type="main"):
+    participants = [new_participant(exp) for _ in range(n)]
     for participant in participants:
         participant.status = "working"
     group = SimpleSyncGroup(
         group_type=group_type,
-        initial_group_size=2,
-        max_group_size=2,
-        min_group_size=2,
-        n_active_participants=2,
+        initial_group_size=n,
+        max_group_size=n,
+        min_group_size=n,
+        n_active_participants=n,
         accepts_top_ups=False,
     )
     db_session.add(group)
@@ -743,6 +743,10 @@ def _pair_sync_group(exp, db_session, group_type="main"):
     group.leader = participants[0]
     db_session.commit()
     return participants, group
+
+
+def _pair_sync_group(exp, db_session, group_type="main"):
+    return _sync_group_of(exp, db_session, 2, group_type)
 
 
 def _arrive_at_group_barrier(exp, barrier, participant):
@@ -923,7 +927,25 @@ def test_default_group_barrier_arrival_message_copy():
         default_group_barrier_arrival_message(
             kind="hold", waiting_count=1, group_size=2
         )
-        == "1 of 2 arrived"
+        is None
+    )
+    assert (
+        default_group_barrier_arrival_message(
+            kind="hold", waiting_count=1, group_size=3
+        )
+        == "2 of 3 not ready yet"
+    )
+    assert (
+        default_group_barrier_arrival_message(
+            kind="hold", waiting_count=2, group_size=3
+        )
+        == "1 of 3 not ready yet"
+    )
+    assert (
+        default_group_barrier_arrival_message(
+            kind="hold", waiting_count=3, group_size=3
+        )
+        is None
     )
     assert (
         default_group_barrier_arrival_message(
@@ -1004,11 +1026,42 @@ def test_group_arrival_notifies_partner_still_on_earlier_page(
         for target in payload["targets"]
     ]
     assert "Your partner is ready." in notices
-    assert any(message and "1 of 2 arrived" in message for message in hold_messages)
+    assert all(
+        not message or "psynet-timeline-hold-progress" not in message
+        for message in hold_messages
+    )
     assert pending_arrival_notice_for(last) == "Your partner is ready."
     overlay = barrier.waiting_logic.overlay_html(first)
     assert "Waiting for your partner" in overlay
-    assert "1 of 2 arrived" in overlay
+    assert "psynet-timeline-hold-progress" not in overlay
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_hold_reports_how_many_are_not_ready_yet(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    first, second, third = _sync_group_of(exp, db_session, 3)[0]
+    barrier = GroupBarrier(
+        id_="group_hold_remaining",
+        group_type="main",
+        content="Waiting for the rest of your group",
+    )
+
+    _arrive_at_group_barrier(exp, barrier, first)
+    db_session.commit()
+    overlay = barrier.waiting_logic.overlay_html(first)
+    assert "2 of 3 not ready yet" in overlay
+    assert pending_arrival_notice_for(second) == "1/3 of your group are ready."
+    assert pending_arrival_notice_for(third) == "1/3 of your group are ready."
+
+    _arrive_at_group_barrier(exp, barrier, second)
+    db_session.commit()
+    overlay = barrier.waiting_logic.overlay_html(first)
+    assert "1 of 3 not ready yet" in overlay
+    assert pending_arrival_notice_for(third) == "2/3 of your group are ready."
 
 
 def test_waiting_participants_nowait_requires_for_update():

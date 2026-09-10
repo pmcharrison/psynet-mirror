@@ -125,7 +125,7 @@ test("default barriers hold the current page until websocket release", { tag: "@
     ).toHaveText("Waiting for your partner");
     await expect(
       firstParticipant.locator(".psynet-timeline-hold-progress")
-    ).toHaveText("1 of 2 arrived");
+    ).toHaveCount(0);
     const arrivalNotice = secondParticipant.locator("#psynet-arrival-notice");
     await expect(arrivalNotice).toHaveText("Your partner is ready.", {
       timeout: STEP_TIMEOUT_MS

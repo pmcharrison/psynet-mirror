@@ -116,19 +116,25 @@ next page. If a partner's wait row is locked, the regular 0.5-second barrier
 check finishes the release instead. To display dedicated pages or filler tasks
 while participants wait, pass them explicitly with ``waiting_logic``.
 
-By default the hold also shows live arrival progress (``1 of 2 arrived``)
-and group members still on an earlier page see a pill on the progress bar
-(``Your partner is ready.``). That pill stays on one line; longer custom
-notice copy ellipsizes instead of wrapping over the prompt. Hold overlay
-progress may still use a second line. Set
-``notify_arrivals=False`` to keep the hold title only. Pass
+By default, group members still on an earlier page see a pill on the
+progress bar (``Your partner is ready.``, or
+``{n}/{total} of your group are ready.``). That pill stays on one line;
+longer custom notice copy ellipsizes instead of wrapping over the prompt.
+In groups of three or more the hold overlay adds a remaining-not-ready
+line (``2 of 3 not ready yet``). Pairs keep the hold title only, because
+``1 of 2`` is redundant with "Waiting for your partner". Set
+``notify_arrivals=False`` to disable both. Pass
 ``on_arrival_message`` to customize that copy; it receives ``kind``
 (``"hold"`` or ``"notice"``), ``waiting_count``, and ``group_size``.
-Keep ``kind="notice"`` return values to a short sentence::
+Return ``None`` to hide a surface. Keep ``kind="notice"`` return values
+to a short sentence::
 
     def arrival_message(*, kind, waiting_count, group_size, **kwargs):
+        remaining = group_size - waiting_count
         if kind == "hold":
-            return f"{waiting_count} of {group_size} arrived"
+            if group_size <= 2 or remaining <= 0:
+                return None
+            return f"{remaining} of {group_size} not ready yet"
         return "Your partner is ready."
 
     GroupBarrier(
