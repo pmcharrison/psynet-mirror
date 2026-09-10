@@ -5687,9 +5687,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Run queued arrival checks before ``/timeline`` renders a hold."""
         from types import SimpleNamespace
 
-        from .sync import _take_pending_barrier_checks
+        from .sync import _hold_instance_id_for_page, _take_pending_barrier_checks
 
         checks = _take_pending_barrier_checks()
+        if not checks:
+            page = experiment._advance_past_ready_holds(participant, page)
+            checks = _take_pending_barrier_checks()
+            instance_id = _hold_instance_id_for_page(participant, page)
+            if instance_id:
+                checks = [instance_id]
         if not checks:
             return participant, page
         result = SimpleNamespace(page=page, payload={})
@@ -5709,11 +5715,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _finalize_barrier_arrivals(cls, experiment, participant_id, checks, result):
         """Run queued arrival checks in short transactions before rendering."""
         from .sync import (
+            _hold_instance_id_for_page,
             _run_pending_barrier_checks,
             _take_pending_barrier_checks,
         )
 
+        processed = set()
         while checks:
+            processed.update(checks)
             _set_transaction_lock_timeout(
                 get_config().get("timeline_lock_timeout_seconds")
             )
@@ -5757,6 +5766,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             result.payload["page"] = page.__json__(participant)
             db.session.commit()
             checks = _take_pending_barrier_checks()
+            if not checks:
+                instance_id = _hold_instance_id_for_page(participant, page)
+                if instance_id and instance_id not in processed:
+                    checks = [instance_id]
         return participant
 
     @staticmethod
