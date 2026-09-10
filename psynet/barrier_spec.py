@@ -31,11 +31,11 @@ _PRESENTATION_FIELDS = {
     "fix_time_credit",
     "max_wait_action",
     "max_wait_time",
-    "notify_arrivals",
-    "on_arrival_message",
     "waiting_logic",
     "waiting_logic_expected_repetitions",
 }
+
+_NOTIFICATION_FIELDS = {"notify_arrivals", "on_arrival_message"}
 
 
 class BarrierSpecError(ValueError):
@@ -47,13 +47,21 @@ def barrier_spec(barrier):
     state = {
         key: _encode_value(value, context=f"{barrier.__class__.__name__}.{key}")
         for key, value in vars(barrier).items()
-        if key not in _PRESENTATION_FIELDS
+        if key not in _PRESENTATION_FIELDS and key not in _NOTIFICATION_FIELDS
     }
-    return {
+    spec = {
         "version": SPEC_VERSION,
         "class": importable_name(barrier.__class__),
         "state": state,
     }
+    notifications = {
+        key: _encode_value(value, context=f"{barrier.__class__.__name__}.{key}")
+        for key, value in vars(barrier).items()
+        if key in _NOTIFICATION_FIELDS
+    }
+    if notifications:
+        spec["notifications"] = notifications
+    return spec
 
 
 def barrier_spec_json(barrier):
@@ -76,7 +84,9 @@ def barrier_from_spec_json(serialized):
     try:
         barrier_class = loadclass(spec["class"])
     except (KeyError, ImportError, AttributeError) as err:
-        raise BarrierSpecError("Barrier spec class is missing or cannot be imported.") from err
+        raise BarrierSpecError(
+            "Barrier spec class is missing or cannot be imported."
+        ) from err
     if barrier_class is None:
         raise BarrierSpecError(
             f"Barrier spec class {spec.get('class')!r} cannot be imported."
@@ -86,6 +96,8 @@ def barrier_from_spec_json(serialized):
         raise BarrierSpecError("Barrier spec state must be an object.")
     barrier = barrier_class.__new__(barrier_class)
     for key, value in state.items():
+        setattr(barrier, key, _decode_value(value))
+    for key, value in spec.get("notifications", {}).items():
         setattr(barrier, key, _decode_value(value))
     return barrier
 
@@ -116,26 +128,18 @@ def _encode_value(value, *, context):
         return {
             "__type__": "orm",
             "class": importable_name(value.__class__),
-            "identifiers": _encode_value(
-                identifiers, context=f"{context}.identifiers"
-            ),
+            "identifiers": _encode_value(identifiers, context=f"{context}.identifiers"),
         }
     if isinstance(value, type):
         return {"__type__": "class", "path": importable_name(value)}
     if callable(value):
         return _encode_callable(serialize_callable(value, context), context=context)
     if isinstance(value, list):
-        return [
-            _encode_value(item, context=f"{context}[]")
-            for item in value
-        ]
+        return [_encode_value(item, context=f"{context}[]") for item in value]
     if isinstance(value, tuple):
         return {
             "__type__": "tuple",
-            "items": [
-                _encode_value(item, context=f"{context}[]")
-                for item in value
-            ],
+            "items": [_encode_value(item, context=f"{context}[]") for item in value],
         }
     if isinstance(value, set):
         items = [_encode_value(item, context=f"{context}[]") for item in value]
@@ -162,7 +166,9 @@ def _encode_callable(value, *, context):
     return {
         "__type__": "callable",
         "function": path,
-        "arguments": _encode_value(value.arguments or {}, context=f"{context}.arguments"),
+        "arguments": _encode_value(
+            value.arguments or {}, context=f"{context}.arguments"
+        ),
     }
 
 
@@ -220,7 +226,9 @@ def _behavior_identity(spec):
             return callback
         return {key: normalize(item) for key, item in value.items()}
 
-    return normalize(spec)
+    identity = normalize(spec)
+    identity.pop("notifications", None)
+    return identity
 
 
 def _canonical_json(value):
