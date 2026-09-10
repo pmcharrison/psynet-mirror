@@ -106,9 +106,11 @@ indefinitely. ``GET /timeline?mode=json`` and ``POST /response`` return HTTP
 requests show a refresh prompt. Whole timeline requests are not retried
 automatically on the server because author code blocks may contain
 non-idempotent external side effects. Barrier definitions and per-group visit
-instances are created in the arrival request's transaction. The poller claims
-an instance with an advisory transaction lock, rather than locking mutable
-metadata that another request needs to update. When the last participant
+instances are created in the arrival request's transaction. Each instance
+stores a versioned JSON specification of its release behavior rather than an
+opaque Python-object snapshot. The poller claims an instance with an advisory
+transaction lock, rather than locking mutable metadata that another request
+needs to update. When the last participant
 arrives at a barrier, PsyNet commits the normal write phase and evaluates the
 barrier in a short coordination transaction before rendering. This preserves
 the fast route without holding partner rows through author code or

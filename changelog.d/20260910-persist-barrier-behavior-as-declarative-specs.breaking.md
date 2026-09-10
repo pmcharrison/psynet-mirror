@@ -1,0 +1,1 @@
+Barrier instances now persist versioned declarative behavior specifications instead of complete Python objects; custom barrier release state must use JSON-compatible values, supported callables, classes, or persisted ORM references.

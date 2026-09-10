@@ -74,8 +74,6 @@ Callable attributes on barriers (e.g., ``on_release``) are serialized via
 ``serialize_callable`` so each ``BarrierInstance`` retains stable behavior.
 """
 
-import copy
-import hashlib
 import random
 import uuid
 from math import floor
@@ -90,6 +88,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
     event,
     text,
 )
@@ -104,16 +103,21 @@ from sqlalchemy.orm import (
     relationship,
 )
 
+from psynet.barrier_spec import (
+    barrier_from_spec_json,
+    barrier_spec_json,
+    behavior_hash_from_json,
+)
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.db import (
     _set_transaction_lock_timeout,
     is_transient_transaction_error,
     transaction,
 )
-from psynet.field import PythonClass, PythonObject
+from psynet.field import PythonClass
 from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
-from psynet.serialize import SerializedCallable, serialize_callable
+from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.timeline_hold import (
     _queue_arrival_update,
@@ -332,12 +336,6 @@ class Barrier(EltCollection):
 
         self.waiting_logic = waiting_logic
         self.max_wait_action = "fail"
-
-    def for_registry(self):
-        """Return a registry-safe copy of the barrier."""
-        barrier = copy.copy(self)
-        barrier.waiting_logic = None
-        return barrier
 
     def __setattr__(self, name, value):
         if name.startswith("on_"):
@@ -1378,7 +1376,7 @@ class BarrierInstance(SQLBase, SQLMixin):
     barrier_id = Column(String, ForeignKey("barrier.id"), index=True)
     group_id = Column(Integer, ForeignKey("sync_group.id"), nullable=True, index=True)
     active = Column(Boolean, default=True, index=True)
-    barrier = deferred(Column(PythonObject))
+    spec = deferred(Column(Text))
     behavior_hash = Column(String(64))
 
     definition = relationship("BarrierDefinition", back_populates="instances")
@@ -1395,8 +1393,8 @@ class BarrierInstance(SQLBase, SQLMixin):
         db.session.flush()
         BarrierDefinition.ensure_exists(barrier.id, barrier.__class__)
         group_id = cls._group_id(barrier, participant)
-        registered_barrier = barrier.for_registry()
-        behavior_hash = cls._behavior_hash(registered_barrier)
+        spec = barrier_spec_json(barrier)
+        behavior_hash = behavior_hash_from_json(spec)
         instance = cls._active_instance(barrier.id, group_id)
         if instance is not None:
             instance._validate_behavior(behavior_hash)
@@ -1412,7 +1410,7 @@ class BarrierInstance(SQLBase, SQLMixin):
                 barrier_id=barrier.id,
                 group_id=group_id,
                 active=True,
-                barrier=registered_barrier,
+                spec=spec,
                 behavior_hash=behavior_hash,
             )
             db.session.add(instance)
@@ -1434,40 +1432,9 @@ class BarrierInstance(SQLBase, SQLMixin):
             .first()
         )
 
-    @staticmethod
-    def _behavior_hash(barrier):
-        """Return a stable fingerprint for release-relevant barrier behavior."""
-        presentation_fields = {
-            "_uses_timeline_hold",
-            "content",
-            "expected_wait",
-            "fix_time_credit",
-            "max_wait_action",
-            "max_wait_time",
-            "notify_arrivals",
-            "on_arrival_message",
-            "waiting_logic",
-            "waiting_logic_expected_repetitions",
-        }
-        state = {
-            key: BarrierInstance._behavior_value(value)
-            for key, value in vars(barrier).items()
-            if key not in presentation_fields
-        }
-        serialized = PythonObject.serialize((barrier.__class__, state))
-        return hashlib.sha256(serialized.encode()).hexdigest()
-
-    @staticmethod
-    def _behavior_value(value):
-        """Normalize participant-local callback receivers for behavior comparison."""
-        if not isinstance(value, SerializedCallable):
-            return value
-
-        arguments = dict(value.arguments or {})
-        receiver = arguments.get("self")
-        if isinstance(receiver, SQLBase):
-            arguments["self"] = receiver.__class__
-        return SerializedCallable(function=value.function, arguments=arguments)
+    def get_barrier(self):
+        """Materialize this visit's release behavior from its declarative spec."""
+        return barrier_from_spec_json(self.spec)
 
     def _validate_behavior(self, behavior_hash):
         """Reject incompatible reuse of one active waiting pool."""
@@ -1531,13 +1498,16 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     )
 
     def get_barrier(self):
-        if self.barrier_instance is None or not isinstance(
-            self.barrier_instance.barrier, Barrier
-        ):
+        if self.barrier_instance is None:
             raise RuntimeError(
                 f"Barrier instance '{self.barrier_instance_id}' is missing or invalid."
             )
-        return self.barrier_instance.barrier
+        barrier = self.barrier_instance.get_barrier()
+        if not isinstance(barrier, Barrier):
+            raise RuntimeError(
+                f"Barrier instance '{self.barrier_instance_id}' is missing or invalid."
+            )
+        return barrier
 
     def release(self):
         timestamp = timenow()
@@ -1620,7 +1590,7 @@ def _check_claimed_barrier_instance(instance):
         return False
     if not _claim_barrier_instance(instance.id):
         return False
-    barrier = instance.barrier
+    barrier = instance.get_barrier()
     if not isinstance(barrier, Barrier):
         raise RuntimeError(f"Barrier instance '{instance.id}' is missing or invalid.")
     barrier._check_instance(instance.id)

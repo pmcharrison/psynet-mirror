@@ -263,7 +263,9 @@ def test_barrier_definition_and_instance_use_request_transaction(
 
     db_session.commit()
     assert BarrierDefinition.query.get(definition_id) is not None
-    assert BarrierInstance.query.get(instance_id) is not None
+    instance = BarrierInstance.query.get(instance_id)
+    assert json.loads(instance.spec)["version"] == 1
+    assert "py/object" not in instance.spec
 
 
 @pytest.mark.parametrize(
@@ -1703,28 +1705,6 @@ def test_group_barrier_accepts_orm_instance_method(in_experiment_directory, db_s
         on_release=instance.on_release,
     )
     assert isinstance(barrier.on_release, SerializedCallable)
-
-
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
-)
-def test_barrier_registry_strips_waiting_logic(db_session):
-    barrier = GroupBarrier(id_="strip_wait", group_type="group")
-    barrier_definition = BarrierDefinition(
-        id=barrier.id, barrier_class=barrier.__class__
-    )
-    barrier_instance = BarrierInstance(
-        id=get_random_id(),
-        definition=barrier_definition,
-        group_id=None,
-        active=True,
-        barrier=barrier.for_registry(),
-    )
-    db_session.add(barrier_instance)
-    db_session.commit()
-
-    loaded = BarrierInstance.query.get(barrier_instance.id)
-    assert loaded.barrier.waiting_logic is None
 
 
 def test_group_barrier_timeout_between_barriers_rejects_bad_action():

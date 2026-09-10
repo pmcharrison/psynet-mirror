@@ -133,6 +133,13 @@ preparation and :meth:`~psynet.sync.Barrier.choose_who_to_release` for the
 release decision. Barrier evaluation and participant locking are
 framework-owned and are not extension points.
 
+PsyNet persists the release behavior of each active waiting pool as a
+versioned declarative specification. Custom attributes used by the release
+hooks must therefore contain JSON-compatible values, supported callables,
+classes, or persisted PsyNet ORM records. Keep participant-facing objects such
+as prompts and waiting pages out of release state; PsyNet manages those
+separately for each participant.
+
 By default, group members still on an earlier page see a pill on the
 progress bar (``Your partner is ready.``, or
 ``{n}/{total} of your group are ready.``). That pill stays on one line;
