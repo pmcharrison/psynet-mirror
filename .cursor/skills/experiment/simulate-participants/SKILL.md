@@ -78,8 +78,9 @@ participants whenever possible.
 4. For stochastic profiles, seed runs when reproducibility matters and report the
    seed or run id.
 5. For browser-only JavaScript, focus, paste, keyboard, audio, websocket, or
-   display behavior, add browser/Playwright evidence with
-   `record-participant-video/SKILL.md`; PsyNet bots alone may bypass these paths.
+   display behavior, add a Playwright walk with `playwright-testing/SKILL.md`;
+   PsyNet bots alone may bypass these paths. Use `record-participant-video/SKILL.md`
+   when you also need a recording.
 
 ## LLM simulation rules
 

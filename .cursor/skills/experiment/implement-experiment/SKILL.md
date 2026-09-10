@@ -163,6 +163,7 @@ PsyNet. Do not treat `scripts update` as a substitute for first-time setup.
 - Build a minimal runnable experiment first, then add complexity.
 - Develop front end and back end components as relevant,
   using the `develop-experiment-front-end` and `develop-experiment-back-end` skills.
+  Write participant-flow Playwright tests with `playwright-testing`.
 - Add short comment where the PsyNet pattern is not obvious.
 - Where possible, keep the implementation close to PsyNet's native style.
   Prefer built-in pages, controls, events, chatrooms, grouping, and timeline

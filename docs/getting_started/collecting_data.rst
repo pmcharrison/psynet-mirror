@@ -112,7 +112,9 @@ Two scenarios are possible for successful completions:
 Partial payments are handled separately. If a participant reaches an
 :class:`~psynet.page.UnsuccessfulEndPage`, for example because they fail a pre-screening task, PsyNet
 marks them as failed rather than successfully completed. In this case PsyNet may try to pay them only
-the reward they have accumulated so far.
+the reward they have accumulated so far. The same unsuccessful path is used
+when a participant confirms **Leave** from the timeline footer or error-page
+fallback (with ``show_early_exit_button``).
 
 By default, PsyNet handles such participants by registering a dedicated Prolific
 completion code with a fixed screen-out payment (see ``prolific_pay_unsuccessful`` and
@@ -293,10 +295,12 @@ efficiency of your own code.
   :alt: Increase places in the survey
 
 Participants who hit a technical error are offered a "Submit to Prolific" button on the error page.
-That records the submission locally; PsyNet then completes it on Prolific with the unsuccessful
-code. Participants stay on the error page and do not enter a completion code. Prolific pays the
+That sends the submission locally; PsyNet then completes it on Prolific with the unsuccessful
+code. Participants then see a confirmation that the submission has been sent to Prolific, and do
+not enter a completion code. Prolific pays the
 fixed screen-out amount automatically, and PsyNet tops them up to their accumulated reward with a
-bonus. Respond to Prolific messages promptly, and look the person up by Prolific ID on the
+bonus. Participants who finish normally click Finish, then Submit to Prolific, and see the same
+confirmation after recruiter-exit reloads. Respond to Prolific messages promptly, and look the person up by Prolific ID on the
 Participants dashboard to confirm that PsyNet recorded the screen-out and any bonus. You should
 not ask them to return the submission or pay them by hand unless they never submitted (for
 example they closed the error page) or you disabled automatic screen-out payment

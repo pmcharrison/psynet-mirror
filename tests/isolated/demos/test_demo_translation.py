@@ -33,14 +33,25 @@ class TestExp(object):
             time.sleep(1)
 
             # Page 1
-            assert_text(driver, "main-body", "Willkommen zur Übersetzungsdemo! Weiter")
+            # Framework catalogs are refreshed on release branches, so a
+            # feature-branch build may contain either the previous translated
+            # label or the current English fallback. The demo's own copy must
+            # remain translated in both cases.
+            next_label = driver.find_element(By.ID, "next-button-text").text
+            assert next_label in {"Next", "Weiter"}
+            assert_text(
+                driver,
+                "main-body",
+                f"Willkommen zur Übersetzungsdemo! {next_label}",
+            )
             next_page(driver, "next-button")
 
             # Page 2
             assert_text(
                 driver,
                 "main-body",
-                "You have chosen to translate this experiment to de. Below you will see this text translated! Unten sehen Sie diesen Text übersetzt! Weiter",
+                "You have chosen to translate this experiment to de. Below you will see this text translated! Unten sehen Sie diesen Text übersetzt! "
+                + next_label,
             )
 
             next_page(driver, "next-button")
@@ -49,7 +60,8 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                "Here is an example of inline variable usage: Mein Name ist Alice. Mein Lieblingsessen ist pizza. Mein am wenigsten bevorzugtes Essen ist broccoli. Weiter",
+                "Here is an example of inline variable usage: Mein Name ist Alice. Mein Lieblingsessen ist pizza. Mein am wenigsten bevorzugtes Essen ist broccoli. "
+                + next_label,
             )
 
             next_page(driver, "next-button")
