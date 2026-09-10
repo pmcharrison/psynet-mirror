@@ -61,9 +61,13 @@ Timeline requests separate state mutation from rendering:
 1. A short write transaction locks the participant, advances or records the
    timeline state, and resolves the provisional page.
 2. If that phase records barrier arrivals, PsyNet commits them and evaluates
-   the affected barrier instances in a short coordination transaction.
+   the affected barrier instances in short coordination transactions. Hold-wake
+   publishes from those inner commits wait until this stacked finalize
+   finishes, so waiting partners are not notified while later checks still
+   lock their rows.
 3. PsyNet resolves the final page, runs ``pre_render()``, and commits any
-   preparation writes, releasing locks and publishing queued hold wakes.
+   preparation writes, releasing locks. Remaining queued hold wakes publish
+   after that commit.
 4. HTML, JSON, or an inplace fragment is rendered in a fresh PostgreSQL
    read-only transaction with SQLAlchemy autoflush disabled.
 5. PsyNet verifies that rendering created no new, dirty, or deleted ORM
@@ -114,7 +118,9 @@ needs to update. When the last participant
 arrives at a barrier, PsyNet commits the normal write phase and evaluates the
 barrier in a short coordination transaction before rendering. This preserves
 the fast route without holding partner rows through author code or
-``pre_render()``. The barrier poller locks waiters with
+``pre_render()``. Websocket wakes from those coordination commits stay unpublished
+until stacked finalize returns, so a waiting partner is not told to resume
+while a later entry check still holds their row. The barrier poller locks waiters with
 ``FOR UPDATE NOWAIT`` so a participant write cannot stall other groups; if any
 waiter is busy, that barrier is skipped until the next tick. The sync-group
 recount job likewise skip-locks one group at a time.

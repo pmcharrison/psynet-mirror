@@ -5716,7 +5716,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def _finalize_barrier_arrivals(cls, experiment, participant_id, checks, result):
-        """Run queued arrival checks in short transactions before rendering."""
+        """Run queued arrival checks in short transactions before rendering.
+
+        Hold-release websocket wakes from these inner commits stay unpublished
+        until this call returns, so waiting partners are not notified while a
+        later stacked check still locks their rows.
+        """
+        from .timeline_hold import _defer_timeline_hold_wakes
+
+        with _defer_timeline_hold_wakes():
+            return cls._run_finalized_barrier_arrivals(
+                experiment, participant_id, checks, result
+            )
+
+    @classmethod
+    def _run_finalized_barrier_arrivals(
+        cls, experiment, participant_id, checks, result
+    ):
+        """Evaluate queued checks, committing after each before the next lock."""
         from .sync import (
             _hold_instance_id_for_page,
             _run_pending_barrier_checks,

@@ -3,10 +3,14 @@
 Timeline holds preserve the currently rendered participant page while the
 server waits for a condition to clear. This module owns the durable accounting
 record and the internal page protocol shared by barriers and ``wait_while``.
+Hold-release websocket wakes publish after the next database commit. Last-arrival
+finalize can defer those publishes until its stacked checks finish so waiting
+partners are not woken while later checks still lock their rows.
 """
 
 import json
 import uuid
+from contextlib import contextmanager
 from datetime import timedelta
 
 from dallinger import db
@@ -37,6 +41,8 @@ def _timeline_hold_channel(participant_id):
 
 
 _PENDING_WAKE_KEY = "psynet_timeline_hold_wakes"
+_DEFERRED_WAKE_KEY = "psynet_deferred_timeline_hold_wakes"
+_WAKE_DEFER_DEPTH_KEY = "psynet_timeline_hold_wake_defer_depth"
 logger = get_logger()
 
 
@@ -148,9 +154,43 @@ def compose_hold_overlay_html(title_html, progress_text=None):
     )
 
 
-@event.listens_for(db.session, "after_commit")
-def _publish_timeline_hold_wakes(session):
-    wakes = list(session.info.pop(_PENDING_WAKE_KEY, {}).values())
+def _copy_pending_wakes(wakes):
+    """Copy queued wakes so later publish can pop ``participant_id`` safely."""
+    return {key: dict(wake) for key, wake in wakes.items()}
+
+
+@contextmanager
+def _defer_timeline_hold_wakes():
+    """Hold Redis wake publishes across inner commits, then flush on exit.
+
+    Stacked last-arrival finalize commits after each barrier check. Publishing
+    on those commits would wake waiting partners while later checks still lock
+    their rows. Rollback still discards uncommitted pending wakes; already
+    committed wakes stay deferred and flush here even if a later check fails.
+    """
+    session = db.session
+    depth = session.info.get(_WAKE_DEFER_DEPTH_KEY, 0)
+    session.info[_WAKE_DEFER_DEPTH_KEY] = depth + 1
+    try:
+        yield
+    finally:
+        if depth == 0:
+            session.info.pop(_WAKE_DEFER_DEPTH_KEY, None)
+            _flush_deferred_timeline_hold_wakes(session)
+        else:
+            session.info[_WAKE_DEFER_DEPTH_KEY] = depth
+
+
+def _stash_committed_wakes(session, pending):
+    """Move committed wakes into the deferred stash instead of publishing."""
+    if not pending:
+        return
+    deferred = session.info.setdefault(_DEFERRED_WAKE_KEY, {})
+    deferred.update(_copy_pending_wakes(pending))
+
+
+def _publish_wakes(wakes):
+    """Publish copied wake payloads on their participant Redis channels."""
     if not wakes:
         return
     try:
@@ -158,13 +198,14 @@ def _publish_timeline_hold_wakes(session):
 
         by_channel = defaultdict(list)
         for wake in wakes:
-            participant_id = wake.pop("participant_id", None)
+            payload = dict(wake)
+            participant_id = payload.pop("participant_id", None)
             channel = (
                 _timeline_hold_channel(participant_id)
                 if participant_id is not None
                 else _TIMELINE_HOLD_CHANNEL
             )
-            by_channel[channel].append(wake)
+            by_channel[channel].append(payload)
         for channel, targets in by_channel.items():
             db.redis_conn.publish(
                 channel,
@@ -172,6 +213,22 @@ def _publish_timeline_hold_wakes(session):
             )
     except Exception:
         logger.warning("Failed to publish timeline hold wake.", exc_info=True)
+
+
+def _flush_deferred_timeline_hold_wakes(session):
+    """Publish wakes that committed while publishes were deferred."""
+    deferred = session.info.pop(_DEFERRED_WAKE_KEY, None)
+    if deferred:
+        _publish_wakes(list(deferred.values()))
+
+
+@event.listens_for(db.session, "after_commit")
+def _publish_timeline_hold_wakes(session):
+    pending = session.info.pop(_PENDING_WAKE_KEY, None) or {}
+    if session.info.get(_WAKE_DEFER_DEPTH_KEY, 0):
+        _stash_committed_wakes(session, pending)
+        return
+    _publish_wakes(list(pending.values()))
 
 
 @event.listens_for(db.session, "after_rollback")

@@ -44,7 +44,9 @@ from psynet.sync import (
 from psynet.timeline import Timeline
 from psynet.timeline_hold import (
     TimelineHoldRecord,
+    _defer_timeline_hold_wakes,
     _enqueue_timeline_hold_wake,
+    _queue_arrival_update,
     _timeline_hold_channel,
     default_group_barrier_arrival_message,
 )
@@ -2238,6 +2240,186 @@ def test_timeline_hold_wake_is_discarded_on_rollback(
     db_session.commit()
 
     assert publications == []
+
+
+def _hold_wake_publications(monkeypatch):
+    """Capture Redis hold-wake publishes as ``(channel, payload)`` pairs."""
+    publications = []
+    monkeypatch.setattr(
+        db.redis_conn,
+        "publish",
+        lambda channel_name, data: publications.append(
+            (channel_name, json.loads(data))
+        ),
+    )
+    return publications
+
+
+def _released_wake_count(publications):
+    """Count committed barrier-release wakes in captured Redis publishes."""
+    return sum(
+        1
+        for _, payload in publications
+        for target in payload.get("targets", [])
+        if target.get("reason") == "barrier_released"
+    )
+
+
+def _participant_hold(participant, page_uuid, hold_id):
+    """Attach one unresumed hold so a wake can be queued for ``participant``."""
+    participant.page_uuid = page_uuid
+    hold = TimelineHoldRecord(
+        participant=participant,
+        page_uuid=page_uuid,
+        hold_id=hold_id,
+        started_at=timenow(),
+        expected_wait=1,
+        max_wait_time=20,
+        fix_time_credit=False,
+    )
+    db.session.add(hold)
+    db.session.flush()
+    return hold
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_deferred_hold_wakes_publish_only_on_context_exit(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Inner commits must not publish while hold wakes are deferred."""
+    participant = new_participant(get_experiment())
+    hold = _participant_hold(participant, "deferred-wake", "defer")
+    publications = _hold_wake_publications(monkeypatch)
+
+    with _defer_timeline_hold_wakes():
+        _enqueue_timeline_hold_wake(
+            participant.id,
+            page_uuid="deferred-wake",
+            reason="barrier_released",
+        )
+        db_session.commit()
+        db_session.commit()
+        assert publications == []
+
+    assert _released_wake_count(publications) == 1
+    assert publications[0][0] == _timeline_hold_channel(participant.id)
+    assert publications[0][1]["targets"][0]["wake_token"] == hold.wake_token
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_deferred_hold_wakes_keep_committed_payloads_after_later_rollback(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """A later rollback must not drop wakes that already committed."""
+    participant = new_participant(get_experiment())
+    hold = _participant_hold(participant, "deferred-rollback", "defer-rollback")
+    publications = _hold_wake_publications(monkeypatch)
+
+    with _defer_timeline_hold_wakes():
+        _enqueue_timeline_hold_wake(
+            participant.id,
+            page_uuid="deferred-rollback",
+            reason="barrier_released",
+        )
+        db_session.commit()
+        _queue_arrival_update(participant.id, notice="Your partner is ready.")
+        db_session.rollback()
+        assert publications == []
+
+    assert _released_wake_count(publications) == 1
+    reasons = [
+        target.get("reason")
+        for _, payload in publications
+        for target in payload.get("targets", [])
+    ]
+    assert reasons == ["barrier_released"]
+    assert publications[0][1]["targets"][0]["wake_token"] == hold.wake_token
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_deferred_hold_wakes_flush_when_the_deferred_block_fails(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Committed releases must still wake partners if a later check fails."""
+    participant = new_participant(get_experiment())
+    _participant_hold(participant, "deferred-error", "defer-error")
+    publications = _hold_wake_publications(monkeypatch)
+
+    with pytest.raises(RuntimeError, match="stacked check failed"):
+        with _defer_timeline_hold_wakes():
+            _enqueue_timeline_hold_wake(
+                participant.id,
+                page_uuid="deferred-error",
+                reason="barrier_released",
+            )
+            db_session.commit()
+            raise RuntimeError("stacked check failed")
+
+    assert _released_wake_count(publications) == 1
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_stacked_finalize_defers_hold_wakes_until_it_returns(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Partners must not be woken until stacked last-arrival finalize finishes."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack_wake_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type)
+    publications = _hold_wake_publications(monkeypatch)
+    released_at_inner_commit = []
+    original_finalize = Experiment._finalize_barrier_arrivals
+    real_commit = db.session.commit
+
+    def tracking_commit(*args, **kwargs):
+        result = real_commit(*args, **kwargs)
+        released_at_inner_commit.append(_released_wake_count(publications))
+        return result
+
+    @classmethod
+    def wrapped_finalize(cls, *args, **kwargs):
+        monkeypatch.setattr(db.session, "commit", tracking_commit)
+        try:
+            return original_finalize(*args, **kwargs)
+        finally:
+            monkeypatch.setattr(db.session, "commit", real_commit)
+
+    try:
+        first, last = [new_participant(exp) for _ in range(2)]
+        for participant in (first, last):
+            participant.status = "working"
+        db.session.commit()
+
+        with Flask(__name__).test_request_context(
+            f"/timeline?unique_id={first.unique_id}",
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ):
+            first_response = Experiment._route_timeline(exp, first, mode="json")
+        assert first_response.status_code == 200
+        publications.clear()
+        monkeypatch.setattr(Experiment, "_finalize_barrier_arrivals", wrapped_finalize)
+
+        with Flask(__name__).test_request_context(
+            f"/timeline?unique_id={last.unique_id}",
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ):
+            last_response = Experiment._route_timeline(exp, last, mode="json")
+        assert last_response.status_code == 200
+        assert last_response.get_json()["attributes"]["type"] == "ModularPage"
+        assert released_at_inner_commit
+        assert all(count == 0 for count in released_at_inner_commit)
+        assert _released_wake_count(publications) >= 1
+    finally:
+        exp.timeline = original_timeline
 
 
 @pytest.mark.parametrize(
