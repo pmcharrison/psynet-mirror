@@ -117,10 +117,10 @@ check finishes the release instead. To display dedicated pages or filler tasks
 while participants wait, pass them explicitly with ``waiting_logic``.
 
 By default the hold also shows live arrival progress (``1 of 2 arrived``)
-and group members still on an earlier page see a banner
-(``Your partner is ready to continue.``). That banner stays on one line;
-longer custom notice copy ellipsizes instead of wrapping over the prompt.
-Hold overlay progress may still use a second line. Set
+and group members still on an earlier page see a pill on the progress bar
+(``Your partner is ready.``). That pill stays on one line; longer custom
+notice copy ellipsizes instead of wrapping over the prompt. Hold overlay
+progress may still use a second line. Set
 ``notify_arrivals=False`` to keep the hold title only. Pass
 ``on_arrival_message`` to customize that copy; it receives ``kind``
 (``"hold"`` or ``"notice"``), ``waiting_count``, and ``group_size``.
@@ -129,7 +129,7 @@ Keep ``kind="notice"`` return values to a short sentence::
     def arrival_message(*, kind, waiting_count, group_size, **kwargs):
         if kind == "hold":
             return f"{waiting_count} of {group_size} arrived"
-        return "Your partner is ready to continue."
+        return "Your partner is ready."
 
     GroupBarrier(
         id_="finished_trial",

@@ -127,14 +127,15 @@ test("default barriers hold the current page until websocket release", { tag: "@
       firstParticipant.locator(".psynet-timeline-hold-progress")
     ).toHaveText("1 of 2 arrived");
     const arrivalNotice = secondParticipant.locator("#psynet-arrival-notice");
-    await expect(arrivalNotice).toHaveText("Your partner is ready to continue.", {
+    await expect(arrivalNotice).toHaveText("Your partner is ready.", {
       timeout: STEP_TIMEOUT_MS
     });
     await expect(arrivalNotice).toHaveCSS("white-space", "nowrap");
-    await expect(arrivalNotice).toHaveAttribute(
-      "title",
-      "Your partner is ready to continue."
-    );
+    await expect(arrivalNotice).toHaveAttribute("title", "Your partner is ready.");
+    await expect(arrivalNotice).toBeVisible();
+    await expect(
+      secondParticipant.locator("#timeline-header #psynet-arrival-notice")
+    ).toHaveCount(1);
     if (process.env.ARTIFACT_DIR) {
       await secondParticipant.setViewportSize({ width: 375, height: 667 });
       await secondParticipant.screenshot({
@@ -151,7 +152,7 @@ test("default barriers hold the current page until websocket release", { tag: "@
       height: el.getBoundingClientRect().height,
       overflowed: el.scrollWidth > el.clientWidth,
     }));
-    expect(longNotice.height).toBeLessThan(64);
+    expect(longNotice.height).toBeLessThan(48);
     expect(longNotice.overflowed).toBeTruthy();
     await expect(arrivalNotice).toHaveAttribute("title", longNoticeText);
     if (process.env.ARTIFACT_DIR) {
@@ -161,7 +162,7 @@ test("default barriers hold the current page until websocket release", { tag: "@
     }
     await secondParticipant.setViewportSize({ width: 1280, height: 720 });
     await secondParticipant.evaluate(() => {
-      window.psynet.showArrivalNotice("Your partner is ready to continue.");
+      window.psynet.showArrivalNotice("Your partner is ready.");
     });
     await expect(secondParticipant.locator("#main-body")).toContainText(
       "Choose your action"

@@ -113,11 +113,10 @@ def default_group_barrier_arrival_message(
             total=group_size,
         )
     if group_size == 2:
-        return _p("timeline_hold", "Your partner is ready to continue.")
-    if waiting_count == 1:
-        return _p("timeline_hold", "1 participant is ready to continue.")
-    return _p("timeline_hold", "{n} participants are ready to continue.").format(
-        n=waiting_count
+        return _p("timeline_hold", "Your partner is ready.")
+    return _p("timeline_hold", "{arrived}/{total} of your group are ready.").format(
+        arrived=waiting_count,
+        total=group_size,
     )
 
 

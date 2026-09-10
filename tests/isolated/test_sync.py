@@ -929,19 +929,19 @@ def test_default_group_barrier_arrival_message_copy():
         default_group_barrier_arrival_message(
             kind="notice", waiting_count=1, group_size=2
         )
-        == "Your partner is ready to continue."
+        == "Your partner is ready."
     )
     assert (
         default_group_barrier_arrival_message(
             kind="notice", waiting_count=1, group_size=3
         )
-        == "1 participant is ready to continue."
+        == "1/3 of your group are ready."
     )
     assert (
         default_group_barrier_arrival_message(
             kind="notice", waiting_count=2, group_size=3
         )
-        == "2 participants are ready to continue."
+        == "2/3 of your group are ready."
     )
 
 
@@ -1003,9 +1003,9 @@ def test_group_arrival_notifies_partner_still_on_earlier_page(
         for _, payload in publications
         for target in payload["targets"]
     ]
-    assert "Your partner is ready to continue." in notices
+    assert "Your partner is ready." in notices
     assert any(message and "1 of 2 arrived" in message for message in hold_messages)
-    assert pending_arrival_notice_for(last) == "Your partner is ready to continue."
+    assert pending_arrival_notice_for(last) == "Your partner is ready."
     overlay = barrier.waiting_logic.overlay_html(first)
     assert "Waiting for your partner" in overlay
     assert "1 of 2 arrived" in overlay

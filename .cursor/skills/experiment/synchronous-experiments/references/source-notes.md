@@ -14,10 +14,10 @@ and platform docs when a study is near deployment.
   they are waiting at the same barrier. The last arrival tries `check()` in that
   request so the group does not wait for the 0.5 s poller; lock contention falls
   back to the poller. Arrival notices are on by default: hold progress plus a
-  banner for members who have not arrived yet. The banner stays on one
-  line (CSS ellipsis); keep `on_arrival_message` notice copy to a short
-  sentence. Set `notify_arrivals=False` to disable them, or customize
-  copy with `on_arrival_message`.
+  pill on the progress bar for members who have not arrived yet. Keep
+  `on_arrival_message` notice copy to a short sentence. Set
+  `notify_arrivals=False` to disable them, or customize copy with
+  `on_arrival_message`.
   It checks `min_group_size`, can wait for top-ups, can fail under-quota groups,
   and accepts `on_release(group, participants)` for atomic shared updates.
 - `psynet.sync.SimpleGrouper` creates `SyncGroup`s by waiting for `batch_size`

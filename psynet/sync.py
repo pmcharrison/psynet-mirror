@@ -551,7 +551,7 @@ class GroupBarrier(Barrier):
     notify_arrivals
         If ``True`` (default), waiting participants see live arrival progress
         on the hold overlay, and group members who have not reached this
-        barrier yet see a banner on their current page. Set ``False`` to keep
+        barrier yet see a pill on the progress bar. Set ``False`` to keep
         the hold title only. Passing ``on_arrival_message`` implies ``True``.
 
     on_arrival_message
@@ -560,8 +560,8 @@ class GroupBarrier(Barrier):
         ``group_size``, and the usual context arguments (``recipient``,
         ``group``, ``barrier``, ``experiment``). Return ``None`` to hide that
         surface. Same serialization rules as ``on_release``. The default pair
-        notice is "Your partner is ready to continue." Notice copy stays on
-        one line in the banner (overflow ellipsizes), so keep
+        notice is "Your partner is ready." Notice copy stays on one line
+        (overflow ellipsizes) and sits on the progress bar, so keep
         ``kind="notice"`` return values to a short sentence. Hold overlay
         copy may use a second line.
 

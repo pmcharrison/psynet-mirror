@@ -903,7 +903,7 @@
         notice.id = "psynet-arrival-notice";
         notice.setAttribute("role", "status");
         notice.setAttribute("aria-live", "polite");
-        document.getElementById("timeline-hold-region")?.appendChild(notice);
+        document.getElementById("timeline-header")?.appendChild(notice);
       }
       notice.textContent = message;
       notice.title = message;
