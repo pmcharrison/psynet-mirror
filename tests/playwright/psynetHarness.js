@@ -963,10 +963,15 @@ function summarizeParticipantRequests(records) {
     .join("; ");
 }
 
-function unexpectedBlockingRequests(records, maxDurationMs) {
-  return records.filter(
-    (record) => record.busy || (record.durationMs ?? 0) >= maxDurationMs
-  );
+function unexpectedBlockingRequests(records, maxDurationMs, options = {}) {
+  const busyMs = options.busyMs ?? 500;
+  return records.filter((record) => {
+    const duration = record.durationMs ?? 0;
+    if (duration >= maxDurationMs) {
+      return true;
+    }
+    return Boolean(record.busy) && duration >= busyMs;
+  });
 }
 
 async function enterTimelineAfterGateway(page, timeout = 120000) {

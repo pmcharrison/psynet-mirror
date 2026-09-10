@@ -3254,9 +3254,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
+        # NOWAIT: a partner hold-resume must not sit in lock_timeout while the
+        # last arriver holds this row. A blocking wait freezes the worker
+        # thread and stalls that arriver's first GET /timeline.
         participant = (
             self._participant_request_query()
-            .with_for_update(of=Participant)
+            .with_for_update(of=Participant, nowait=True)
             .populate_existing()
             .get(participant_id)
         )

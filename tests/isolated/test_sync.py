@@ -1365,6 +1365,45 @@ def test_partner_timeline_lock_times_out_during_in_flight_check(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_process_response_does_not_wait_when_participant_row_is_locked(
+    in_experiment_directory, db_session
+):
+    """A hold-resume must not sit in lock_timeout while last-arrival holds the row."""
+    exp = get_experiment()
+    participant = new_participant(exp)
+    db.session.commit()
+    participant_id = participant.id
+    page_uuid = participant.page_uuid
+    db.session.expire_all()
+
+    with db.engine.connect() as conn:
+        trans = conn.begin()
+        try:
+            conn.execute(
+                text("SELECT id FROM participant WHERE id = :id FOR UPDATE"),
+                {"id": participant_id},
+            )
+            started_at = time.perf_counter()
+            with pytest.raises(OperationalError) as excinfo:
+                exp.process_response(
+                    participant_id,
+                    None,
+                    {},
+                    {},
+                    page_uuid,
+                    "127.0.0.1",
+                )
+            elapsed = time.perf_counter() - started_at
+        finally:
+            trans.rollback()
+
+    assert elapsed < 0.5
+    assert Experiment._is_transient_transaction_error(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_two_response_finalizers_claim_one_barrier_instance(
     in_experiment_directory, db_session
 ):
