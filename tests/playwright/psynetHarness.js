@@ -182,7 +182,7 @@ function resolvePsynetLaunch() {
 }
 
 // ---- Backend process lifecycle ---------------------------------------------
-function startExperiment(experimentDir) {
+function startExperiment(experimentDir, options = {}) {
   const launch = resolvePsynetLaunch();
   if (!launch || !launch.cmd) {
     throw new Error("Unable to resolve psynet command.");
@@ -201,7 +201,8 @@ function startExperiment(experimentDir) {
       ...process.env,
       KEEP_OLD_CHROME_WINDOWS_IN_DEBUG_MODE: "1",
       BROWSER: "false",
-      SKIP_PYTHON_VERSION_CHECK: "1"
+      SKIP_PYTHON_VERSION_CHECK: "1",
+      ...(options.env || {})
     },
     stdio: ["ignore", "pipe", "pipe"]
   });
@@ -1031,47 +1032,97 @@ async function captureFirstTimelineAfterGateway(page, timeout = 120000) {
 }
 
 function timelineHoldReleaseProbeScript() {
-  if (window.__psynetHoldReleaseProbe) {
-    return;
-  }
-  const probe = {
+  // Wrap as soon as window.psynet is assigned. A delayed interval can miss
+  // the real resumeTimelineHold if psynet.js replaces the property later.
+  const probe = window.__psynetHoldReleaseProbe || {
     wakeReceivedAtMs: null,
     holdEndedAtMs: null,
     wakeReason: null,
     resumeReasons: [],
-    resumeWrapped: false
+    nextPageHoldResumes: [],
+    wrappedResume: false,
+    wrappedNextPage: false
   };
   window.__psynetHoldReleaseProbe = probe;
-  window.addEventListener("timelineHoldWakeReceived", (event) => {
-    if (probe.wakeReceivedAtMs == null) {
-      probe.wakeReceivedAtMs = Date.now();
-      probe.wakeReason = event.detail?.reason || null;
-    }
-  });
-  window.addEventListener("timelineHoldEnded", () => {
-    if (probe.holdEndedAtMs == null) {
-      probe.holdEndedAtMs = Date.now();
-    }
-  });
-  const wrapResume = () => {
-    if (probe.resumeWrapped || !window.psynet || !window.psynet.resumeTimelineHold) {
+
+  if (!window.__psynetHoldReleaseProbeListeners) {
+    window.__psynetHoldReleaseProbeListeners = true;
+    window.addEventListener("timelineHoldWakeReceived", (event) => {
+      if (probe.wakeReceivedAtMs == null) {
+        probe.wakeReceivedAtMs = Date.now();
+        probe.wakeReason = event.detail?.reason || null;
+      }
+    });
+    window.addEventListener("timelineHoldEnded", () => {
+      if (probe.holdEndedAtMs == null) {
+        probe.holdEndedAtMs = Date.now();
+      }
+    });
+  }
+
+  const wrapNamed = (object, name, record) => {
+    const current = object[name];
+    if (typeof current !== "function") {
       return false;
     }
-    const original = window.psynet.resumeTimelineHold;
-    probe.resumeWrapped = true;
-    window.psynet.resumeTimelineHold = async function (reason) {
-      probe.resumeReasons.push({ reason: reason, atMs: Date.now() });
-      return original.apply(this, arguments);
+    if (current.__psynetProbeWrapped) {
+      return true;
+    }
+    const wrapped = async function () {
+      record(arguments);
+      return current.apply(this, arguments);
     };
+    wrapped.__psynetProbeWrapped = true;
+    object[name] = wrapped;
     return true;
   };
-  if (!wrapResume()) {
-    const timer = setInterval(() => {
-      if (wrapResume()) {
-        clearInterval(timer);
+
+  const installWraps = (object) => {
+    if (!object) {
+      return false;
+    }
+    probe.wrappedResume = wrapNamed(object, "resumeTimelineHold", (args) => {
+      probe.resumeReasons.push({ reason: args[0], atMs: Date.now() });
+    });
+    probe.wrappedNextPage = wrapNamed(object, "nextPage", (args) => {
+      const options = args[4] || {};
+      if (options.timelineHoldResume) {
+        probe.nextPageHoldResumes.push({ atMs: Date.now() });
+      }
+    });
+    return Boolean(probe.wrappedResume);
+  };
+
+  window.__psynetHoldReleaseProbeInstallWrap = () => installWraps(window.psynet);
+
+  if (!window.__psynetHoldProbeHooked) {
+    window.__psynetHoldProbeHooked = true;
+    let target = window.psynet;
+    Object.defineProperty(window, "psynet", {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return target;
+      },
+      set(value) {
+        target = value;
+        installWraps(value);
+      }
+    });
+  }
+  if (!installWraps(window.psynet) && !window.__psynetHoldProbeWrapTimer) {
+    window.__psynetHoldProbeWrapTimer = setInterval(() => {
+      if (installWraps(window.psynet)) {
+        clearInterval(window.__psynetHoldProbeWrapTimer);
+        window.__psynetHoldProbeWrapTimer = null;
       }
     }, 20);
-    setTimeout(() => clearInterval(timer), 15000);
+    setTimeout(() => {
+      if (window.__psynetHoldProbeWrapTimer) {
+        clearInterval(window.__psynetHoldProbeWrapTimer);
+        window.__psynetHoldProbeWrapTimer = null;
+      }
+    }, 15000);
   }
 }
 
@@ -1114,18 +1165,33 @@ async function readTimelineHoldReleaseProbe(page) {
     .then((probe) => probe || {
       wakeReceivedAtMs: null,
       holdEndedAtMs: null,
-      wakeReason: null
+      wakeReason: null,
+      resumeReasons: [],
+      nextPageHoldResumes: [],
+      wrappedResume: false
     })
     .catch(() => ({
       wakeReceivedAtMs: null,
       holdEndedAtMs: null,
-      wakeReason: null
+      wakeReason: null,
+      resumeReasons: [],
+      nextPageHoldResumes: [],
+      wrappedResume: false
     }));
+}
+
+async function wrapTimelineHoldResumeProbe(page) {
+  return page.evaluate(() => {
+    if (typeof window.__psynetHoldReleaseProbeInstallWrap === "function") {
+      return window.__psynetHoldReleaseProbeInstallWrap();
+    }
+    return false;
+  });
 }
 
 async function silenceTimelineHoldSafetyPoll(page) {
   return page.evaluate(() => {
-    const controller = psynet.timelineHold;
+    const controller = window.psynet && window.psynet.timelineHold;
     if (!controller) {
       return false;
     }
@@ -1134,7 +1200,7 @@ async function silenceTimelineHoldSafetyPoll(page) {
     if (controller.hold) {
       controller.hold.safety_poll_ms = 60000;
     }
-    psynet.scheduleTimelineHoldCheck = function () {};
+    window.psynet.scheduleTimelineHoldCheck = function () {};
     return true;
   });
 }
@@ -1311,6 +1377,7 @@ module.exports = {
   readTimelineHoldReleaseProbe,
   waitForHeldParticipantToResume,
   silenceTimelineHoldSafetyPoll,
+  wrapTimelineHoldResumeProbe,
   resumeReasonsSince,
   clickConsentButton,
   clickFinish,

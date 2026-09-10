@@ -1541,6 +1541,94 @@ def _json_timeline(exp, participant):
         return Experiment._route_timeline(exp, participant, mode="json")
 
 
+def _working_participants(exp, count):
+    """Create ``count`` working participants for stacked-hold arrival tests."""
+    participants = [new_participant(exp) for _ in range(count)]
+    for participant in participants:
+        participant.status = "working"
+    db.session.commit()
+    return participants
+
+
+def _assert_on_action_page(exp, participant_ids):
+    """Every listed participant must have left the hold for ``choose_action``."""
+    groups = []
+    for participant_id in participant_ids:
+        participant = Participant.query.get(participant_id)
+        page = exp.timeline.get_current_elt(exp, participant)
+        assert not getattr(page, "is_timeline_hold", False)
+        assert page.label == "choose_action"
+        assert participant.sync_group is not None
+        groups.append(participant.sync_group.id)
+    assert len(set(groups)) == 1
+
+
+def _assert_still_holding(exp, participant_ids):
+    """Listed participants must still be on a timeline hold."""
+    for participant_id in participant_ids:
+        participant = Participant.query.get(participant_id)
+        page = exp.timeline.get_current_elt(exp, participant)
+        assert getattr(page, "is_timeline_hold", False)
+        assert participant.sync_group is None
+
+
+def _assert_stacked_finalize_defers_wakes(exp, monkeypatch, group_size):
+    """Waiters stay unpublished until stacked last-arrival finalize returns."""
+    original_timeline = exp.timeline
+    group_type = f"stack{group_size}_wake_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type, group_size=group_size)
+    publications = _hold_wake_publications(monkeypatch)
+    released_at_inner_commit = []
+    original_finalize = Experiment._finalize_barrier_arrivals
+    real_commit = db.session.commit
+
+    def tracking_commit(*args, **kwargs):
+        result = real_commit(*args, **kwargs)
+        released_at_inner_commit.append(_released_wake_count(publications))
+        return result
+
+    @classmethod
+    def wrapped_finalize(cls, *args, **kwargs):
+        monkeypatch.setattr(db.session, "commit", tracking_commit)
+        try:
+            return original_finalize(*args, **kwargs)
+        finally:
+            monkeypatch.setattr(db.session, "commit", real_commit)
+
+    try:
+        participants = _working_participants(exp, group_size)
+        waiters = participants[:-1]
+        last = participants[-1]
+        for waiter in waiters:
+            assert _json_timeline(exp, waiter).status_code == 200
+        tokens = {
+            TimelineHoldRecord.query.filter_by(
+                participant_id=waiter.id, resumed_at=None
+            )
+            .one()
+            .wake_token
+            for waiter in waiters
+        }
+        publications.clear()
+        monkeypatch.setattr(Experiment, "_finalize_barrier_arrivals", wrapped_finalize)
+
+        last_response = _json_timeline(exp, last)
+        assert last_response.status_code == 200
+        assert last_response.get_json()["attributes"]["type"] == "ModularPage"
+        assert released_at_inner_commit
+        assert all(count == 0 for count in released_at_inner_commit)
+        published = {
+            target["wake_token"]
+            for _, payload in publications
+            for target in payload.get("targets", [])
+            if target.get("reason") == "barrier_released" and target.get("wake_token")
+        }
+        assert tokens <= published
+        _assert_on_action_page(exp, [participant.id for participant in participants])
+    finally:
+        exp.timeline = original_timeline
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
@@ -1723,6 +1811,97 @@ def test_two_late_trio_arrivals_release_the_waiting_member(
             page = exp.timeline.get_current_elt(exp, participant)
             assert not getattr(page, "is_timeline_hold", False)
             assert page.label == "choose_action"
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+@pytest.mark.parametrize("group_size", [4, 5])
+def test_last_of_n_skips_stacked_holds_and_releases_waiters(
+    in_experiment_directory, db_session, group_size
+):
+    """The last member's first /timeline paint must release every waiter."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack{group_size}_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type, group_size=group_size)
+    try:
+        participants = _working_participants(exp, group_size)
+        waiter_ids = [participant.id for participant in participants[:-1]]
+        for waiter in participants[:-1]:
+            response = _json_timeline(exp, waiter)
+            assert response.status_code == 200
+            assert response.get_json()["attributes"]["type"] == "_BarrierHoldPage"
+        _assert_still_holding(exp, waiter_ids)
+
+        last_response = _json_timeline(exp, participants[-1])
+        assert last_response.status_code == 200
+        assert last_response.get_json()["attributes"]["type"] == "ModularPage"
+        _assert_on_action_page(exp, [participant.id for participant in participants])
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_penultimate_of_four_still_paints_stacked_group_holds(
+    in_experiment_directory, db_session
+):
+    """A group of four is not complete at n-1, so the third member still waits."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack4_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type, group_size=4)
+    try:
+        participants = _working_participants(exp, 4)
+        for waiter in participants[:3]:
+            response = _json_timeline(exp, waiter)
+            assert response.status_code == 200
+            assert response.get_json()["attributes"]["type"] == "_BarrierHoldPage"
+        _assert_still_holding(exp, [participant.id for participant in participants[:3]])
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_two_late_arrivals_complete_a_group_of_four(
+    in_experiment_directory, db_session
+):
+    """Two waiters plus two concurrent arrivals must still complete the group."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack4_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type, group_size=4)
+    try:
+        first, second, late_a, late_b = _working_participants(exp, 4)
+        first_id, second_id = first.id, second.id
+        late_a_id, late_b_id = late_a.id, late_b.id
+        late_a_uid, late_b_uid = late_a.unique_id, late_b.unique_id
+
+        assert _json_timeline(exp, first).get_json()["attributes"]["type"] == (
+            "_BarrierHoldPage"
+        )
+        assert _json_timeline(exp, second).get_json()["attributes"]["type"] == (
+            "_BarrierHoldPage"
+        )
+        _assert_still_holding(exp, [first_id, second_id])
+
+        thread_a, result_a, errors_a = _route_timeline_in_thread(exp, late_a_uid)
+        thread_b, result_b, errors_b = _route_timeline_in_thread(exp, late_b_uid)
+        thread_a.join(timeout=5)
+        thread_b.join(timeout=5)
+        assert errors_a == []
+        assert errors_b == []
+        assert not thread_a.is_alive()
+        assert not thread_b.is_alive()
+        assert result_a.get("status") == 200
+        assert result_b.get("status") == 200
+        _assert_on_action_page(exp, [first_id, second_id, late_a_id, late_b_id])
     finally:
         exp.timeline = original_timeline
 
@@ -2635,6 +2814,16 @@ def test_trio_stacked_finalize_defers_wakes_for_every_waiter(
         assert second_token in published
     finally:
         exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_quartet_stacked_finalize_defers_wakes_for_every_waiter(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Three waiting members stay unpublished until stacked finalize returns."""
+    _assert_stacked_finalize_defers_wakes(get_experiment(), monkeypatch, group_size=4)
 
 
 @pytest.mark.parametrize(

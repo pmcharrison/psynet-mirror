@@ -6,7 +6,9 @@ const {
   RESULTS_PROMPT,
   STEP_TIMEOUT_MS,
   armChoiceHold,
+  assertAllWaitersReleasedTogether,
   assertNoSessionErrors,
+  assertStillHeld,
   assertWaiterReleasedWithLastArriver,
   awaitPossiblyHeldArrival,
   closeHoldSessions,
@@ -15,6 +17,7 @@ const {
   enterWaitingHold,
   startHoldExperiment,
   stopExperiment,
+  submitChoiceMaybeHeld,
   submitLastChoice
 } = require("./stackedHoldHarness");
 
@@ -41,13 +44,10 @@ test("last of three skips stacked holds and releases every waiter", { tag: "@bot
       holdText: GROUP_HOLD_TEXT,
       prompt: ACTION_PROMPT
     });
-    await expect(
-      first.page.locator("#psynet-timeline-hold-indicator")
-    ).toBeVisible({ timeout: STEP_TIMEOUT_MS });
+    await assertStillHeld(first, GROUP_HOLD_TEXT);
     const lastEntry = await enterSkippingHold(last);
     await expect(last.page.getByRole("button", { name: "go" })).toBeVisible();
-    await assertWaiterReleasedWithLastArriver(first, lastEntry);
-    await assertWaiterReleasedWithLastArriver(second, lastEntry);
+    await assertAllWaitersReleasedTogether([first, second], lastEntry);
     await assertNoSessionErrors(sessions);
   } finally {
     await closeHoldSessions(sessions);
@@ -114,8 +114,7 @@ test("last of three choices releases both waiting members", { tag: "@both" }, as
       prompt: ACTION_PROMPT
     });
     const lastEntry = await enterSkippingHold(last);
-    await assertWaiterReleasedWithLastArriver(first, lastEntry);
-    await assertWaiterReleasedWithLastArriver(second, lastEntry);
+    await assertAllWaitersReleasedTogether([first, second], lastEntry);
 
     await armChoiceHold(first, {
       holdText: GROUP_HOLD_TEXT,
@@ -126,12 +125,109 @@ test("last of three choices releases both waiting members", { tag: "@both" }, as
       prompt: RESULTS_PROMPT
     });
     const lastChoice = await submitLastChoice(last, { prompt: RESULTS_PROMPT });
-    await assertWaiterReleasedWithLastArriver(first, lastChoice, {
+    await assertAllWaitersReleasedTogether([first, second], lastChoice, {
       prompt: RESULTS_PROMPT
     });
-    await assertWaiterReleasedWithLastArriver(second, lastChoice, {
+    await assertNoSessionErrors(sessions);
+  } finally {
+    await closeHoldSessions(sessions);
+    await stopExperiment(experiment.proc);
+  }
+});
+
+test("last of four skips stacked holds and releases every waiter", { tag: "@both" }, async ({
+  browser
+}) => {
+  // A larger group adds more wake targets on the same last-arriver request.
+  // Members 1-3 must stay held until member 4 lands, then leave together.
+  const { experiment, sessions } = await startHoldExperiment(
+    browser,
+    TRIO_DIR,
+    ["quartet_a", "quartet_b", "quartet_c", "quartet_d"],
+    { env: { PSYNET_STACKED_GROUP_SIZE: "4" } }
+  );
+  const [first, second, third, last] = sessions;
+
+  try {
+    await enterWaitingHold(first, {
+      holdText: GROUP_HOLD_TEXT,
+      prompt: ACTION_PROMPT
+    });
+    await enterWaitingHold(second, {
+      holdText: GROUP_HOLD_TEXT,
+      prompt: ACTION_PROMPT
+    });
+    await enterWaitingHold(third, {
+      holdText: GROUP_HOLD_TEXT,
+      prompt: ACTION_PROMPT
+    });
+    await assertStillHeld(first, GROUP_HOLD_TEXT);
+    await assertStillHeld(second, GROUP_HOLD_TEXT);
+    const lastEntry = await enterSkippingHold(last);
+    await expect(last.page.getByRole("button", { name: "go" })).toBeVisible();
+    await assertAllWaitersReleasedTogether([first, second, third], lastEntry);
+    await assertNoSessionErrors(sessions);
+  } finally {
+    await closeHoldSessions(sessions);
+    await stopExperiment(experiment.proc);
+  }
+});
+
+test("two late choices complete a trio without a safety poll", { tag: "@both" }, async ({
+  browser
+}) => {
+  // After grouping, the remaining race is POST /response. One member waits
+  // on the post-choice barrier while the other two submit together.
+  const { experiment, sessions } = await startHoldExperiment(browser, TRIO_DIR, [
+    "trio_choice_wait",
+    "trio_choice_late_a",
+    "trio_choice_late_b"
+  ]);
+  const [first, lateA, lateB] = sessions;
+
+  try {
+    await enterWaitingHold(first, {
+      holdText: GROUP_HOLD_TEXT,
+      prompt: ACTION_PROMPT
+    });
+    await enterWaitingHold(lateA, {
+      holdText: GROUP_HOLD_TEXT,
+      prompt: ACTION_PROMPT
+    });
+    const lastEntry = await enterSkippingHold(lateB);
+    await assertAllWaitersReleasedTogether([first, lateA], lastEntry);
+
+    await armChoiceHold(first, {
+      holdText: GROUP_HOLD_TEXT,
       prompt: RESULTS_PROMPT
     });
+    const [choiceA, choiceB] = await Promise.all([
+      submitChoiceMaybeHeld(lateA, {
+        holdText: GROUP_HOLD_TEXT,
+        prompt: RESULTS_PROMPT
+      }),
+      submitChoiceMaybeHeld(lateB, {
+        holdText: GROUP_HOLD_TEXT,
+        prompt: RESULTS_PROMPT
+      })
+    ]);
+    const laterChoice =
+      choiceA.start.timelineAtMs >= choiceB.start.timelineAtMs ? choiceA : choiceB;
+    await assertWaiterReleasedWithLastArriver(first, laterChoice, {
+      prompt: RESULTS_PROMPT
+    });
+    const heldLate = [];
+    if (choiceA.held) {
+      heldLate.push(lateA);
+    }
+    if (choiceB.held) {
+      heldLate.push(lateB);
+    }
+    if (heldLate.length) {
+      await assertAllWaitersReleasedTogether(heldLate, laterChoice, {
+        prompt: RESULTS_PROMPT
+      });
+    }
     await assertNoSessionErrors(sessions);
   } finally {
     await closeHoldSessions(sessions);

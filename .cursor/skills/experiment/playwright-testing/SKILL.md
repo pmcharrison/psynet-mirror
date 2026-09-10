@@ -70,14 +70,16 @@ expect(entry.start.consentToTimelineMs).toBeLessThan(6000);
 ```
 
 When a partner is already on a hold, start `waitForHeldParticipantToResume`
-before the last arriver consents, and call `silenceTimelineHoldSafetyPoll` so
-a 2s poll cannot hide a missed websocket wake. Assert the waiting partner
-reaches the next durable prompt soon after that last arriver's first timeline
-paint, resumes from `server notification` (not `safety poll`), and does not
-retry a busy hold-resume:
+before the last arriver consents, wrap `psynet.resumeTimelineHold` after the
+hold page is ready, and call `silenceTimelineHoldSafetyPoll` so a 2s poll
+cannot hide a missed websocket wake. Assert the waiting partner reaches the
+next durable prompt soon after that last arriver's first timeline paint,
+resumes from `server notification` (not `safety poll`), does not retry a busy
+hold-resume, and does not reload `GET /timeline`. When several partners are
+waiting, they must leave close together:
 
 ```js
-await installTimelineHoldReleaseProbe(firstPage);
+await wrapTimelineHoldResumeProbe(firstPage);
 await silenceTimelineHoldSafetyPoll(firstPage);
 const firstResumePromise = waitForHeldParticipantToResume(firstPage, {
   prompt: "Choose your action",

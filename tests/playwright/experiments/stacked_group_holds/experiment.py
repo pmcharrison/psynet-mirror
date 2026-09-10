@@ -1,11 +1,14 @@
 """Stacked grouper and barrier holds for multi-member Playwright coverage."""
 
+import os
+
 import psynet.experiment
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline
 
 WAIT = "Waiting for your group"
+GROUP_SIZE = int(os.environ.get("PSYNET_STACKED_GROUP_SIZE", "3"))
 
 
 class Exp(psynet.experiment.Experiment):
@@ -14,7 +17,7 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         SimpleGrouper(
             group_type="stack",
-            initial_group_size=3,
+            initial_group_size=GROUP_SIZE,
             content=WAIT,
         ),
         GroupBarrier(id_="stack_init", group_type="stack", content=WAIT),

@@ -8,6 +8,7 @@ const {
   readTimelineHoldReleaseProbe,
   resumeReasonsSince,
   silenceTimelineHoldSafetyPoll,
+  wrapTimelineHoldResumeProbe,
   startExperiment,
   startParticipantRequestTracker,
   startTimelineHoldSocketTracker,
@@ -24,6 +25,8 @@ const ENTRY_REQUEST_MAX_MS = 2500;
 const START_PAGE_MAX_MS = 6000;
 const BLOCKING_REQUEST_MS = 4000;
 const PARTNER_HOLD_RELEASE_MAX_MS = 2500;
+const WAITER_RELEASE_SPREAD_MAX_MS = 1500;
+const SETTLE_HOLD_MS = 3500;
 const ACTION_PROMPT = "Choose your action";
 const RESULTS_PROMPT = "Everyone is ready";
 const PAIR_HOLD_TEXT = "Waiting for your partner";
@@ -59,11 +62,16 @@ function publishedWakeTokens(holdFrames) {
   return tokens;
 }
 
-function responsesSince(records, startedAtMs) {
+function requestsSince(records, startedAtMs, kind = null) {
   return records.filter(
     (record) =>
-      record.kind === "response" && (record.startedAtMs ?? 0) >= startedAtMs
+      (record.startedAtMs ?? 0) >= startedAtMs &&
+      (kind == null || record.kind === kind)
   );
+}
+
+function responsesSince(records, startedAtMs) {
+  return requestsSince(records, startedAtMs, "response");
 }
 
 function holdReleaseSummary({
@@ -85,6 +93,7 @@ function holdReleaseSummary({
     `${label}: release ${afterConsentMs}ms after last consent, ` +
     `${afterTimelineMs}ms after last timeline (${wake}; ` +
     `resumes ${reasons}; ` +
+    `hold resumes ${probe.nextPageHoldResumes?.length || 0}; ` +
     `waiting token ${waitingWakeToken || "missing"}; ` +
     `published ${publishedWakeTokens(holdFrames).join(",") || "none"}; ` +
     `requests ${summarizeParticipantRequests(resumeRequests)})`
@@ -145,8 +154,8 @@ async function closeHoldSessions(sessions) {
   }
 }
 
-async function startHoldExperiment(browser, experimentDir, labels) {
-  const experiment = startExperiment(experimentDir);
+async function startHoldExperiment(browser, experimentDir, labels, options = {}) {
+  const experiment = startExperiment(experimentDir, options);
   const recruitmentUrl = await experiment.urlPromise;
   const sessions = [];
   try {
@@ -161,12 +170,10 @@ async function startHoldExperiment(browser, experimentDir, labels) {
   return { experiment, sessions, recruitmentUrl };
 }
 
-async function enterWaitingHold(session, { holdText, prompt, timeout = STEP_TIMEOUT_MS }) {
-  session.entry = await enterTimelineAfterGateway(session.page, timeout);
-  assertEntryWasResponsive(session.entry, session.label);
-  expect(session.entry.paint.type).toBe("_BarrierHoldPage");
-  expect(session.entry.paint.showsHold).toBe(true);
-  await waitForTimelinePageReady(session.page, timeout);
+async function armVisibleHold(
+  session,
+  { holdText, prompt, timeout = STEP_TIMEOUT_MS }
+) {
   await expect(
     session.page.locator("#psynet-timeline-hold-indicator")
   ).toBeVisible({ timeout });
@@ -174,6 +181,10 @@ async function enterWaitingHold(session, { holdText, prompt, timeout = STEP_TIME
     session.page.locator(".psynet-timeline-hold-message")
   ).toContainText(holdText);
   await installTimelineHoldReleaseProbe(session.page);
+  expect(
+    await wrapTimelineHoldResumeProbe(session.page),
+    `${session.label} hold-resume probe was not attached`
+  ).toBe(true);
   session.waitingWakeToken = await session.page.evaluate(
     () => psynet.timelineHold?.hold?.wake_token || null
   );
@@ -185,6 +196,24 @@ async function enterWaitingHold(session, { holdText, prompt, timeout = STEP_TIME
     prompt,
     timeout
   });
+}
+
+async function assertStillHeld(session, holdText) {
+  await expect(
+    session.page.locator("#psynet-timeline-hold-indicator")
+  ).toBeVisible();
+  await expect(
+    session.page.locator(".psynet-timeline-hold-message")
+  ).toContainText(holdText);
+}
+
+async function enterWaitingHold(session, { holdText, prompt, timeout = STEP_TIMEOUT_MS }) {
+  session.entry = await enterTimelineAfterGateway(session.page, timeout);
+  assertEntryWasResponsive(session.entry, session.label);
+  expect(session.entry.paint.type).toBe("_BarrierHoldPage");
+  expect(session.entry.paint.showsHold).toBe(true);
+  await waitForTimelinePageReady(session.page, timeout);
+  await armVisibleHold(session, { holdText, prompt, timeout });
   return session.entry;
 }
 
@@ -215,24 +244,56 @@ async function armChoiceHold(
 ) {
   session.choiceTracker = startParticipantRequestTracker(session.page);
   await session.page.getByRole("button", { name: buttonName }).click();
-  await expect(
-    session.page.locator("#psynet-timeline-hold-indicator")
-  ).toBeVisible({ timeout });
-  await expect(
-    session.page.locator(".psynet-timeline-hold-message")
-  ).toContainText(holdText);
-  await installTimelineHoldReleaseProbe(session.page);
-  session.waitingWakeToken = await session.page.evaluate(
-    () => psynet.timelineHold?.hold?.wake_token || null
-  );
-  expect(
-    await silenceTimelineHoldSafetyPoll(session.page),
-    `${session.label} choice-hold safety poll was not running`
-  ).toBe(true);
-  session.resumePromise = waitForHeldParticipantToResume(session.page, {
+  await armVisibleHold(session, { holdText, prompt, timeout });
+}
+
+async function submitChoiceMaybeHeld(
+  session,
+  {
+    holdText,
     prompt,
-    timeout
-  });
+    buttonName = "go",
+    timeout = STEP_TIMEOUT_MS
+  }
+) {
+  session.choiceTracker = startParticipantRequestTracker(session.page);
+  const clickedAtMs = Date.now();
+  await session.page.getByRole("button", { name: buttonName }).click();
+  await session.page.waitForFunction(
+    ({ expectedPrompt, expectedHold }) => {
+      const body = document.getElementById("main-body")?.innerText || "";
+      const hold =
+        document.querySelector(".psynet-timeline-hold-message")?.innerText || "";
+      return body.includes(expectedPrompt) || hold.includes(expectedHold);
+    },
+    { expectedPrompt: prompt, expectedHold: holdText },
+    { timeout }
+  );
+  const held =
+    (await session.page.locator("#psynet-timeline-hold-indicator").count()) > 0;
+  const doneAtMs = Date.now();
+  if (!held) {
+    await assertActionOrPrompt(session.page, prompt, timeout);
+    expect(
+      doneAtMs - clickedAtMs,
+      `${session.label} stayed on a hold after a last-choice skip`
+    ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+    return {
+      held: false,
+      start: {
+        consentClickedAtMs: clickedAtMs,
+        timelineAtMs: doneAtMs
+      }
+    };
+  }
+  await armVisibleHold(session, { holdText, prompt, timeout });
+  return {
+    held: true,
+    start: {
+      consentClickedAtMs: clickedAtMs,
+      timelineAtMs: doneAtMs
+    }
+  };
 }
 
 async function submitLastChoice(
@@ -294,6 +355,10 @@ async function assertWaiterReleasedWithLastArriver(
     label: session.label
   });
   expect(
+    probe.wrappedResume,
+    `${session.label} hold-resume function was not wrapped (${summary})`
+  ).toBe(true);
+  expect(
     session.waitingWakeToken,
     `${session.label} hold is missing a wake token (${summary})`
   ).toBeTruthy();
@@ -317,6 +382,10 @@ async function assertWaiterReleasedWithLastArriver(
     resumeRequests.filter((record) => record.busy),
     `${session.label} hold-resume retries: ${summary}`
   ).toEqual([]);
+  expect(
+    requestsSince(records, lastEntry.start.timelineAtMs, "timeline_document"),
+    `${session.label} reloaded /timeline after the last arriver painted (${summary})`
+  ).toEqual([]);
   const reasonsAfterLast = resumeReasonsSince(
     probe,
     lastEntry.start.consentClickedAtMs
@@ -326,9 +395,17 @@ async function assertWaiterReleasedWithLastArriver(
     `${session.label} used a safety poll after the last arriver started (${summary})`
   ).not.toContain("safety poll");
   expect(
+    reasonsAfterLast,
+    `${session.label} used a hold-timeout resume after the last arriver started (${summary})`
+  ).not.toContain("hold timeout");
+  expect(
     reasonsAfterLast.some((reason) => RELEASE_RESUME_REASONS.has(reason)),
     `${session.label} did not resume from a server wake (${summary})`
   ).toBe(true);
+  expect(
+    probe.holdEndedAtMs,
+    `${session.label} hold overlay did not end (${summary})`
+  ).toBeTruthy();
   expect(
     resumeRequests.filter((record) => record.kind === "response" && record.status === 200)
       .length,
@@ -336,6 +413,25 @@ async function assertWaiterReleasedWithLastArriver(
   ).toBeLessThanOrEqual(2);
   console.log(summary);
   return { resume, probe, summary };
+}
+
+async function assertAllWaitersReleasedTogether(
+  sessions,
+  lastEntry,
+  { prompt = ACTION_PROMPT, timeout = STEP_TIMEOUT_MS } = {}
+) {
+  const results = await Promise.all(
+    sessions.map((session) =>
+      assertWaiterReleasedWithLastArriver(session, lastEntry, { prompt, timeout })
+    )
+  );
+  const times = results.map((result) => result.resume.resumedAtMs);
+  const spread = Math.max(...times) - Math.min(...times);
+  expect(
+    spread,
+    `waiting members left ${spread}ms apart after the hold was satisfied`
+  ).toBeLessThan(WAITER_RELEASE_SPREAD_MAX_MS);
+  return results;
 }
 
 async function awaitPossiblyHeldArrival(
@@ -354,30 +450,18 @@ async function awaitPossiblyHeldArrival(
     await assertActionPage(session.page, timeout);
     return;
   }
-  await expect(
-    session.page.locator(".psynet-timeline-hold-message")
-  ).toContainText(holdText);
-  await installTimelineHoldReleaseProbe(session.page);
-  session.waitingWakeToken = await session.page.evaluate(
-    () => psynet.timelineHold?.hold?.wake_token || null
-  );
-  expect(
-    await silenceTimelineHoldSafetyPoll(session.page),
-    `${session.label} hold safety poll was not running`
-  ).toBe(true);
-  session.resumePromise = waitForHeldParticipantToResume(session.page, {
-    prompt,
-    timeout
-  });
+  await armVisibleHold(session, { holdText, prompt, timeout });
   await assertWaiterReleasedWithLastArriver(session, lastEntry, { prompt, timeout });
 }
 
-async function assertActionPage(page, timeout = STEP_TIMEOUT_MS) {
+async function assertActionOrPrompt(page, prompt, timeout = STEP_TIMEOUT_MS) {
   await waitForTimelinePageReady(page, timeout);
-  await expect(page.locator("#main-body")).toContainText(ACTION_PROMPT, {
-    timeout
-  });
+  await expect(page.locator("#main-body")).toContainText(prompt, { timeout });
   await expect(page.locator("#psynet-timeline-hold-indicator")).toHaveCount(0);
+}
+
+async function assertActionPage(page, timeout = STEP_TIMEOUT_MS) {
+  await assertActionOrPrompt(page, ACTION_PROMPT, timeout);
 }
 
 async function assertNoSessionErrors(sessions) {
@@ -406,12 +490,16 @@ module.exports = {
   PAIR_HOLD_TEXT,
   PARTNER_HOLD_RELEASE_MAX_MS,
   RESULTS_PROMPT,
+  SETTLE_HOLD_MS,
   START_PAGE_MAX_MS,
   STEP_TIMEOUT_MS,
+  WAITER_RELEASE_SPREAD_MAX_MS,
   armChoiceHold,
   assertActionPage,
+  assertAllWaitersReleasedTogether,
   assertEntryWasResponsive,
   assertNoSessionErrors,
+  assertStillHeld,
   assertWaiterReleasedWithLastArriver,
   awaitPossiblyHeldArrival,
   closeHoldSessions,
@@ -422,5 +510,6 @@ module.exports = {
   responsesSince,
   startHoldExperiment,
   stopExperiment,
+  submitChoiceMaybeHeld,
   submitLastChoice
 };

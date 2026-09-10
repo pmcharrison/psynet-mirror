@@ -3,7 +3,9 @@ const { test, expect } = require("./fixtures");
 const {
   ACTION_PROMPT,
   PAIR_HOLD_TEXT,
+  SETTLE_HOLD_MS,
   assertNoSessionErrors,
+  assertStillHeld,
   closeHoldSessions,
   enterSkippingHold,
   enterWaitingHold,
@@ -33,6 +35,10 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
       holdText: PAIR_HOLD_TEXT,
       prompt: ACTION_PROMPT
     });
+    // Stay past the default 2s safety-poll window so a missed wake cannot
+    // hide behind the next scheduled check.
+    await first.page.waitForTimeout(SETTLE_HOLD_MS);
+    await assertStillHeld(first, PAIR_HOLD_TEXT);
     const lastEntry = await enterSkippingHold(last);
     expect(
       lastEntry.timeline.durationMs,
