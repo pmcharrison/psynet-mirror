@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 import uuid
 from datetime import timedelta
 from types import SimpleNamespace
@@ -18,7 +19,7 @@ from psynet.dashboard.sync_groups import (
     _summarize_waiting_at_barriers,
 )
 from psynet.data import SQLBase
-from psynet.db import transaction
+from psynet.db import _set_transaction_lock_timeout, transaction
 from psynet.experiment import Experiment, get_experiment
 from psynet.page import WaitPage
 from psynet.participant import Participant
@@ -953,6 +954,76 @@ def _participant_row_is_locked(participant_id):
             trans.rollback()
 
 
+class _DummyFinalizePage:
+    """Stand-in page so finalize tests do not depend on the consents timeline."""
+
+    is_timeline_hold = False
+
+    def __json__(self, participant):
+        return {"participant_id": participant.id}
+
+
+def _stub_finalize_timeline(experiment, page=None):
+    """Keep finalize away from the host experiment's real timeline."""
+    page = page or _DummyFinalizePage()
+    experiment.timeline = SimpleNamespace(
+        get_current_elt=lambda _experiment, _participant: page
+    )
+    experiment._advance_past_ready_holds = lambda participant, current_page: (
+        current_page
+    )
+    return page
+
+
+def _pause_group_barrier_checks(monkeypatch, barrier_id, started, finish, enabled):
+    """Pause ``GroupBarrier`` checks so another session can observe held waiters."""
+    original = GroupBarrier.check_waiting_participants
+
+    def pausing(self, waiting_participants):
+        original(self, waiting_participants)
+        if self.id == barrier_id and enabled[0]:
+            started.set()
+            assert finish.wait(timeout=2)
+
+    monkeypatch.setattr(GroupBarrier, "check_waiting_participants", pausing)
+
+
+def _commit_arrival_write():
+    """Commit the arrival write and return queued post-commit checks."""
+    db.session.commit()
+    return _take_pending_barrier_checks()
+
+
+def _queued_last_arrival_checks(exp, barrier, first, last):
+    """Arrive both group members and return checks for the last arrival only."""
+    _arrive_at_group_barrier(exp, barrier, first)
+    _commit_barrier_arrivals()
+    _arrive_at_group_barrier(exp, barrier, last)
+    return _commit_arrival_write()
+
+
+def _run_finalize_in_thread(experiment, participant_id, checks, result):
+    """Run ``_finalize_barrier_arrivals`` on a thread-local session."""
+    errors = []
+
+    def target():
+        try:
+            Experiment._finalize_barrier_arrivals(
+                experiment,
+                participant_id=participant_id,
+                checks=checks,
+                result=result,
+            )
+        except Exception as err:  # pragma: no cover - surfaced by the caller
+            errors.append(err)
+        finally:
+            db.session.remove()
+
+    thread = threading.Thread(target=target, daemon=True)
+    thread.start()
+    return thread, errors
+
+
 def test_finalize_barrier_arrivals_commits_checks_before_participant_relock(
     monkeypatch,
 ):
@@ -1043,6 +1114,231 @@ def test_finalize_barrier_arrivals_does_not_relock_after_losing_claim(monkeypatc
     assert returned is participant
     assert events == ["check", "commit", "participant_read"]
     assert result.payload == {"page": "hold"}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_finalize_loser_does_not_wait_on_winner_waiter_locks(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """A request that loses the advisory claim must not wait on waiter rows."""
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="finalize_loser_no_wait", group_type="main")
+    started = threading.Event()
+    finish = threading.Event()
+    enabled = [False]
+    _pause_group_barrier_checks(monkeypatch, barrier.id, started, finish, enabled)
+    page = _stub_finalize_timeline(exp)
+    checks = _queued_last_arrival_checks(exp, barrier, first, last)
+    enabled[0] = True
+
+    winner_hold = object()
+    loser_hold = object()
+    winner_result = SimpleNamespace(page=winner_hold, payload={"page": "hold"})
+    loser_result = SimpleNamespace(page=loser_hold, payload={"page": "hold"})
+    winner, winner_errors = _run_finalize_in_thread(exp, last.id, checks, winner_result)
+    assert started.wait(timeout=2)
+    started_at = time.perf_counter()
+    loser, loser_errors = _run_finalize_in_thread(exp, first.id, checks, loser_result)
+    loser.join(timeout=2)
+    elapsed = time.perf_counter() - started_at
+    finish.set()
+    winner.join(timeout=2)
+
+    assert elapsed < 1
+    assert not loser.is_alive()
+    assert not winner.is_alive()
+    assert winner_errors == []
+    assert loser_errors == []
+    assert loser_result.page is loser_hold
+    assert winner_result.page is page
+    assert _barrier_link_released(first.id, barrier.id) is True
+    assert _barrier_link_released(last.id, barrier.id) is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_finalize_drops_partner_locks_before_submitter_relock(
+    in_experiment_directory, db_session
+):
+    """Partner rows must be free once the winner advances its own timeline."""
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    first_id = first.id
+    last_id = last.id
+    barrier = GroupBarrier(id_="finalize_drop_partner_locks", group_type="main")
+    page = _DummyFinalizePage()
+    exp.timeline = SimpleNamespace(get_current_elt=lambda _e, _p: page)
+    locks = []
+
+    def advance(participant, current_page):
+        locks.append(
+            {
+                "partner": _participant_row_is_locked(first_id),
+                "submitter": _participant_row_is_locked(last_id),
+            }
+        )
+        return current_page
+
+    exp._advance_past_ready_holds = advance
+    checks = _queued_last_arrival_checks(exp, barrier, first, last)
+    result = SimpleNamespace(page=object(), payload={})
+
+    Experiment._finalize_barrier_arrivals(
+        exp,
+        participant_id=last_id,
+        checks=checks,
+        result=result,
+    )
+
+    assert locks == [{"partner": False, "submitter": True}]
+    assert result.page is page
+    assert _barrier_link_released(first_id, barrier.id) is True
+    assert _barrier_link_released(last_id, barrier.id) is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_finalize_relock_after_check_commit_is_bounded(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Relocking the submitter must use lock_timeout after the check commit."""
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    last_id = last.id
+    barrier = GroupBarrier(id_="finalize_bounded_relock", group_type="main")
+    _stub_finalize_timeline(exp)
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda key, **_kwargs: 0.2),
+    )
+    checks = _queued_last_arrival_checks(exp, barrier, first, last)
+    result = SimpleNamespace(page=object(), payload={})
+    real_commit = db.session.commit
+    held = []
+    blocker = db.engine.connect()
+    blocker_trans = blocker.begin()
+
+    def commit_then_hold_submitter():
+        real_commit()
+        if not held:
+            held.append(True)
+            blocker.execute(
+                text("SELECT id FROM participant WHERE id = :id FOR UPDATE"),
+                {"id": last_id},
+            )
+
+    monkeypatch.setattr(db.session, "commit", commit_then_hold_submitter)
+    try:
+        started_at = time.perf_counter()
+        with pytest.raises(OperationalError) as excinfo:
+            Experiment._finalize_barrier_arrivals(
+                exp,
+                participant_id=last_id,
+                checks=checks,
+                result=result,
+            )
+        elapsed = time.perf_counter() - started_at
+        db.session.rollback()
+    finally:
+        blocker_trans.rollback()
+        blocker.close()
+
+    assert elapsed < 1.5
+    assert Experiment._is_transient_transaction_error(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_partner_timeline_lock_times_out_during_in_flight_check(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Partner ``/timeline`` FOR UPDATE stays bounded while a check holds waiters."""
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    first_unique_id = first.unique_id
+    barrier = GroupBarrier(id_="finalize_timeline_busy", group_type="main")
+    started = threading.Event()
+    finish = threading.Event()
+    enabled = [False]
+    _pause_group_barrier_checks(monkeypatch, barrier.id, started, finish, enabled)
+    _stub_finalize_timeline(exp)
+    checks = _queued_last_arrival_checks(exp, barrier, first, last)
+    enabled[0] = True
+    result = SimpleNamespace(page=object(), payload={"page": "hold"})
+    winner, winner_errors = _run_finalize_in_thread(exp, last.id, checks, result)
+    assert started.wait(timeout=2)
+
+    _set_transaction_lock_timeout(0.2)
+    started_at = time.perf_counter()
+    with pytest.raises(OperationalError) as excinfo:
+        Experiment._get_request_participant_from_unique_id(
+            first_unique_id, for_update=True
+        )
+    elapsed = time.perf_counter() - started_at
+    db.session.rollback()
+    finish.set()
+    winner.join(timeout=2)
+
+    assert elapsed < 1.5
+    assert Experiment._is_transient_transaction_error(excinfo.value)
+    assert winner_errors == []
+    assert not winner.is_alive()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_two_response_finalizers_claim_one_barrier_instance(
+    in_experiment_directory, db_session
+):
+    """Concurrent ``/response`` finalizers must not double-release or hang."""
+    exp = get_experiment()
+    participants, group = _pair_sync_group(exp, db_session)
+    first, last = participants
+    group_id = group.id
+    _group_release_calls.clear()
+    barrier = GroupBarrier(
+        id_="finalize_two_requests",
+        group_type="main",
+        on_release=_count_group_release,
+    )
+    page = _stub_finalize_timeline(exp)
+    checks = _queued_last_arrival_checks(exp, barrier, first, last)
+    first_hold = object()
+    last_hold = object()
+    first_result = SimpleNamespace(page=first_hold, payload={"page": "hold"})
+    last_result = SimpleNamespace(page=last_hold, payload={"page": "hold"})
+
+    first_thread, first_errors = _run_finalize_in_thread(
+        exp, first.id, checks, first_result
+    )
+    last_thread, last_errors = _run_finalize_in_thread(
+        exp, last.id, checks, last_result
+    )
+    first_thread.join(timeout=2)
+    last_thread.join(timeout=2)
+
+    assert not first_thread.is_alive()
+    assert not last_thread.is_alive()
+    assert first_errors == []
+    assert last_errors == []
+    assert _group_release_calls == [group_id]
+    kept_hold = [
+        result
+        for result, hold in ((first_result, first_hold), (last_result, last_hold))
+        if result.page is hold
+    ]
+    advanced = [result for result in (first_result, last_result) if result.page is page]
+    assert len(kept_hold) == 1
+    assert len(advanced) == 1
+    assert _barrier_link_released(first.id, barrier.id) is True
+    assert _barrier_link_released(last.id, barrier.id) is True
 
 
 @pytest.mark.parametrize(
