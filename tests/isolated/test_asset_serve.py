@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 from flask import Flask
 
-from psynet.asset import Asset, LocalStorage, _safe_asset_subpath
+from psynet.asset import (
+    Asset,
+    LocalStorage,
+    ManagedAsset,
+    S3Storage,
+    _safe_asset_subpath,
+)
 from psynet.experiment import _redacted_asset_request_path
 
 
@@ -73,6 +80,10 @@ def test_local_storage_serve_file(tmp_path):
         response = storage.serve(_Asset())
         try:
             assert response.status_code == 200
+            assert response.cache_control.private
+            assert not response.cache_control.public
+            assert response.cache_control.max_age == 31_536_000
+            assert response.cache_control.immutable
             response.direct_passthrough = False
             assert response.get_data() == b"payload"
         finally:
@@ -103,7 +114,6 @@ def test_local_storage_serve_rejects_subpath_on_file(tmp_path):
 
 
 def test_s3_storage_serve_redirects_to_public_url():
-    from psynet.asset import S3Storage
 
     storage = S3Storage("my-bucket", "prefix")
     asset = MagicMock()
@@ -121,7 +131,6 @@ def test_s3_storage_serve_redirects_to_public_url():
 
 
 def test_managed_asset_s3_get_url_is_direct_public_object():
-    from psynet.asset import ManagedAsset, S3Storage
 
     storage = S3Storage("my-bucket", "prefix")
 
@@ -141,3 +150,39 @@ def test_managed_asset_s3_get_url_is_direct_public_object():
     assert "objects/sha256/abcd" in url
     assert "tok_should_not_appear" not in url
     assert not url.startswith("/asset/")
+
+
+def test_managed_asset_rotates_access_token_when_contents_change():
+    asset = SimpleNamespace(
+        sha256_contents="old-digest",
+        access_token="old-token",
+        get_sha256_contents=lambda: "new-digest",
+        get_md5_contents=lambda: "new-md5",
+        rotate_access_token=MagicMock(),
+    )
+
+    ManagedAsset._assign_content_addressed_paths(asset)
+
+    asset.rotate_access_token.assert_called_once_with()
+    assert asset.object_path == "objects/sha256/new-digest"
+
+
+def test_managed_asset_recomputes_digests_when_same_path_changes(tmp_path):
+    source = tmp_path / "stimulus.txt"
+    source.write_text("first", encoding="utf-8")
+    asset = object.__new__(ManagedAsset)
+
+    first_sha256 = asset._get_sha256_contents(str(source), False)
+    first_md5 = asset._get_md5_contents(str(source), False)
+    source.write_text("second", encoding="utf-8")
+
+    assert asset._get_sha256_contents(str(source), False) != first_sha256
+    assert asset._get_md5_contents(str(source), False) != first_md5
+
+    folder = tmp_path / "stimuli"
+    folder.mkdir()
+    nested = folder / "item.txt"
+    nested.write_text("first", encoding="utf-8")
+    first_folder_sha256 = asset._get_sha256_contents(str(folder), True)
+    nested.write_text("second", encoding="utf-8")
+    assert asset._get_sha256_contents(str(folder), True) != first_folder_sha256

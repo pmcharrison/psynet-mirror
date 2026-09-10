@@ -60,7 +60,8 @@ class TestExp(object):
                 assert_text(
                     driver,
                     "error-text",
-                    "There has been an error and so you are unable to continue, sorry!",
+                    "Something went wrong, so the experiment cannot continue. "
+                    "We're sorry.",
                 )
 
                 with log_pexpect_errors(debug_server_process):
@@ -94,7 +95,8 @@ class TestExp(object):
                 assert_text(
                     driver,
                     "error-text",
-                    "There has been an error and so you are unable to continue, sorry!",
+                    "Something went wrong, so the experiment cannot continue. "
+                    "We're sorry.",
                 )
 
                 with log_pexpect_errors(debug_server_process):
