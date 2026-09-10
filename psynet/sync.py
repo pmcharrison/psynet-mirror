@@ -659,8 +659,12 @@ class GroupBarrier(Barrier):
 
     def _call_arrival_message(self, **kwargs):
         """Return author or default arrival copy for one recipient."""
-        callback = self.on_arrival_message or default_group_barrier_arrival_message
-        return call_function_with_context(callback, barrier=self, **kwargs)
+        callback = self.on_arrival_message
+        if callback is None:
+            return call_function_with_context(
+                default_group_barrier_arrival_message, barrier=self, **kwargs
+            )
+        return callback(barrier=self, **kwargs)
 
     def _notify_arrivals(self, arriving_participant):
         """Publish hold progress and partner-ready notices after an arrival."""
