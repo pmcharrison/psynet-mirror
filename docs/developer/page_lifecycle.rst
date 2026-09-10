@@ -103,10 +103,11 @@ indefinitely. ``GET /timeline?mode=json`` and ``POST /response`` return HTTP
 503 with a ``busy`` payload so the browser can retry; HTML ``/timeline``
 requests show a refresh prompt. Whole timeline requests are not retried
 automatically on the server because author code blocks may contain
-non-idempotent external side effects. Shared
-coordination metadata, such as barrier registry rows, must likewise be created
-or refreshed in short transactions rather than remaining uncommitted through
-rendering. When the last participant arrives at a barrier, that request runs
+non-idempotent external side effects. Barrier definitions and per-group visit
+instances are created in the arrival request's transaction. The poller claims
+an instance with an advisory transaction lock, rather than locking mutable
+metadata that another request needs to update. When the last participant
+arrives at a barrier, that request runs
 ``check()``, which locks every waiter. If anyone else was waiting, PsyNet
 commits immediately and relocks only the arriver, so partner rows are not held
 for the rest of the write phase. The barrier poller locks waiters with

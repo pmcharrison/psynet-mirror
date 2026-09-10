@@ -25,6 +25,8 @@ from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallable
 from psynet.sync import (
     Barrier,
+    BarrierDefinition,
+    BarrierInstance,
     BarrierRecord,
     GroupBarrier,
     SimpleGrouper,
@@ -208,122 +210,82 @@ def test_barrier_rejects_negative_expected_wait():
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_barrier_record_ensure_exists_commits_independently(
+def test_barrier_definition_and_instance_use_request_transaction(
     in_experiment_directory, db_session
 ):
-    """Registry inserts must be visible before the caller's transaction commits.
+    """Barrier persistence must not commit through a hidden side session."""
+    participant = new_participant(get_experiment())
+    participant.status = "working"
+    barrier = ReleaseAllBarrier(id_=f"transactional_{get_random_id()}")
 
-    Concurrent /timeline requests previously blocked on ``barrier.id`` while the
-    first participant kept the insert open through HTML rendering.
-    """
-    barrier_id = f"autonomous_{get_random_id()}"
-    barrier = ReleaseAllBarrier(id_=barrier_id)
+    barrier.receive_participant(participant)
+    definition_id = barrier.id
+    instance_id = participant.active_barriers[barrier.id].barrier_instance_id
 
-    BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
+    with db.engine.connect() as connection:
+        assert (
+            connection.execute(
+                text("SELECT id FROM barrier WHERE id = :id"),
+                {"id": definition_id},
+            ).first()
+            is None
+        )
+        assert (
+            connection.execute(
+                text("SELECT id FROM barrier_instance WHERE id = :id"),
+                {"id": instance_id},
+            ).first()
+            is None
+        )
 
-    # Another connection must see the row even if this session rolls back.
-    with db.engine.connect() as conn:
-        row = conn.execute(
-            text("SELECT id FROM barrier WHERE id = :id"),
-            {"id": barrier_id},
-        ).first()
-    assert row is not None
-
-    db.session.rollback()
-    db.session.expire_all()
-    assert BarrierRecord.query.get(barrier_id) is not None
+    db_session.commit()
+    assert BarrierDefinition.query.get(definition_id) is not None
+    assert BarrierInstance.query.get(instance_id) is not None
 
 
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_concurrent_barrier_ensure_exists_does_not_block(
+def test_group_barrier_reuses_one_instance_per_group_visit(
     in_experiment_directory, db_session
 ):
-    """Two threads inserting the same barrier id must both finish promptly."""
-    import threading
-    import time
+    exp = get_experiment()
+    first, second = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="instance_visit", group_type="main")
 
-    barrier_id = f"concurrent_{get_random_id()}"
-    barrier = ReleaseAllBarrier(id_=barrier_id)
-    start = threading.Barrier(2)
-    errors = []
-    elapsed_ms = []
+    _arrive_at_group_barrier(exp, barrier, first)
+    first_instance_id = first.active_barriers[barrier.id].barrier_instance_id
+    db_session.commit()
+    _arrive_at_group_barrier(exp, barrier, second)
+    second_instance_id = second.barrier_links[-1].barrier_instance_id
+    db_session.commit()
 
-    def worker():
-        try:
-            start.wait(timeout=5)
-            began = time.perf_counter()
-            BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
-            elapsed_ms.append((time.perf_counter() - began) * 1000)
-        except Exception as exc:  # pragma: no cover - surfaced via errors
-            errors.append(exc)
+    assert second_instance_id == first_instance_id
+    assert not BarrierInstance.query.get(first_instance_id).active
 
-    threads = [threading.Thread(target=worker, daemon=True) for _ in range(2)]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join(timeout=5)
-
-    assert errors == []
-    assert len(elapsed_ms) == 2
-    assert max(elapsed_ms) < 1000
-    assert BarrierRecord.query.get(barrier_id) is not None
+    barrier.receive_participant(first)
+    next_instance_id = first.active_barriers[barrier.id].barrier_instance_id
+    assert next_instance_id != first_instance_id
 
 
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_existing_barrier_refresh_does_not_lock_caller_transaction(
+def test_same_group_barrier_id_uses_distinct_instances_per_group(
     in_experiment_directory, db_session
 ):
-    """Refreshing registry metadata must not lock through request rendering."""
-    import threading
-    import time
+    exp = get_experiment()
+    first_group = _pair_sync_group(exp, db_session)[0]
+    second_group = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="group_scoped", group_type="main")
 
-    barrier_id = f"existing_{get_random_id()}"
-    barrier = ReleaseAllBarrier(id_=barrier_id)
-    BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
-    holder_ready = threading.Event()
-    release_holder = threading.Event()
-    elapsed = []
-    errors = []
+    barrier.receive_participant(first_group[0])
+    barrier.receive_participant(second_group[0])
 
-    def holder():
-        try:
-            BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
-            db.session.flush()
-            holder_ready.set()
-            release_holder.wait(timeout=5)
-            db.session.rollback()
-        except Exception as exc:  # pragma: no cover - surfaced via errors
-            errors.append(exc)
-        finally:
-            db.session.remove()
-
-    def peer():
-        try:
-            holder_ready.wait(timeout=5)
-            began = time.perf_counter()
-            BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
-            db.session.flush()
-            elapsed.append(time.perf_counter() - began)
-            db.session.rollback()
-        except Exception as exc:  # pragma: no cover - surfaced via errors
-            errors.append(exc)
-        finally:
-            release_holder.set()
-            db.session.remove()
-
-    threads = [threading.Thread(target=target) for target in [holder, peer]]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join(timeout=5)
-
-    assert errors == []
-    assert len(elapsed) == 1
-    assert elapsed[0] < 1
+    first_instance = first_group[0].active_barriers[barrier.id].barrier_instance
+    second_instance = second_group[0].active_barriers[barrier.id].barrier_instance
+    assert first_instance.id != second_instance.id
+    assert first_instance.group_id != second_instance.group_id
 
 
 def test_group_barrier_resolved_timeout_uses_overridden_handler():
@@ -860,6 +822,82 @@ def test_check_barriers_skips_locked_waiters_and_continues(
 
     check_barriers()
     assert _barrier_link_released(locked_id, "a_locked") is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_arrival_does_not_wait_for_poller_metadata_lock(
+    in_experiment_directory, db_session
+):
+    """A blocked poller must not prevent another group entering the barrier."""
+    import threading
+    import time
+
+    exp = get_experiment()
+    blocked_participants, blocked_group = _pair_sync_group(exp, db_session)
+    arriving_participants, _ = _pair_sync_group(exp, db_session)
+    barrier = GroupBarrier(id_="independent_claim", group_type="main")
+    for participant in blocked_participants:
+        barrier.receive_participant(participant)
+    db_session.commit()
+
+    poller_pid = []
+    poller_errors = []
+
+    def run_poller():
+        try:
+            poller_pid.append(
+                db.session.execute(text("SELECT pg_backend_pid()")).scalar()
+            )
+            check_barriers()
+        except Exception as err:  # pragma: no cover - surfaced below
+            poller_errors.append(err)
+        finally:
+            db.session.remove()
+
+    with db.engine.connect() as blocker:
+        transaction = blocker.begin()
+        blocker.execute(
+            text(
+                """
+                UPDATE sync_group
+                SET last_barrier_pass_time = :timestamp
+                WHERE id = :group_id
+                """
+            ),
+            {"timestamp": timenow(), "group_id": blocked_group.id},
+        )
+
+        poller = threading.Thread(target=run_poller, daemon=True)
+        poller.start()
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            if poller_pid:
+                blocked = blocker.execute(
+                    text(
+                        """
+                        SELECT cardinality(pg_blocking_pids(:pid)) > 0
+                        """
+                    ),
+                    {"pid": poller_pid[0]},
+                ).scalar()
+                if blocked:
+                    break
+            time.sleep(0.01)
+        else:
+            raise AssertionError("Poller did not block on the held sync-group row.")
+
+        started = time.perf_counter()
+        barrier.receive_participant(arriving_participants[0])
+        db_session.flush()
+        elapsed = time.perf_counter() - started
+        transaction.rollback()
+
+    poller.join(timeout=2)
+    assert elapsed < 1
+    assert poller_errors == []
+    assert not poller.is_alive()
 
 
 @pytest.mark.parametrize(
@@ -1515,15 +1553,20 @@ def test_group_barrier_accepts_orm_instance_method(in_experiment_directory, db_s
 )
 def test_barrier_registry_strips_waiting_logic(db_session):
     barrier = GroupBarrier(id_="strip_wait", group_type="group")
-    barrier_record = BarrierRecord(
-        id=barrier.id,
-        barrier_class=barrier.__class__,
+    barrier_definition = BarrierDefinition(
+        id=barrier.id, barrier_class=barrier.__class__
+    )
+    barrier_instance = BarrierInstance(
+        id=get_random_id(),
+        definition=barrier_definition,
+        group_id=None,
+        active=True,
         barrier=barrier.for_registry(),
     )
-    db_session.add(barrier_record)
+    db_session.add(barrier_instance)
     db_session.commit()
 
-    loaded = BarrierRecord.query.get("strip_wait")
+    loaded = BarrierInstance.query.get(barrier_instance.id)
     assert loaded.barrier.waiting_logic is None
 
 

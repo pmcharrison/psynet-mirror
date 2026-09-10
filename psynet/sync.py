@@ -20,10 +20,12 @@ Grouper and sync group
     ``SyncGroup`` rows once enough participants are available. Group barriers
     rely on these groups to decide who to release together.
 
-Barrier registry
-    Barriers and their waiting participants are persisted in the database via
-    ``BarrierRecord`` and ``ParticipantLinkBarrier``. This replaces the older
-    in-memory registry so multiple worker processes can safely cooperate.
+Barrier definition and instance
+    A ``BarrierDefinition`` identifies the public waiting area. A
+    ``BarrierInstance`` stores the stable behavior for one group visit.
+    ``ParticipantLinkBarrier`` rows attach participants to that visit. Keeping
+    definition, visit, and work-claim identities separate lets multiple worker
+    processes cooperate without using mutable metadata as a mutex.
 
 Where this shows up in a timeline
 ---------------------------------
@@ -38,18 +40,17 @@ How processing works
 --------------------
 When a participant reaches a barrier, ``Barrier.receive_participant``:
 
-- Ensures a ``BarrierRecord`` exists (storing a lightweight copy of the barrier).
-  The registry insert commits on its own connection so concurrent participants are
-  not blocked on the unique ``barrier.id`` lock while the request keeps its
-  transaction open through HTML rendering.
+- Registers the definition and resolves a stable instance in the request's
+  transaction. Group barriers use one instance per sync-group visit; groupers
+  retain a shared waiting-pool instance.
 - Inserts a ``ParticipantLinkBarrier`` row marking the participant as waiting.
 
 A scheduled task in ``Experiment._check_barriers`` calls ``check_barriers`` in
 this module. That loop:
 
-- Finds the next waiting barrier record.
-- Locks it using ``SELECT ... FOR UPDATE SKIP LOCKED`` so only one worker
-  processes a barrier at a time.
+- Finds the next waiting barrier instance.
+- Claims it with a PostgreSQL advisory transaction lock, leaving definition
+  and instance metadata available to arrival requests.
 - Locks waiters with ``FOR UPDATE NOWAIT``. If any waiter is already locked
   (for example by ``POST /response``), it skips that barrier this tick instead
   of blocking the poller.
@@ -71,11 +72,14 @@ check locked anyone else, the arrival request commits immediately and
 relocks only the arriver, so partners are not left idle in that transaction.
 
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
-``serialize_callable`` so they can be stored inside ``BarrierRecord`` safely.
+``serialize_callable`` so each ``BarrierInstance`` retains stable behavior.
 """
 
 import copy
 import random
+import uuid
+from contextlib import contextmanager
+from contextvars import ContextVar
 from math import floor
 from typing import Callable, List, Literal, Optional, Union
 
@@ -88,11 +92,9 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    text,
 )
 from sqlalchemy import inspect as sa_inspect
-from sqlalchemy import (
-    update as sa_update,
-)
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import (
     Session,
@@ -124,6 +126,31 @@ from psynet.timeline_hold import (
 from psynet.utils import call_function_with_context, get_config, get_logger
 
 logger = get_logger()
+
+_current_barrier_instance_id = ContextVar(
+    "psynet_current_barrier_instance_id", default=None
+)
+
+
+@contextmanager
+def _barrier_instance_context(instance_id):
+    """Scope barrier queries to one persisted visit."""
+    token = _current_barrier_instance_id.set(instance_id)
+    try:
+        yield
+    finally:
+        _current_barrier_instance_id.reset(token)
+
+
+def _claim_barrier_instance(instance_id, *, wait=False):
+    """Claim one barrier visit independently of its metadata row."""
+    function = "pg_advisory_xact_lock" if wait else "pg_try_advisory_xact_lock"
+    return bool(
+        db.session.execute(
+            text(f"SELECT {function}(hashtextextended(:instance_id, 0))"),
+            {"instance_id": instance_id},
+        ).scalar()
+    )
 
 
 class _BarrierHoldPage(_TimelineHoldPage):
@@ -166,7 +193,7 @@ class _BarrierHoldPage(_TimelineHoldPage):
                 f"'{self.barrier_id}'."
             )
         link.timeline_hold = record
-        self.barrier._try_check_on_arrival(participant)
+        self.barrier._try_check_on_arrival(participant, link.barrier_instance)
         self.barrier._notify_arrivals(participant)
 
     def hold_progress_text(self, participant):
@@ -349,19 +376,20 @@ class Barrier(EltCollection):
         if object_session(participant) is None:
             db.session.add(participant)
 
-        BarrierRecord.ensure_exists(self.id, self.__class__, barrier=self)
+        barrier_instance = BarrierInstance.for_arrival(self, participant)
 
         link = ParticipantLinkBarrier(
             participant=participant,
             barrier_id=self.id,
+            barrier_instance=barrier_instance,
             arrival_time=timenow(),
         )
         participant.active_barriers[self.id] = link
         if not self._uses_timeline_hold:
-            self._try_check_on_arrival(participant)
+            self._try_check_on_arrival(participant, barrier_instance)
             self._notify_arrivals(participant)
 
-    def _try_check_on_arrival(self, participant):
+    def _try_check_on_arrival(self, participant, barrier_instance=None):
         """Release waiters now if this arrival completed the barrier.
 
         Uses a savepoint so a ``NOWAIT`` miss rolls back only this check and
@@ -373,9 +401,21 @@ class Barrier(EltCollection):
         ``FOR UPDATE`` survives savepoints, so otherwise those partner rows
         would stay locked for the rest of this HTTP request.
         """
+        if barrier_instance is None:
+            barrier_instance = participant.active_barriers[self.id].barrier_instance
+        if not _claim_barrier_instance(barrier_instance.id):
+            logger.debug(
+                "Barrier '%s' arrival check deferred because its instance is claimed.",
+                self.id,
+            )
+            return
+        registered_barrier = barrier_instance.barrier
         try:
-            with db.session.begin_nested():
-                waiting = self.check()
+            with (
+                db.session.begin_nested(),
+                _barrier_instance_context(barrier_instance.id),
+            ):
+                waiting = registered_barrier.check()
         except Exception as err:
             if is_transient_transaction_error(err):
                 logger.debug(
@@ -406,7 +446,11 @@ class Barrier(EltCollection):
 
     @classmethod
     def get_waiting_participants_from_barrier_id(
-        cls, barrier_id: str, for_update: bool = False, nowait: bool = False
+        cls,
+        barrier_id: str,
+        for_update: bool = False,
+        nowait: bool = False,
+        barrier_instance_id: Optional[str] = None,
     ) -> List[Participant]:
         """
         Gets the participants currently waiting at a barrier.
@@ -446,6 +490,11 @@ class Barrier(EltCollection):
             .options(joinedload(ParticipantLinkBarrier.participant, innerjoin=True))
             .order_by(Participant.id)
         )
+        instance_id = barrier_instance_id or _current_barrier_instance_id.get()
+        if instance_id is not None:
+            query = query.filter(
+                ParticipantLinkBarrier.barrier_instance_id == instance_id
+            )
 
         if for_update:
             query = query.with_for_update(
@@ -510,6 +559,15 @@ class Barrier(EltCollection):
 
             for participant in participants_to_release:
                 self.release(participant)
+        instance_id = _current_barrier_instance_id.get()
+        if instance_id is not None:
+            instance = BarrierInstance.query.get(instance_id)
+            if instance is not None and instance.group_id is not None:
+                instance.active = any(
+                    not participant.active_barriers[self.id].released
+                    for participant in waiting_participants
+                    if self.id in participant.active_barriers
+                )
         return waiting_participants
 
 
@@ -1346,58 +1404,95 @@ def _insert_values_from_state(record) -> dict:
 
 
 @register_table
-class BarrierRecord(SQLBase, SQLMixin):
+class BarrierDefinition(SQLBase, SQLMixin):
+    """Identify a public barrier waiting area without storing mutable visits."""
+
     __tablename__ = "barrier"
 
     id = Column(String, primary_key=True)
     barrier_class = Column(PythonClass)
     created_at = Column(DateTime, default=timenow)
-    barrier = deferred(Column(PythonObject))
 
-    participant_links = relationship(
-        "ParticipantLinkBarrier", back_populates="barrier_record"
-    )
+    instances = relationship("BarrierInstance", back_populates="definition")
 
     @classmethod
-    def ensure_exists(cls, barrier_id: str, barrier_class, barrier=None):
-        registry_barrier = (
-            barrier.for_registry() if isinstance(barrier, Barrier) else barrier
-        )
+    def ensure_exists(cls, barrier_id: str, barrier_class):
+        """Register a definition in the caller's transaction."""
         record = cls(
             id=barrier_id,
             barrier_class=barrier_class,
             created_at=timenow(),
-            barrier=registry_barrier,
         )
         values = _insert_values_from_state(record)
-        insert_stmt = (
+        db.session.execute(
             pg_insert(cls)
             .values(**values)
             .on_conflict_do_nothing(index_elements=["id"])
         )
 
-        # Registry metadata is shared across participants. Commit both its
-        # creation and refresh in a short side transaction so request rendering
-        # never holds the registry row or unique-key lock.
-        with Session(bind=db.engine) as side_session:
-            _set_transaction_lock_timeout(
-                get_config().get("timeline_lock_timeout_seconds"),
-                session=side_session,
-            )
-            result = side_session.execute(insert_stmt)
-            if result.rowcount == 0 and barrier is not None:
-                side_session.execute(
-                    sa_update(cls)
-                    .where(cls.id == barrier_id)
-                    .values(barrier=registry_barrier)
-                )
-            side_session.commit()
 
-        # Side session committed independently. Expire any cached registry row
-        # so later reads in this session see the committed barrier payload.
-        cached = db.session.get(cls, barrier_id)
-        if cached is not None:
-            db.session.expire(cached)
+@register_table
+class BarrierInstance(SQLBase, SQLMixin):
+    """Persist one stable barrier behavior for a coordination visit."""
+
+    __tablename__ = "barrier_instance"
+
+    id = Column(String, primary_key=True)
+    barrier_id = Column(String, ForeignKey("barrier.id"), index=True)
+    group_id = Column(Integer, ForeignKey("sync_group.id"), nullable=True, index=True)
+    active = Column(Boolean, default=True, index=True)
+    barrier = deferred(Column(PythonObject))
+
+    definition = relationship("BarrierDefinition", back_populates="instances")
+    group = relationship("SyncGroup")
+    participant_links = relationship(
+        "ParticipantLinkBarrier", back_populates="barrier_instance"
+    )
+
+    @classmethod
+    def for_arrival(cls, barrier, participant):
+        """Return the stable instance that should receive this participant."""
+        BarrierDefinition.ensure_exists(barrier.id, barrier.__class__)
+        group_id = cls._group_id(barrier, participant)
+        scope = f"{barrier.id}:group:{group_id}" if group_id is not None else barrier.id
+        _claim_barrier_instance(scope, wait=True)
+
+        instance = (
+            cls.query.filter_by(
+                barrier_id=barrier.id,
+                group_id=group_id,
+                active=True,
+            )
+            .order_by(cls.id)
+            .first()
+        )
+        if instance is None:
+            instance = cls(
+                id=str(uuid.uuid4()),
+                barrier_id=barrier.id,
+                group_id=group_id,
+                active=True,
+                barrier=barrier.for_registry(),
+            )
+            db.session.add(instance)
+            db.session.flush()
+        return instance
+
+    @staticmethod
+    def _group_id(barrier, participant):
+        if not isinstance(barrier, GroupBarrier):
+            return None
+        group = participant.active_sync_groups.get(barrier.group_type)
+        if group is None:
+            raise RuntimeError(
+                f"Participant {participant.id} has no active sync group "
+                f"of type '{barrier.group_type}' for barrier '{barrier.id}'."
+            )
+        return group.id
+
+
+# Internal compatibility name used by existing imports and diagnostics.
+BarrierRecord = BarrierDefinition
 
 
 @register_table
@@ -1421,6 +1516,7 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     __tablename__ = "participant_link_barrier"
 
     barrier_id = Column(String, ForeignKey("barrier.id"), index=True)
+    barrier_instance_id = Column(String, ForeignKey("barrier_instance.id"), index=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant",
@@ -1435,15 +1531,18 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     timeline_hold_id = Column(Integer, ForeignKey("timeline_hold.id"), index=True)
     timeline_hold = relationship("TimelineHoldRecord", backref="barrier_links")
 
-    barrier_record = relationship("BarrierRecord", back_populates="participant_links")
+    barrier_instance = relationship(
+        "BarrierInstance", back_populates="participant_links"
+    )
 
     def get_barrier(self):
-        barrier_record = BarrierRecord.query.get(self.barrier_id)
-        if barrier_record is None or not isinstance(barrier_record.barrier, Barrier):
+        if self.barrier_instance is None or not isinstance(
+            self.barrier_instance.barrier, Barrier
+        ):
             raise RuntimeError(
-                f"Barrier '{self.barrier_id}' is missing or invalid in the registry."
+                f"Barrier instance '{self.barrier_instance_id}' is missing or invalid."
             )
-        return barrier_record.barrier
+        return self.barrier_instance.barrier
 
     def release(self):
         timestamp = timenow()
@@ -1462,29 +1561,23 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         return barrier.get_waiting_participants(for_update=for_update, nowait=nowait)
 
 
-def _next_waiting_barrier(excluded_ids):
-    """Return the next eligible barrier record, if any."""
-    waiting_barrier_query = BarrierRecord.query.filter(
+def _next_waiting_barrier_instance(excluded_ids):
+    """Return the next eligible barrier visit, if any."""
+    query = BarrierInstance.query.filter(
+        BarrierInstance.active,
         db.session.query(ParticipantLinkBarrier.id)
         .join(Participant)
         .filter(
-            ParticipantLinkBarrier.barrier_id == BarrierRecord.id,
+            ParticipantLinkBarrier.barrier_instance_id == BarrierInstance.id,
             ~ParticipantLinkBarrier.released,
             ~Participant.failed,
             Participant.status == "working",
         )
-        .exists()
+        .exists(),
     )
     if excluded_ids:
-        waiting_barrier_query = waiting_barrier_query.filter(
-            ~BarrierRecord.id.in_(excluded_ids)
-        )
-    return (
-        waiting_barrier_query.order_by(BarrierRecord.id)
-        .with_for_update(skip_locked=True)
-        .populate_existing()
-        .first()
-    )
+        query = query.filter(~BarrierInstance.id.in_(excluded_ids))
+    return query.order_by(BarrierInstance.id).first()
 
 
 def pending_arrival_notice_for(participant):
@@ -1527,72 +1620,87 @@ def pending_arrival_notice_for(participant):
 def check_barriers():
     """Process waiting barriers, isolating failures to individual barriers.
 
-    When waiter rows are locked (``NOWAIT``), the barrier is deferred and
-    retried once at the end of the sweep in case the lock has cleared.
+    An advisory lock claims each visit without locking its metadata row.
+    When waiter rows are locked (``NOWAIT``), the visit is deferred and retried
+    once at the end of the sweep in case the lock has cleared.
     """
     excluded_ids = set()
     deferred_ids = set()
 
     while True:
+        instance_id = None
         barrier_id = None
         try:
             with transaction():
                 _set_transaction_lock_timeout(
                     get_config().get("timeline_lock_timeout_seconds")
                 )
-                barrier_record = _next_waiting_barrier(excluded_ids)
-                if barrier_record is None:
+                instance = _next_waiting_barrier_instance(excluded_ids)
+                if instance is None:
                     break
-                barrier_id = barrier_record.id
-                barrier = barrier_record.barrier
+                instance_id = instance.id
+                barrier_id = instance.barrier_id
+                if not _claim_barrier_instance(instance_id):
+                    continue
+                barrier = instance.barrier
                 if not isinstance(barrier, Barrier):
                     raise RuntimeError(
-                        f"Barrier '{barrier_record.id}' is missing or invalid."
+                        f"Barrier instance '{instance_id}' is missing or invalid."
                     )
-                barrier.check()
+                with _barrier_instance_context(instance_id):
+                    barrier.check()
         except Exception as err:
-            if barrier_id is None:
+            if instance_id is None:
                 raise
             if is_transient_transaction_error(err):
-                deferred_ids.add(barrier_id)
+                deferred_ids.add(instance_id)
                 logger.debug(
-                    "Barrier '%s' deferred this tick because a waiter is locked.",
+                    "Barrier '%s' instance %s deferred because a waiter is locked.",
                     barrier_id,
+                    instance_id,
                 )
             else:
-                logger.exception("Failed to process barrier '%s'.", barrier_id)
+                logger.exception(
+                    "Failed to process barrier '%s' instance %s.",
+                    barrier_id,
+                    instance_id,
+                )
         finally:
-            if barrier_id is not None:
-                excluded_ids.add(barrier_id)
+            if instance_id is not None:
+                excluded_ids.add(instance_id)
 
-    for barrier_id in sorted(deferred_ids):
+    for instance_id in sorted(deferred_ids):
         try:
             with transaction():
                 _set_transaction_lock_timeout(
                     get_config().get("timeline_lock_timeout_seconds")
                 )
-                barrier_record = (
-                    BarrierRecord.query.filter_by(id=barrier_id)
-                    .with_for_update(skip_locked=True)
-                    .populate_existing()
-                    .first()
-                )
-                if barrier_record is None:
+                instance = BarrierInstance.query.get(instance_id)
+                if instance is None or not instance.active:
                     continue
-                barrier = barrier_record.barrier
+                barrier_id = instance.barrier_id
+                if not _claim_barrier_instance(instance_id):
+                    continue
+                barrier = instance.barrier
                 if not isinstance(barrier, Barrier):
                     raise RuntimeError(
-                        f"Barrier '{barrier_record.id}' is missing or invalid."
+                        f"Barrier instance '{instance_id}' is missing or invalid."
                     )
-                barrier.check()
+                with _barrier_instance_context(instance_id):
+                    barrier.check()
         except Exception as err:
             if is_transient_transaction_error(err):
                 logger.debug(
-                    "Barrier '%s' still locked on retry; leaving for the next tick.",
+                    "Barrier '%s' instance %s still locked on retry.",
                     barrier_id,
+                    instance_id,
                 )
             else:
-                logger.exception("Failed to process barrier '%s' on retry.", barrier_id)
+                logger.exception(
+                    "Failed to process barrier '%s' instance %s on retry.",
+                    barrier_id,
+                    instance_id,
+                )
 
 
 def check_sync_groups():
