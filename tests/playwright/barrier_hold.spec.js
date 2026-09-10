@@ -137,6 +137,16 @@ test("default barriers hold the current page until websocket release", { tag: "@
     await expect(firstParticipant.locator("#main-body")).toContainText(
       "Choose your action"
     );
+    if (process.env.ARTIFACT_DIR) {
+      await firstParticipant.screenshot({
+        path: `${process.env.ARTIFACT_DIR}/rps_hold_progress.png`,
+        fullPage: true
+      });
+      await secondParticipant.screenshot({
+        path: `${process.env.ARTIFACT_DIR}/rps_arrival_notice.png`,
+        fullPage: true
+      });
+    }
     await expect(firstParticipant.locator("body")).toHaveClass(/timeline-held/);
 
     // The initial WebSocket connection reconciles once. Afterwards a short
