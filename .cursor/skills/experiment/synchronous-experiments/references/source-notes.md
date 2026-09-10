@@ -13,8 +13,9 @@ and platform docs when a study is near deployment.
 - `psynet.sync.GroupBarrier` releases all active members of a `SyncGroup` once
   they are waiting at the same barrier. The last arrival tries `check()` in that
   request so the group does not wait for the 0.5 s poller; lock contention falls
-  back to the poller. `notify_arrivals=True` shows hold progress and a banner to
-  members who have not arrived yet; customize copy with `on_arrival_message`.
+  back to the poller. Arrival notices are on by default: hold progress plus a
+  banner for members who have not arrived yet. Set `notify_arrivals=False` to
+  disable them, or customize copy with `on_arrival_message`.
   It checks `min_group_size`, can wait for top-ups, can fail under-quota groups,
   and accepts `on_release(group, participants)` for atomic shared updates.
 - `psynet.sync.SimpleGrouper` creates `SyncGroup`s by waiting for `batch_size`

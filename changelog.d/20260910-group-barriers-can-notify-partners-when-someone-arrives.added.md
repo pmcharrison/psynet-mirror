@@ -1,1 +1,1 @@
-Group barriers can show live arrival progress on the wait overlay and a banner on earlier pages when a partner is already waiting. Set ``notify_arrivals=True``, or pass ``on_arrival_message`` to customize the copy.
+Group barriers now show live arrival progress on the wait overlay and a banner on earlier pages when a partner is already waiting. Set ``notify_arrivals=False`` to keep the hold title only, or pass ``on_arrival_message`` to customize the copy.

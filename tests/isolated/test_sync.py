@@ -945,6 +945,14 @@ def test_default_group_barrier_arrival_message_copy():
     )
 
 
+def test_group_barrier_notify_arrivals_defaults_on():
+    barrier = GroupBarrier(id_="default_notice", group_type="main")
+    assert barrier.notify_arrivals is True
+
+    quiet = GroupBarrier(id_="quiet_notice", group_type="main", notify_arrivals=False)
+    assert quiet.notify_arrivals is False
+
+
 def test_on_arrival_message_enables_notify_arrivals():
     barrier = GroupBarrier(
         id_="custom_notice",
@@ -972,7 +980,6 @@ def test_group_arrival_notifies_partner_still_on_earlier_page(
         id_="notify_arrivals",
         group_type="main",
         content="Waiting for your partner",
-        notify_arrivals=True,
     )
     publications = []
     monkeypatch.setattr(

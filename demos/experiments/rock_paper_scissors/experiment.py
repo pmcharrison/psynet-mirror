@@ -29,7 +29,6 @@ class RockPaperScissorsTrial(StaticTrial):
                 id_="wait_for_trial",
                 group_type="rock_paper_scissors",
                 content="Waiting for your partner",
-                notify_arrivals=True,
             ),
             self.choose_action(color=self.definition["color"]),
             GroupBarrier(
@@ -37,7 +36,6 @@ class RockPaperScissorsTrial(StaticTrial):
                 group_type="rock_paper_scissors",
                 content="Waiting for your partner",
                 on_release=self.score_trial,
-                notify_arrivals=True,
             ),
         )
 

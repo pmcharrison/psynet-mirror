@@ -549,10 +549,10 @@ class GroupBarrier(Barrier):
         ``sync_group_wait_content``.
 
     notify_arrivals
-        If ``True``, waiting participants see live arrival progress on the hold
-        overlay, and group members who have not reached this barrier yet see a
-        banner on their current page. Passing ``on_arrival_message`` implies
-        ``True``.
+        If ``True`` (default), waiting participants see live arrival progress
+        on the hold overlay, and group members who have not reached this
+        barrier yet see a banner on their current page. Set ``False`` to keep
+        the hold title only. Passing ``on_arrival_message`` implies ``True``.
 
     on_arrival_message
         Optional callable that returns copy for one recipient. It receives
@@ -592,7 +592,7 @@ class GroupBarrier(Barrier):
         timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
         expected_wait=None,
         content=None,
-        notify_arrivals: bool = False,
+        notify_arrivals: bool = True,
         on_arrival_message: Optional[Callable] = None,
     ):
         self._validate_max_wait_action(max_wait_action)
