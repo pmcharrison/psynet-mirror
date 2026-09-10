@@ -294,10 +294,10 @@ def test_group_barrier_reuses_one_instance_per_group_visit(
 
     _arrive_at_group_barrier(exp, barrier, first)
     first_instance_id = first.active_barriers[barrier.id].barrier_instance_id
-    db_session.commit()
+    _commit_barrier_arrivals()
     _arrive_at_group_barrier(exp, barrier, second)
     second_instance_id = second.barrier_links[-1].barrier_instance_id
-    db_session.commit()
+    _commit_barrier_arrivals()
 
     assert second_instance_id == first_instance_id
     assert not BarrierInstance.query.get(first_instance_id).active
@@ -1611,6 +1611,7 @@ def test_shared_barrier_id_preserves_each_visit_waiting_mode(
     page_barrier = WaitForTwoBarrier(id_="shared", waiting_logic=WaitPage(wait_time=1))
     page_barrier.receive_participant(page_participant)
     held_wake_token = held_participant.timeline_holds[0].wake_token
+    _commit_barrier_arrivals()
 
     release_targets = [
         target
