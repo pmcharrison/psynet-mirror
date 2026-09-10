@@ -22,6 +22,8 @@ Perform the shared steps, in this order:
 2. [Bump the version](#bump-the-version) (e.g. `13.1.0` → `13.1.1`)
 3. [Update What's new](#update-whats-new) only if the patch has something
    experimenter-facing worth calling out
+4. [Update package translations](#update-package-translations) if this
+   patch changed translatable PsyNet strings
 
 ### 3. Push the release branch
 

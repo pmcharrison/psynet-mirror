@@ -115,16 +115,6 @@ validation, and data-recording conventions when porting collective designs.
   completes can be configured for screened-out or partially completed paths when
   payment and redirect logic are aligned.
 
-### MTurk
-
-- MTurk can host external PsyNet studies via `ExternalQuestion`; it appends
-  assignment and worker identifiers and expects completion submission back to
-  MTurk.
-- `CreateHIT` controls `MaxAssignments`, `LifetimeInSeconds`,
-  `AssignmentDurationInSeconds`, qualifications, rewards, and review settings.
-  These are enough for coarse timing and capacity, but not ergonomic
-  appointment scheduling.
-
 ### Cint/Lucid
 
 - Cint fielding supports scheduled, live, paused, resumed, and completed runs

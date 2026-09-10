@@ -9,7 +9,7 @@ This method asks how precisely the planned analysis will estimate the scientific
 quantities of interest under repeated, complete simulated experiments. Use it as
 the default power-analysis method unless the user requests another approach.
 
-Follow `power-analysis/SKILL.md` for the standard `power/` files, costing,
+Follow `power-analysis/SKILL.md` for the standard `audit/simulate/design/` files, costing,
 reporting, and human-review workflow. Use the shared model described in
 `participant-response-models/SKILL.md` to generate synthetic responses. For an
 adaptive design, also read `make-experiment-adaptive/SKILL.md`.
@@ -35,12 +35,16 @@ rather than silently changing the simulated world for each analysis.
 Candidate designs are combinations of quantities the experimenter can choose,
 such as participants, sampled stimuli, trials per participant, or adaptive budget.
 The design grid should be dense enough to reveal the precision/cost frontier.
+When an adaptive policy stops early, a cell labelled by its cap is not a
+fixed-length design: disable stopping for matched-budget comparisons, or
+report realized ``mean_n_observations`` beside precision metrics.
 
 ## Configure the simulation
 
 Put shared execution settings, the candidate design grid, and the scientific
-parameter values in `power/config.toml`. Keep the definition of each estimand,
-its truth, its estimator, and its resampling rule together in `power/core.py`; a
+parameter values in `audit/simulate/design/config.toml`. Keep the definition of each
+estimand, its truth, its estimator, and its resampling rule together in
+`audit/simulate/design/core.py`; a
 small class per estimand is often a clear way to do this.
 
 Choose one value for `simulation.replicates` and apply it to every combination
@@ -262,7 +266,7 @@ uncertainty could change the selected design.
 In addition to the general columns required by `power-analysis/SKILL.md`, record
 the estimand, number of evaluated replicates, bias, sampling standard error,
 margin of error, standardized margin of error, Monte Carlo uncertainty,
-fit-failure count, and precision decision in `power/results.csv`. Confirm that
+fit-failure count, and precision decision in `audit/simulate/design/results.csv`. Confirm that
 every primary estimand is represented.
 
 For the default criterion, set `decision_metric` to
@@ -272,7 +276,7 @@ the comparison result in `meets_requirement`.
 
 Record the random seed, replicate count, worker count, response parameters,
 response-model hash or version, and any retained replicate data in
-`power/run.json`.
+`audit/simulate/design/run.json`.
 
 Use the Plotly conventions from `power-analysis/SKILL.md`. Plot precision against
 participant count, distinguish other design dimensions with facets or line

@@ -86,7 +86,6 @@ experiment = [
     "pillow",  # Used by VocabTest
     # Experiment audit render/validate (shipped with experiment runtime)
     "markdown-it-py>=3,<5",  # Dallinger 12.3 pins 4.x; keep an explicit compatible bound
-    "nh3>=0.3.6",
     "pygments>=2.20.0",
 ]
 # PsyNet source development and docs: runtime plus tooling.

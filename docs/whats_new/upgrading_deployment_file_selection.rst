@@ -37,7 +37,7 @@ the ``[exclude]`` section of ``deploy.toml``, then run the preview again.
 directory, and ``suffixes`` are literal filename endings. Git globs and
 negation are not supported, so translate custom ``.gitignore`` rules
 deliberately instead of copying them verbatim. See Dallinger's
-`deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_
+`deploy.toml guide <https://github.com/Dallinger/Dallinger/blob/master/docs/source/deploy_toml.rst>`_
 for the complete format.
 
 Remove old Docker selection files
@@ -68,9 +68,14 @@ After updating ``deploy.toml``:
 #. Run ``dallinger deployment-files list`` and inspect the complete output.
 #. Confirm that authored experiment files are present.
 #. Confirm that credentials, exports, participant data, virtual environments,
-   and generated local files are absent.
+   generated local files, and the ``audit/`` review packet are absent.
 #. Run ``psynet test local``.
 #. Commit the reviewed ``deploy.toml`` before a remote deployment.
+
+PsyNet never overwrites an existing ``deploy.toml``. If your experiment already
+has one, add ``audit`` to ``[exclude].paths`` so the local review packet is not
+copied into debug staging or the deployment package. Stock templates created
+from this PsyNet version already include that path.
 
 Git provenance records the commit and whether deployment-selected files contain
 uncommitted changes. Remote deployments require at least one Git commit; local

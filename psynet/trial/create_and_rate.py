@@ -16,7 +16,6 @@ import inspect
 from random import sample
 
 from dallinger import db
-from dallinger.transformations import Transformation
 from sqlalchemy import Column, func
 from sqlalchemy.orm import declared_attr, deferred
 
@@ -120,21 +119,12 @@ class RateOrSelectTrialMixin(CreateAndRateTrialMixin):
     def __init__(self, experiment, node, participant, *args, **kwargs):
         super().__init__(experiment, node, participant, *args, **kwargs)
         self.targets = self.get_targets()
-        self.register_transformations(self.targets)
 
     @declared_attr
     def targets(cls):
         # See the mixin section of https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
         # return deferred(Column(PythonObject))
         return deferred(cls.__table__.c.get("targets", Column(PythonObject)))
-
-    def register_transformations(self, targets):
-        # Register the transformations
-        for target in targets:
-            if issubclass(target.__class__, ChainTrial):
-                transformation = Transformation(info_out=self, info_in=target)
-                db.session.add(transformation)
-        db.session.commit()
 
     def get_targets(self):
         return self.get_all_targets()

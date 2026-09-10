@@ -28,7 +28,9 @@ Check that the experiment folder has:
 - `deploy.toml` with reviewed `[exclude]` rules; if PsyNet just created it,
   the first debug/test/deploy command stops once so you can review. Then run
   `dallinger deployment-files list` to inspect every file that PsyNet will copy.
-  Git-ignored files may still be deployed after that review.
+  Git-ignored files may still be deployed after that review. Confirm `audit/`
+  is excluded. Stock templates include it; existing `deploy.toml` files are
+  not overwritten, so add `audit` to `[exclude].paths` if it is missing.
 - `.gitignore` excluding `.venv/`, `.deploy/`, `.pytest_cache/`, `exports/`,
   `deploy_logs/`, source archives, generated logs, and the managed
   `.cursor/skills/psynet/` bundle
@@ -133,8 +135,6 @@ dallinger ec2 teardown --name <server-name> --region <region> --dns-host <server
 - Export exists for one app but teardown is being planned for another.
 - SSL/TLS errors during first launch can be transient cold-start issues; retry
   after a short wait before changing code.
-- Concurrent legacy exports can interfere with local Postgres state; prefer
-  sequential exports unless the workflow has been tested.
 - Relative export paths are easy to lose track of; prefer absolute `--path`
   values in export commands and logs.
 - Large asset exports may fail even when anonymized tabular exports are usable;

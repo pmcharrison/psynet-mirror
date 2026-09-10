@@ -63,6 +63,25 @@ Skip this step only for patch-only releases with nothing meaningful to say
 there. Commit What's new changes with the other release-preparation commits
 or as their own commit on the release branch.
 
+### Update package translations
+
+Feature merge requests do not update ``psynet/locales``. On the release
+branch, refresh the catalogs so ``test_psynet_translations_up_to_date``
+can pass:
+
+```bash
+psynet translate
+```
+
+This requires translator credentials in ``~/.dallingerconfig``
+(``openai_api_key`` or ``google_translate_json_path``). Then:
+
+```bash
+CI_COMMIT_REF_NAME=release-test pytest tests/isolated/translation/test_translations.py::test_psynet_translations_up_to_date
+```
+
+Commit the resulting ``psynet/locales`` changes before tagging.
+
 ### Update experiment templates (no longer required)
 
 PsyNet demos used to contain boilerplate that needed to be updated as part 

@@ -12,7 +12,7 @@ When you are developing a PsyNet experiment it is good practice to use a *versio
 for keeping track of changes to your experiment directory.
 We recommend *Git*. PsyNet requires an active Git repository so it can record
 deployment provenance (commit SHA and dirty state). To learn more visit
-`Version control with Git <../tutorials/version_control_with_git.html>`_.
+:doc:`/tutorials/version_control_with_git`.
 PsyNet records the deployed Git commit and whether files selected by the
 deployment plan contain uncommitted changes. Selected Git-ignored or untracked
 files mark the deployment as dirty; changes outside the deployment plan, or
@@ -39,7 +39,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     These files are baked into the experiment's Docker image. Use PsyNet's asset
     management system instead for generated files, participant recordings, private
     data, or files that need storage-backed caching and export; see
-    `Assets <../tutorials/assets.html>`_.
+    :doc:`/tutorials/assets`.
 
     PsyNet applies a deployment-plan size limit, currently 256 MB by default.
     Set the ``EXP_MAX_SIZE_MB`` environment variable when intentionally baking a
@@ -48,7 +48,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``templates`` is used for customising PsyNet’s front-end. It contains
     `Jinja2 templates <https://jinja.palletsprojects.com/en/2.11.x/>`_; Jinja2 is a popular templating library for Python.
     Most experiments do not need to use this folder, but for an example of how to use it, see
-    `Writing custom frontends <../tutorials/writing_custom_frontends.html>`_.
+    :doc:`/tutorials/writing_custom_frontends`.
 
 -   ``.gitignore`` controls which files Git tracks. It does not control which
     files enter debug staging or deployment; that is ``deploy.toml``.
@@ -65,9 +65,12 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     ``suffixes`` are literal endings such as ``.db``.
     Format, auto-omitted paths, and inspection commands are documented in
     Dallinger's
-    `deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_.
-    Existing experiments should follow
-    :doc:`/whats_new/upgrading_deployment_file_selection`.
+    `deploy.toml guide <https://github.com/Dallinger/Dallinger/blob/master/docs/source/deploy_toml.rst>`_.
+    Stock ``[exclude]`` ``paths`` include ``audit`` (the local review packet),
+    ``data``, and ``.cursor/skills/psynet``.
+    Existing experiments keep their current ``deploy.toml`` until they add
+    those entries themselves; PsyNet never overwrites a custom copy.
+    Follow :doc:`/whats_new/upgrading_deployment_file_selection`.
     Inspect the current plan with ``dallinger deployment-files list``.
     ``.dockerignore`` is no longer supported. PsyNet removes recognized
     generated copies; a custom copy blocks debug and deployment until its rules
@@ -105,7 +108,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     scaffold and update. If you are upgrading an older experiment that never had
     a ``config.txt`` and you keep settings in ``Experiment.config``, create a
     blank file with ``touch config.txt`` rather than scaffolding a full
-    template; see :ref:`configuration`.
+    template; see :doc:`/experiment_development/configuration`.
 
 -   ``constraints.txt`` stores the locked versions of Python packages used when
     you install or deploy a **standalone** experiment. It is generated
@@ -117,6 +120,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     environment.
 
 -   ``experiment.py`` is a Python file that defines the primary experiment logic.
+    Split substantial helpers into sibling modules and import them with
+    relative imports (see :ref:`experiment_python_modules`).
 
 -   ``instructions.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
 
@@ -152,3 +157,27 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     If this file is missing, you can regenerate it with ``psynet scripts scaffold``.
 
     ``volume_calibration.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
+
+
+.. _experiment_python_modules:
+
+Importing other Python files
+----------------------------
+
+You can split experiment code across several ``.py`` files in the experiment
+directory. Dallinger imports that directory as the package
+``dallinger_experiment``, so siblings of ``experiment.py`` must use relative
+imports. Do not run ``python experiment.py`` as a syntax or import check;
+use ``psynet test local``.
+
+.. code-block:: python
+
+    from . import adaptive_logic
+
+    def choose_next_item(state):
+        return adaptive_logic.select_item(state)
+
+Standalone scripts such as ``python -m audit.simulate.design.core`` use ordinary
+top-level imports of the same helpers. Run that command from the experiment
+root so those imports resolve. Put calibrated item banks in ``item_bank/``;
+stock ``deploy.toml`` omits ``data/``, ``audit/``, and ``exports/``.
