@@ -115,7 +115,7 @@ from psynet.db import (
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
-from psynet.serialize import serialize_callable
+from psynet.serialize import SerializedCallable, serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.timeline_hold import (
     _commit_and_relock_participant,
@@ -1575,12 +1575,24 @@ class BarrierInstance(SQLBase, SQLMixin):
             "waiting_logic_expected_repetitions",
         }
         state = {
-            key: value
+            key: BarrierInstance._behavior_value(value)
             for key, value in vars(barrier).items()
             if key not in presentation_fields
         }
         serialized = PythonObject.serialize((barrier.__class__, state))
         return hashlib.sha256(serialized.encode()).hexdigest()
+
+    @staticmethod
+    def _behavior_value(value):
+        """Normalize participant-local callback receivers for behavior comparison."""
+        if not isinstance(value, SerializedCallable):
+            return value
+
+        arguments = dict(value.arguments or {})
+        receiver = arguments.get("self")
+        if isinstance(receiver, SQLBase):
+            arguments["self"] = receiver.__class__
+        return SerializedCallable(function=value.function, arguments=arguments)
 
     @staticmethod
     def _debug_behavior_state(barrier):

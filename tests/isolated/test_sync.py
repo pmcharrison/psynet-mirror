@@ -406,6 +406,33 @@ def test_same_barrier_id_keeps_each_group_visits_callback(
     assert second_sync_group.var.callback_owner == second_owner.id
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_accepts_same_callback_bound_to_each_participants_model(
+    in_experiment_directory, db_session
+):
+    """Participant-local ORM receivers must not change shared barrier behavior."""
+    DummyModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    exp = get_experiment()
+    participants, sync_group = _pair_sync_group(exp, db_session)
+    owners = [DummyModel(id=get_random_id()), DummyModel(id=get_random_id())]
+    db_session.add_all(owners)
+    db_session.flush()
+
+    for participant, owner in zip(participants, owners):
+        barrier = GroupBarrier(
+            id_="participant_bound_callback",
+            group_type="main",
+            on_release=owner.on_release,
+        )
+        _arrive_at_group_barrier(exp, barrier, participant)
+
+    db_session.commit()
+    db_session.refresh(sync_group)
+    assert sync_group.var.callback_owner == owners[0].id
+
+
 def test_group_barrier_resolved_timeout_uses_overridden_handler():
     barrier = RecordingTimeoutGroupBarrier(
         id_="group_barrier",
