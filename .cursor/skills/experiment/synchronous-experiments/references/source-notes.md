@@ -23,6 +23,8 @@ and platform docs when a study is near deployment.
   and accepts `on_release(group, participants)` for atomic shared updates.
 - `psynet.sync.SimpleGrouper` creates `SyncGroup`s by waiting for `batch_size`
   participants and partitioning them into groups of `initial_group_size`.
+  The last arrival tries `check()` in that request so pairing does not wait
+  for the 0.5 s poller; lock contention falls back to the poller.
   `min_group_size`, `max_group_size`, `join_existing_groups`, and
   `join_criterion` control top-up behavior.
 - `psynet.sync.GroupCloser` closes a group before participants are regrouped

@@ -398,6 +398,33 @@ def test_group_allocator(in_experiment_directory, db_session):
     grouper.receive_participant(participants[0])
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_simple_grouper_groups_on_last_arrival(in_experiment_directory, db_session):
+    exp = get_experiment()
+    first, second = [new_participant(exp) for _ in range(2)]
+    for participant in (first, second):
+        participant.status = "working"
+    grouper = SimpleGrouper(
+        group_type="pair_on_arrival",
+        initial_group_size=2,
+        content="Waiting for your partner",
+    )
+
+    _arrive_at_group_barrier(exp, grouper, first)
+    db_session.commit()
+    assert first.sync_group is None
+
+    _arrive_at_group_barrier(exp, grouper, second)
+    db_session.commit()
+    db_session.refresh(first)
+    db_session.refresh(second)
+    assert first.sync_group is not None
+    assert second.sync_group.id == first.sync_group.id
+    assert len(first.sync_group.participants) == 2
+
+
 def test_sync_group_dashboard_waiting_barrier_indexes():
     waiting_by_participant, waiting_by_barrier = _index_waiting_barriers(
         [

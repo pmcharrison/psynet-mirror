@@ -14,6 +14,8 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
+PARTNER_WAIT_SECONDS = 300
+
 
 class RockPaperScissorsTrialMaker(StaticTrialMaker):
     pass
@@ -29,6 +31,7 @@ class RockPaperScissorsTrial(StaticTrial):
                 id_="wait_for_trial",
                 group_type="rock_paper_scissors",
                 content="Waiting for your partner",
+                max_wait_time=PARTNER_WAIT_SECONDS,
             ),
             self.choose_action(color=self.definition["color"]),
             GroupBarrier(
@@ -36,6 +39,7 @@ class RockPaperScissorsTrial(StaticTrial):
                 group_type="rock_paper_scissors",
                 content="Waiting for your partner",
                 on_release=self.score_trial,
+                max_wait_time=PARTNER_WAIT_SECONDS,
             ),
         )
 
@@ -125,6 +129,7 @@ class Exp(psynet.experiment.Experiment):
             group_type="rock_paper_scissors",
             initial_group_size=2,
             content="Waiting for your partner",
+            max_wait_time=PARTNER_WAIT_SECONDS,
         ),
         RockPaperScissorsTrialMaker(
             id_="rock_paper_scissors",
@@ -137,6 +142,7 @@ class Exp(psynet.experiment.Experiment):
             max_trials_per_participant=3,
             sync_group_type="rock_paper_scissors",
             sync_group_wait_content="Waiting for your partner",
+            sync_group_max_wait_time=PARTNER_WAIT_SECONDS,
         ),
     )
 

@@ -62,9 +62,11 @@ wake. Each participant's hold channel (`psynet_timeline_hold:<id>`) publishes
 that wake only after the database transaction commits; the browser then
 rechecks the authoritative link state.
 
-``GroupBarrier`` also tries that same ``check()`` when the last group member
-arrives, inside the arrival request. Lock contention is swallowed and left for
-the 0.5 s poller so a locked partner cannot abort the submit.
+``Barrier`` also tries that same ``check()`` when a participant arrives,
+inside the arrival request. That lets a ``Grouper`` form groups as soon as
+the last needed member is waiting, and lets ``GroupBarrier`` release the
+group without waiting for the poller. Lock contention is swallowed and left
+for the 0.5 s poller so a locked partner cannot abort the submit.
 
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
 ``serialize_callable`` so they can be stored inside ``BarrierRecord`` safely.
@@ -357,7 +359,24 @@ class Barrier(EltCollection):
             self._notify_arrivals(participant)
 
     def _try_check_on_arrival(self):
-        """Optionally release this barrier from the arriving participant request."""
+        """Release waiters now if this arrival completed the barrier.
+
+        Uses a savepoint so a ``NOWAIT`` miss rolls back only this check and
+        leaves the 0.5 s poller to finish. The arriving participant's request
+        can still commit. Groupers use this to form groups as soon as the
+        last needed member arrives, without waiting for the clock.
+        """
+        try:
+            with db.session.begin_nested():
+                self.check()
+        except Exception as err:
+            if is_transient_transaction_error(err):
+                logger.debug(
+                    "Barrier '%s' arrival check deferred because a waiter is locked.",
+                    self.id,
+                )
+                return
+            raise
 
     def _notify_arrivals(self, arriving_participant):
         """Optionally tell the group that someone arrived at this barrier."""
@@ -623,25 +642,6 @@ class GroupBarrier(Barrier):
                 f"got {timeout_between_barriers_action!r}"
             )
         self.timeout_between_barriers_action = timeout_between_barriers_action
-
-    def _try_check_on_arrival(self):
-        """Release the group now if this arrival completed it.
-
-        Uses a savepoint so a ``NOWAIT`` miss rolls back only this check and
-        leaves the 0.5 s poller to finish. The arriving participant's request
-        can still commit.
-        """
-        try:
-            with db.session.begin_nested():
-                self.check()
-        except Exception as err:
-            if is_transient_transaction_error(err):
-                logger.debug(
-                    "Barrier '%s' arrival check deferred because a waiter is locked.",
-                    self.id,
-                )
-                return
-            raise
 
     def _hold_progress_text(self, participant):
         """Return hold-overlay progress when arrival notices are enabled."""

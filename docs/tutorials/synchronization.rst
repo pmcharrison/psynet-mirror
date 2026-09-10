@@ -109,9 +109,11 @@ If ``content`` is omitted, the overlay says "Waiting for other participants…".
 For localized experiments, mark custom ``content`` for translation as described
 in :doc:`internationalization`.
 The browser receives a WebSocket notification when the barrier releases and
-performs only occasional HTTP checks as a fallback. When the last group member
-arrives, :class:`~psynet.sync.GroupBarrier` tries to release the group in that
-same request. That last arriver skips the wait indicator and continues to the
+performs only occasional HTTP checks as a fallback. When the last needed
+member arrives, barriers try to ``check()`` in that same request, so a
+:class:`~psynet.sync.SimpleGrouper` can form the group immediately and a
+:class:`~psynet.sync.GroupBarrier` can release partners without waiting for
+the poller. The last arriver skips the wait indicator and continues to the
 next page. If a partner's wait row is locked, the regular 0.5-second barrier
 check finishes the release instead. To display dedicated pages or filler tasks
 while participants wait, pass them explicitly with ``waiting_logic``.
