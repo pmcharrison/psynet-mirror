@@ -3352,7 +3352,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
-            if self._is_transient_transaction_error(err):
+            if Experiment._is_transient_transaction_error(err):
                 raise
             if not isinstance(err, self.HandledError):
                 handled = self.handle_error(
