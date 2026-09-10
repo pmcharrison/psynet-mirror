@@ -75,6 +75,7 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
     participant_id = participant.id
 
     event = MagicMock()
+    event.is_timeline_hold = False
     event.process_response.side_effect = ValueError("boom")
     experiment = get_experiment()
 
@@ -214,6 +215,7 @@ def test_skipped_recovery_rejects_a_later_timeline_response(db_session):
     )
     db.session.commit()
     event = MagicMock()
+    event.is_timeline_hold = False
 
     with (
         Flask(__name__).test_request_context("/response"),

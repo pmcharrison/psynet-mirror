@@ -5873,7 +5873,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     else None
                 ),
             )
-        experiment._prepare_tracked_fatal_recovery(handled, error)
+        cls._prepare_tracked_fatal_recovery(handled, error)
         return error_response(
             error_text="There was an error processing this response.",
             status=500,
