@@ -951,6 +951,60 @@ def _participant_row_is_locked(participant_id):
             trans.rollback()
 
 
+def test_finalize_barrier_arrivals_commits_checks_before_participant_relock(
+    monkeypatch,
+):
+    """Barrier-wide participant locks must not span timeline advancement."""
+    events = []
+    participant = SimpleNamespace(id=1)
+
+    class Page:
+        def __json__(self, participant):
+            return {"participant_id": participant.id}
+
+    page = Page()
+
+    class Query:
+        def with_for_update(self, **kwargs):
+            return self
+
+        def populate_existing(self):
+            return self
+
+        def get(self, participant_id):
+            events.append("participant_relock")
+            assert events == ["check", "commit", "participant_relock"]
+            return participant
+
+    experiment = SimpleNamespace(
+        _participant_request_query=lambda: Query(),
+        _advance_past_ready_holds=lambda participant, current_page: current_page,
+        timeline=SimpleNamespace(get_current_elt=lambda experiment, participant: page),
+    )
+    result = SimpleNamespace(page=None, payload={})
+
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout", lambda seconds: None
+    )
+    monkeypatch.setattr(
+        "psynet.sync._run_pending_barrier_checks",
+        lambda checks: events.append("check"),
+    )
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+    monkeypatch.setattr(db.session, "commit", lambda: events.append("commit"))
+
+    Experiment._finalize_barrier_arrivals(
+        experiment,
+        participant_id=1,
+        checks=["instance"],
+        result=result,
+    )
+
+    assert events == ["check", "commit", "participant_relock", "commit"]
+    assert result.page is page
+    assert result.payload["page"] == {"participant_id": 1}
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
