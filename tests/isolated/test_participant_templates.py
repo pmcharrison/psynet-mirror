@@ -773,6 +773,38 @@ def test_exit_navigation_replaces_the_finished_timeline_in_history():
     assert 'response.headers["Cache-Control"] = "no-store"' in experiment_source
 
 
+def test_hold_chip_stacks_under_the_leave_modal():
+    """Leave stays available during a hold, so its overlay must cover the chip."""
+    template = (resources.files("psynet") / "templates/timeline-page.html").read_text(
+        encoding="utf-8"
+    )
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    hold_block = template[
+        template.index("#timeline-hold-region {") : template.index(
+            "#timeline-hold-region:empty"
+        )
+    ]
+    modal_block = css[
+        css.index("#early-exit-modal {") : css.index("#comment-modal .modal-content")
+    ]
+    hold_z = int(re.search(r"z-index:\s*(\d+)", hold_block).group(1))
+    modal_z = int(re.search(r"z-index:\s*(\d+)", modal_block).group(1))
+    assert hold_z < modal_z
+
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    hold_fn = js[
+        js.index("psynet.showTimelineHoldIndicator") : js.index(
+            "psynet.scheduleTimelineHoldCheck"
+        )
+    ]
+    assert 'getElementById("comment-button")' in hold_fn
+    assert 'getElementById("early-exit-button")' not in hold_fn
+
+
 def test_footer_exit_uses_an_in_page_confirmation():
     templates = resources.files("psynet") / "templates"
     timeline = (templates / "timeline-page.html").read_text(encoding="utf-8")

@@ -78,7 +78,9 @@
             position: fixed;
             right: 0;
             top: {% if config.show_progress_bar %}1.5rem{% else %}0.5rem{% endif %};
-            z-index: 1080;
+            /* Below #early-exit-modal (1050) so Leave confirmation covers the
+               wait chip. Leave stays clickable during a hold. */
+            z-index: 1040;
         }
 
         #timeline-hold-region:empty {

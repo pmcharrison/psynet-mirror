@@ -309,7 +309,8 @@ timeline fragment. The browser updates only its
 submission UUID, makes the visible controls inert, and renders a compact status
 indicator in ``#timeline-hold-region``. That region is fixed-position, so the
 indicator floats above the participant's content instead of reflowing it when a
-hold starts or ends.
+hold starts or ends. It stacks below the Leave confirmation so an open Leave
+dialog covers the wait chip.
 
 The visible page retains its own ``window.pageUuid``, ``session_id``,
 ``requires_full_page_reload``, media, timers, and managed JavaScript until the
