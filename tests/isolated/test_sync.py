@@ -1552,6 +1552,7 @@ def _working_participants(exp, count):
 
 def _assert_on_action_page(exp, participant_ids):
     """Every listed participant must have left the hold for ``choose_action``."""
+    db.session.expire_all()
     groups = []
     for participant_id in participant_ids:
         participant = Participant.query.get(participant_id)
