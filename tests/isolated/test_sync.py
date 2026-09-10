@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 from dallinger import db
 from dallinger.models import timenow
+from flask import Flask
 from sqlalchemy import Column, String, text
 from sqlalchemy.exc import OperationalError
 
@@ -1486,13 +1487,6 @@ def _stacked_partner_timeline(group_type):
     )
 
 
-def _open_timeline_like_browser(experiment, participant):
-    """Mirror GET /timeline: consume, commit the arrival, then finalize."""
-    page = Experiment.get_current_page(experiment, participant)
-    db.session.commit()
-    return Experiment._finalize_pending_timeline_barriers(experiment, participant, page)
-
-
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
@@ -1510,15 +1504,32 @@ def test_last_timeline_arrival_skips_stacked_partner_holds(
             participant.status = "working"
         db.session.commit()
 
-        first, first_page = _open_timeline_like_browser(exp, first)
+        with Flask(__name__).test_request_context(
+            f"/timeline?unique_id={first.unique_id}",
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ):
+            first_response = Experiment._route_timeline(exp, first, mode="json")
+        assert first_response.status_code == 200
+        assert first_response.get_json()["attributes"]["type"] == "_BarrierHoldPage"
+        first = Participant.query.get(first.id)
+        first_page = exp.timeline.get_current_elt(exp, first)
         assert getattr(first_page, "is_timeline_hold", False)
         assert first.sync_group is None
 
-        last, last_page = _open_timeline_like_browser(exp, last)
+        with Flask(__name__).test_request_context(
+            f"/timeline?unique_id={last.unique_id}",
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ):
+            last_response = Experiment._route_timeline(exp, last, mode="json")
+        assert last_response.status_code == 200
+        assert last_response.get_json()["attributes"]["type"] == "ModularPage"
+
+        last = Participant.query.get(last.id)
+        first = Participant.query.get(first.id)
+        last_page = exp.timeline.get_current_elt(exp, last)
+        first_page = exp.timeline.get_current_elt(exp, first)
         assert not getattr(last_page, "is_timeline_hold", False)
         assert last_page.label == "choose_action"
-
-        first_page = exp.timeline.get_current_elt(exp, first)
         assert not getattr(first_page, "is_timeline_hold", False)
         assert first_page.label == "choose_action"
         assert last.sync_group is not None

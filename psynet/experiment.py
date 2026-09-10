@@ -5342,6 +5342,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 experiment, participant, page
             )
             page_uuid = participant.page_uuid
+            # Close any implicit transaction opened by expire-on-commit
+            # reloads or ``pre_render()`` so read-only rendering can start.
+            db.session.commit()
             return cls._render_timeline_page_read_only(
                 experiment=experiment,
                 participant_id=participant_id,
@@ -5699,6 +5702,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page = result.page
         if page is not None:
             page.pre_render()
+            db.session.commit()
         return participant, page
 
     @classmethod
