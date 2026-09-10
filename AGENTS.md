@@ -177,7 +177,7 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
     - When the last group member must never see a wait, inspect the first `GET /timeline` HTML (`captureFirstTimelineAfterGateway` / `#psynet-template-data` page type and hold marker).
     - Do not treat an eventual action prompt as proof; the poller can hide a first-paint hold.
     - Budget entry requests (`POST /participant`, first `GET /timeline`, time on `Starting experiment...`) and fail on unexpected 503 busy or lock-timeout waits.
-    - When a partner is already waiting, also budget how long they stay on the hold after the last arriver consents and after that last arriver's first timeline paint. A late safety-poll release is a failure.
+    - When a partner is already waiting, also budget how long they stay on the hold after the last arriver consents and after that last arriver's first timeline paint. Silence the hold safety poll first so a poll cannot hide a missed websocket wake. Fail on a ``safety poll`` resume, a busy ``POST /response``, or a published wake token that does not match the waiting hold.
 
 ## Automatic code review
 

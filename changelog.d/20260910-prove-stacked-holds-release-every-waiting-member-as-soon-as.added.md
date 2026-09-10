@@ -1,0 +1,1 @@
+Playwright and isolated tests now check that every waiting group member leaves a stacked hold as soon as the last member arrives, including groups of three, in-trial barriers, concurrent late arrivals, and resumes that must come from a server wake rather than a safety poll or busy retry.

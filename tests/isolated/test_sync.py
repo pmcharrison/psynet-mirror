@@ -1508,26 +1508,37 @@ def test_check_claimed_barrier_instance_treats_finished_work_as_success():
     )
 
 
-def _stacked_partner_timeline(group_type):
+def _stacked_partner_timeline(
+    group_type, group_size=2, hold_content="Waiting for your partner"
+):
     """RPS-like grouper plus two entry barriers before the first action page."""
     return Timeline(
         SimpleGrouper(
             group_type=group_type,
-            initial_group_size=2,
-            content="Waiting for your partner",
+            initial_group_size=group_size,
+            content=hold_content,
         ),
         GroupBarrier(
             id_=f"{group_type}_init",
             group_type=group_type,
-            content="Waiting for your partner",
+            content=hold_content,
         ),
         GroupBarrier(
             id_=f"{group_type}_prepare",
             group_type=group_type,
-            content="Waiting for your partner",
+            content=hold_content,
         ),
         ModularPage("choose_action", "Choose your action", time_estimate=1),
     )
+
+
+def _json_timeline(exp, participant):
+    """Run ``GET /timeline?mode=json`` for ``participant`` in a request context."""
+    with Flask(__name__).test_request_context(
+        f"/timeline?unique_id={participant.unique_id}",
+        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    ):
+        return Experiment._route_timeline(exp, participant, mode="json")
 
 
 @pytest.mark.parametrize(
@@ -1547,11 +1558,7 @@ def test_last_timeline_arrival_skips_stacked_partner_holds(
             participant.status = "working"
         db.session.commit()
 
-        with Flask(__name__).test_request_context(
-            f"/timeline?unique_id={first.unique_id}",
-            environ_base={"REMOTE_ADDR": "127.0.0.1"},
-        ):
-            first_response = Experiment._route_timeline(exp, first, mode="json")
+        first_response = _json_timeline(exp, first)
         assert first_response.status_code == 200
         assert first_response.get_json()["attributes"]["type"] == "_BarrierHoldPage"
         first = Participant.query.get(first.id)
@@ -1559,11 +1566,7 @@ def test_last_timeline_arrival_skips_stacked_partner_holds(
         assert getattr(first_page, "is_timeline_hold", False)
         assert first.sync_group is None
 
-        with Flask(__name__).test_request_context(
-            f"/timeline?unique_id={last.unique_id}",
-            environ_base={"REMOTE_ADDR": "127.0.0.1"},
-        ):
-            last_response = Experiment._route_timeline(exp, last, mode="json")
+        last_response = _json_timeline(exp, last)
         assert last_response.status_code == 200
         assert last_response.get_json()["attributes"]["type"] == "ModularPage"
 
@@ -1577,6 +1580,149 @@ def test_last_timeline_arrival_skips_stacked_partner_holds(
         assert first_page.label == "choose_action"
         assert last.sync_group is not None
         assert first.sync_group.id == last.sync_group.id
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_second_of_three_still_paints_stacked_group_holds(
+    in_experiment_directory, db_session
+):
+    """A group is not complete at n-1, so the second member must still wait."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack3_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type, group_size=3)
+    try:
+        first, second, last = [new_participant(exp) for _ in range(3)]
+        for participant in (first, second, last):
+            participant.status = "working"
+        db.session.commit()
+
+        assert _json_timeline(exp, first).get_json()["attributes"]["type"] == (
+            "_BarrierHoldPage"
+        )
+        second_response = _json_timeline(exp, second)
+        assert second_response.status_code == 200
+        assert second_response.get_json()["attributes"]["type"] == "_BarrierHoldPage"
+
+        first = Participant.query.get(first.id)
+        second = Participant.query.get(second.id)
+        assert getattr(
+            exp.timeline.get_current_elt(exp, first), "is_timeline_hold", False
+        )
+        assert getattr(
+            exp.timeline.get_current_elt(exp, second), "is_timeline_hold", False
+        )
+        assert first.sync_group is None
+        assert second.sync_group is None
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_last_of_three_skips_stacked_holds_and_releases_waiters(
+    in_experiment_directory, db_session
+):
+    """The third member's first /timeline paint must release both waiters."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack3_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type, group_size=3)
+    try:
+        first, second, last = [new_participant(exp) for _ in range(3)]
+        for participant in (first, second, last):
+            participant.status = "working"
+        db.session.commit()
+
+        assert _json_timeline(exp, first).get_json()["attributes"]["type"] == (
+            "_BarrierHoldPage"
+        )
+        assert _json_timeline(exp, second).get_json()["attributes"]["type"] == (
+            "_BarrierHoldPage"
+        )
+        last_response = _json_timeline(exp, last)
+        assert last_response.status_code == 200
+        assert last_response.get_json()["attributes"]["type"] == "ModularPage"
+
+        pages = []
+        groups = []
+        for participant_id in (first.id, second.id, last.id):
+            participant = Participant.query.get(participant_id)
+            page = exp.timeline.get_current_elt(exp, participant)
+            pages.append(page)
+            groups.append(participant.sync_group.id)
+            assert not getattr(page, "is_timeline_hold", False)
+            assert page.label == "choose_action"
+        assert len(set(groups)) == 1
+    finally:
+        exp.timeline = original_timeline
+
+
+def _route_timeline_in_thread(exp, unique_id):
+    """Run ``_route_timeline`` on a thread-local session and request context."""
+    result = {}
+    errors = []
+
+    def target():
+        try:
+            participant = Participant.query.filter_by(unique_id=unique_id).one()
+            response = _json_timeline(exp, participant)
+            payload = response.get_json()
+            result["status"] = response.status_code
+            result["type"] = payload["attributes"]["type"]
+        except Exception as err:  # pragma: no cover - surfaced by the caller
+            errors.append(err)
+        finally:
+            db.session.remove()
+
+    thread = threading.Thread(target=target, daemon=True)
+    thread.start()
+    return thread, result, errors
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_two_late_trio_arrivals_release_the_waiting_member(
+    in_experiment_directory, db_session
+):
+    """Concurrent n-1 and n arrivals must still complete the group."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack3_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type, group_size=3)
+    try:
+        first, late_a, late_b = [new_participant(exp) for _ in range(3)]
+        for participant in (first, late_a, late_b):
+            participant.status = "working"
+        db.session.commit()
+        late_a_id, late_b_id, first_id = late_a.id, late_b.id, first.id
+        late_a_uid, late_b_uid = late_a.unique_id, late_b.unique_id
+
+        assert _json_timeline(exp, first).get_json()["attributes"]["type"] == (
+            "_BarrierHoldPage"
+        )
+        thread_a, result_a, errors_a = _route_timeline_in_thread(exp, late_a_uid)
+        thread_b, result_b, errors_b = _route_timeline_in_thread(exp, late_b_uid)
+        thread_a.join(timeout=5)
+        thread_b.join(timeout=5)
+        assert errors_a == []
+        assert errors_b == []
+        assert not thread_a.is_alive()
+        assert not thread_b.is_alive()
+        assert result_a.get("status") == 200
+        assert result_b.get("status") == 200
+
+        for participant_id in (first_id, late_a_id, late_b_id):
+            participant = Participant.query.get(participant_id)
+            page = exp.timeline.get_current_elt(exp, participant)
+            assert not getattr(page, "is_timeline_hold", False)
+            assert page.label == "choose_action"
     finally:
         exp.timeline = original_timeline
 
@@ -2418,6 +2564,75 @@ def test_stacked_finalize_defers_hold_wakes_until_it_returns(
         assert released_at_inner_commit
         assert all(count == 0 for count in released_at_inner_commit)
         assert _released_wake_count(publications) >= 1
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_trio_stacked_finalize_defers_wakes_for_every_waiter(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Both waiting members stay unpublished until stacked finalize returns."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack3_wake_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type, group_size=3)
+    publications = _hold_wake_publications(monkeypatch)
+    released_at_inner_commit = []
+    original_finalize = Experiment._finalize_barrier_arrivals
+    real_commit = db.session.commit
+
+    def tracking_commit(*args, **kwargs):
+        result = real_commit(*args, **kwargs)
+        released_at_inner_commit.append(_released_wake_count(publications))
+        return result
+
+    @classmethod
+    def wrapped_finalize(cls, *args, **kwargs):
+        monkeypatch.setattr(db.session, "commit", tracking_commit)
+        try:
+            return original_finalize(*args, **kwargs)
+        finally:
+            monkeypatch.setattr(db.session, "commit", real_commit)
+
+    try:
+        first, second, last = [new_participant(exp) for _ in range(3)]
+        for participant in (first, second, last):
+            participant.status = "working"
+        db.session.commit()
+
+        assert _json_timeline(exp, first).status_code == 200
+        assert _json_timeline(exp, second).status_code == 200
+        first_token = (
+            TimelineHoldRecord.query.filter_by(participant_id=first.id, resumed_at=None)
+            .one()
+            .wake_token
+        )
+        second_token = (
+            TimelineHoldRecord.query.filter_by(
+                participant_id=second.id, resumed_at=None
+            )
+            .one()
+            .wake_token
+        )
+        publications.clear()
+        monkeypatch.setattr(Experiment, "_finalize_barrier_arrivals", wrapped_finalize)
+
+        last_response = _json_timeline(exp, last)
+        assert last_response.status_code == 200
+        assert last_response.get_json()["attributes"]["type"] == "ModularPage"
+        assert released_at_inner_commit
+        assert all(count == 0 for count in released_at_inner_commit)
+        published = {
+            target["wake_token"]
+            for _, payload in publications
+            for target in payload.get("targets", [])
+            if target.get("reason") == "barrier_released" and target.get("wake_token")
+        }
+        assert first_token in published
+        assert second_token in published
     finally:
         exp.timeline = original_timeline
 

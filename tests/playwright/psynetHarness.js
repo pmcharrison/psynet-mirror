@@ -1037,7 +1037,9 @@ function timelineHoldReleaseProbeScript() {
   const probe = {
     wakeReceivedAtMs: null,
     holdEndedAtMs: null,
-    wakeReason: null
+    wakeReason: null,
+    resumeReasons: [],
+    resumeWrapped: false
   };
   window.__psynetHoldReleaseProbe = probe;
   window.addEventListener("timelineHoldWakeReceived", (event) => {
@@ -1051,6 +1053,26 @@ function timelineHoldReleaseProbeScript() {
       probe.holdEndedAtMs = Date.now();
     }
   });
+  const wrapResume = () => {
+    if (probe.resumeWrapped || !window.psynet || !window.psynet.resumeTimelineHold) {
+      return false;
+    }
+    const original = window.psynet.resumeTimelineHold;
+    probe.resumeWrapped = true;
+    window.psynet.resumeTimelineHold = async function (reason) {
+      probe.resumeReasons.push({ reason: reason, atMs: Date.now() });
+      return original.apply(this, arguments);
+    };
+    return true;
+  };
+  if (!wrapResume()) {
+    const timer = setInterval(() => {
+      if (wrapResume()) {
+        clearInterval(timer);
+      }
+    }, 20);
+    setTimeout(() => clearInterval(timer), 15000);
+  }
 }
 
 async function installTimelineHoldReleaseProbeOnContext(context) {
@@ -1099,6 +1121,28 @@ async function readTimelineHoldReleaseProbe(page) {
       holdEndedAtMs: null,
       wakeReason: null
     }));
+}
+
+async function silenceTimelineHoldSafetyPoll(page) {
+  return page.evaluate(() => {
+    const controller = psynet.timelineHold;
+    if (!controller) {
+      return false;
+    }
+    clearTimeout(controller.safetyTimer);
+    controller.safetyTimer = null;
+    if (controller.hold) {
+      controller.hold.safety_poll_ms = 60000;
+    }
+    psynet.scheduleTimelineHoldCheck = function () {};
+    return true;
+  });
+}
+
+function resumeReasonsSince(probe, startedAtMs) {
+  return (probe.resumeReasons || []).filter(
+    (entry) => entry.atMs >= startedAtMs
+  );
 }
 
 async function waitForHeldParticipantToResume(
@@ -1266,6 +1310,8 @@ module.exports = {
   startTimelineHoldSocketTracker,
   readTimelineHoldReleaseProbe,
   waitForHeldParticipantToResume,
+  silenceTimelineHoldSafetyPoll,
+  resumeReasonsSince,
   clickConsentButton,
   clickFinish,
   clickNextAndWait,

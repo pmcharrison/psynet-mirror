@@ -70,12 +70,15 @@ expect(entry.start.consentToTimelineMs).toBeLessThan(6000);
 ```
 
 When a partner is already on a hold, start `waitForHeldParticipantToResume`
-before the last arriver consents. Assert the waiting partner reaches the next
-durable prompt soon after that last arriver's first timeline paint, not after
-another safety-poll cycle:
+before the last arriver consents, and call `silenceTimelineHoldSafetyPoll` so
+a 2s poll cannot hide a missed websocket wake. Assert the waiting partner
+reaches the next durable prompt soon after that last arriver's first timeline
+paint, resumes from `server notification` (not `safety poll`), and does not
+retry a busy hold-resume:
 
 ```js
 await installTimelineHoldReleaseProbe(firstPage);
+await silenceTimelineHoldSafetyPoll(firstPage);
 const firstResumePromise = waitForHeldParticipantToResume(firstPage, {
   prompt: "Choose your action",
 });
