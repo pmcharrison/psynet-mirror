@@ -1032,8 +1032,8 @@ async function captureFirstTimelineAfterGateway(page, timeout = 120000) {
 }
 
 function timelineHoldReleaseProbeScript() {
-  // Wrap as soon as window.psynet is assigned. A delayed interval can miss
-  // the real resumeTimelineHold if psynet.js replaces the property later.
+  // Listeners belong on every document. Wrapping resumeTimelineHold happens
+  // later, after window.psynet exists, via wrapTimelineHoldResumeProbe.
   const probe = window.__psynetHoldReleaseProbe || {
     wakeReceivedAtMs: null,
     holdEndedAtMs: null,
@@ -1077,12 +1077,16 @@ function timelineHoldReleaseProbeScript() {
     return true;
   };
 
-  const installWraps = (object) => {
+  window.__psynetHoldReleaseProbeInstallWrap = () => {
+    const object = window.psynet;
     if (!object) {
       return false;
     }
     probe.wrappedResume = wrapNamed(object, "resumeTimelineHold", (args) => {
       probe.resumeReasons.push({ reason: args[0], atMs: Date.now() });
+      if (typeof window.__psynetRecordHoldResume === "function") {
+        window.__psynetRecordHoldResume({ reason: args[0] });
+      }
     });
     probe.wrappedNextPage = wrapNamed(object, "nextPage", (args) => {
       const options = args[4] || {};
@@ -1092,38 +1096,6 @@ function timelineHoldReleaseProbeScript() {
     });
     return Boolean(probe.wrappedResume);
   };
-
-  window.__psynetHoldReleaseProbeInstallWrap = () => installWraps(window.psynet);
-
-  if (!window.__psynetHoldProbeHooked) {
-    window.__psynetHoldProbeHooked = true;
-    let target = window.psynet;
-    Object.defineProperty(window, "psynet", {
-      configurable: true,
-      enumerable: true,
-      get() {
-        return target;
-      },
-      set(value) {
-        target = value;
-        installWraps(value);
-      }
-    });
-  }
-  if (!installWraps(window.psynet) && !window.__psynetHoldProbeWrapTimer) {
-    window.__psynetHoldProbeWrapTimer = setInterval(() => {
-      if (installWraps(window.psynet)) {
-        clearInterval(window.__psynetHoldProbeWrapTimer);
-        window.__psynetHoldProbeWrapTimer = null;
-      }
-    }, 20);
-    setTimeout(() => {
-      if (window.__psynetHoldProbeWrapTimer) {
-        clearInterval(window.__psynetHoldProbeWrapTimer);
-        window.__psynetHoldProbeWrapTimer = null;
-      }
-    }, 15000);
-  }
 }
 
 async function installTimelineHoldReleaseProbeOnContext(context) {
