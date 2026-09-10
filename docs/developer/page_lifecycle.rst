@@ -28,8 +28,9 @@ In-place navigation
 
 With ``inplace_timeline_transitions = true``, an approved ``/response`` request
 also contains the rendered next-page fragment. The existing document remains
-open while PsyNet replaces the timeline header, main body, footer, and page
-bootstrap data.
+open while PsyNet replaces the timeline header, hold region, main body, and page
+bootstrap data. The footer and Leave modal are optional and are inserted,
+removed, or replaced when present.
 
 Keeping the document open avoids a full reload, but it also means that PsyNet
 must explicitly reproduce the resource cleanup and initialization that a reload
@@ -115,8 +116,11 @@ The fragment must contain the elements the persistent document replaces:
 * ``#timeline-header``
 * ``#timeline-hold-region``
 * ``#main-body``
-* ``#footer``
 * ``#psynet-template-data``
+
+``#footer`` and ``#early-exit-modal`` are optional. Pages that hide the footer
+or have nothing to put in it omit those nodes; the client inserts, removes, or
+replaces them instead of requiring them.
 
 Page bootstrap data
 -------------------

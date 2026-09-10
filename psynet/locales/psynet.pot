@@ -2458,16 +2458,6 @@ msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr ""
 
-#: psynet/timeline_hold.py:298
-msgctxt "timeline_hold"
-msgid "Waiting for other participants…"
-msgstr ""
-
-#: psynet/timeline_hold.py:302
-msgctxt "timeline_hold"
-msgid "Please wait, the experiment should continue shortly..."
-msgstr ""
-
 #: psynet/translation/countries.py:14
 msgctxt "country_name"
 msgid "Afghanistan"
@@ -4681,12 +4671,4 @@ msgstr ""
 #: psynet/translation/languages.py:295
 msgctxt "language_name"
 msgid "Zulu"
-msgstr ""
-
-#: psynet/experiment.py
-msgid "The experiment is temporarily busy. Please try again."
-msgstr ""
-
-#: psynet/experiment.py
-msgid "The experiment is temporarily busy. Please refresh this page and try again."
 msgstr ""

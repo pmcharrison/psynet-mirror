@@ -11,8 +11,6 @@ To check if translations are up to date (only runs on release branches):
 
 """
 
-import os
-
 import polib
 import pytest
 
@@ -39,20 +37,17 @@ def make_entries(source_text, translated_text):
     )
 
 
-def test_timeline_hold_messages_are_in_translation_template():
-    pot = polib.pofile(
-        os.path.join(get_psynet_root(), "psynet", "locales", "psynet.pot")
-    )
-    entries = {(entry.msgctxt, entry.msgid) for entry in pot}
+def test_timeline_hold_messages_use_translatable_copy():
+    """Hold copy goes through gettext so the release-branch catalog can pick it up.
 
-    assert (
-        "timeline_hold",
-        "Waiting for other participants…",
-    ) in entries
-    assert (
-        "timeline_hold",
-        "Please wait, the experiment should continue shortly...",
-    ) in entries
+    Merge requests do not refresh ``psynet/locales``. Until then these strings
+    fall back to English.
+    """
+    source = (get_psynet_root() / "psynet" / "timeline_hold.py").read_text(
+        encoding="utf-8"
+    )
+    assert '_p("timeline_hold", "Waiting for other participants…")' in source
+    assert '"Please wait, the experiment should continue shortly..."' in source
 
 
 def test_matching_variables():
