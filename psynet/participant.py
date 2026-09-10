@@ -200,14 +200,36 @@ def _extract_server_error_details(response_text):
     return None
 
 
-def _retry_busy_http(send, *, delay_s=0.25):
-    """Call ``send`` and retry once after a short delay on HTTP 503.
+def _is_psynet_busy_response(response):
+    """Return whether a response is a structured PsyNet busy 503.
 
-    Browser submissions retry a busy response once; automated drivers follow
-    the same policy so lock timeouts do not fail the bot on the first hit.
+    Matches ``psynet.isBusyResponse()`` so automated drivers do not retry
+    unstructured proxy or application failures.
+    """
+    if getattr(response, "status_code", None) != 503:
+        return False
+    try:
+        json_fn = getattr(response, "json", None)
+        if callable(json_fn):
+            body = json_fn()
+        else:
+            body = json.loads(getattr(response, "text", "") or "")
+    except (TypeError, ValueError, AttributeError):
+        return False
+    if not isinstance(body, dict):
+        return False
+    return body.get("status") == "busy" or body.get("submission") == "busy"
+
+
+def _retry_busy_http(send, *, delay_s=0.25):
+    """Call ``send`` and retry once after a short delay on a busy HTTP 503.
+
+    Browser submissions retry a structured busy response once; automated
+    drivers follow the same policy so lock timeouts do not fail the bot on
+    the first hit. Generic or malformed 503s are not retried.
     """
     response = send()
-    if response.status_code == 503:
+    if _is_psynet_busy_response(response):
         time.sleep(delay_s)
         response = send()
     _raise_for_status_with_server_details(response)

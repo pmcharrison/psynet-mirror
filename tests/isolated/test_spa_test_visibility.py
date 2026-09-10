@@ -1,5 +1,6 @@
 """SPA contract errors should be visible during local testing."""
 
+import json
 import re
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -108,14 +109,27 @@ def test_raise_for_status_includes_server_error_details():
         _raise_for_status_with_server_details(response)
 
 
-def _http_response(status_code):
-    response = SimpleNamespace(status_code=status_code, text="")
+def _http_response(status_code, body=None, text=""):
+    response = SimpleNamespace(status_code=status_code, text=text)
+    if body is not None:
+        response.json = lambda: body
+        if not text:
+            response.text = json.dumps(body)
+    else:
+
+        def _no_json():
+            raise ValueError("No JSON")
+
+        response.json = _no_json
     response.raise_for_status = lambda: None
     return response
 
 
-def test_retry_busy_http_retries_once_on_503():
-    responses = [_http_response(503), _http_response(200)]
+def test_retry_busy_http_retries_once_on_structured_busy_503():
+    responses = [
+        _http_response(503, {"status": "busy", "submission": "busy"}),
+        _http_response(200),
+    ]
     calls = {"n": 0}
 
     def send():
@@ -126,6 +140,32 @@ def test_retry_busy_http_retries_once_on_503():
 
     assert result.status_code == 200
     assert calls["n"] == 2
+
+
+def test_retry_busy_http_does_not_retry_generic_503():
+    calls = {"n": 0}
+
+    def send():
+        calls["n"] += 1
+        return _http_response(503, text="gateway timeout")
+
+    result = _retry_busy_http(send, delay_s=0)
+
+    assert result.status_code == 503
+    assert calls["n"] == 1
+
+
+def test_retry_busy_http_does_not_retry_malformed_503():
+    calls = {"n": 0}
+
+    def send():
+        calls["n"] += 1
+        return _http_response(503, text="{not-json")
+
+    result = _retry_busy_http(send, delay_s=0)
+
+    assert result.status_code == 503
+    assert calls["n"] == 1
 
 
 def test_retry_busy_http_does_not_retry_success():
