@@ -17,6 +17,13 @@ logger = get_logger()
 PARTNER_WAIT_SECONDS = 300
 
 
+def _assert_arrived_without_hold(bot, expected_label):
+    """The last group member should skip the partner hold on the same request."""
+    page = bot.get_current_page()
+    assert not getattr(page, "is_timeline_hold", False)
+    assert bot.current_page_label == expected_label
+
+
 class RockPaperScissorsTrialMaker(StaticTrialMaker):
     pass
 
@@ -152,6 +159,7 @@ class Exp(psynet.experiment.Experiment):
 
         assert bots[1].current_page_label == "choose_action"
         bots[1].take_page(response="paper")
+        _assert_arrived_without_hold(bots[1], "results")
 
         advance_past_wait_pages(bots)
 
@@ -173,10 +181,12 @@ class Exp(psynet.experiment.Experiment):
 
         bots[0].take_page()
         bots[1].take_page()
+        _assert_arrived_without_hold(bots[1], "choose_action")
         advance_past_wait_pages(bots)
 
         bots[0].take_page(response="scissors")
         bots[1].take_page(response="paper")
+        _assert_arrived_without_hold(bots[1], "results")
         advance_past_wait_pages(bots)
 
         assert (
@@ -190,10 +200,12 @@ class Exp(psynet.experiment.Experiment):
 
         bots[0].take_page()
         bots[1].take_page()
+        _assert_arrived_without_hold(bots[1], "choose_action")
         advance_past_wait_pages(bots)
 
         bots[0].take_page(response="scissors")
         bots[1].take_page(response="scissors")
+        _assert_arrived_without_hold(bots[1], "results")
         advance_past_wait_pages(bots)
 
         assert (
