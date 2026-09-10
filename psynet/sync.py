@@ -1452,6 +1452,9 @@ class BarrierInstance(SQLBase, SQLMixin):
     @classmethod
     def for_arrival(cls, barrier, participant):
         """Return the stable instance that should receive this participant."""
+        # Group links may have been created immediately before this barrier.
+        # Flush so association-backed ``active_sync_groups`` resolves the group.
+        db.session.flush()
         BarrierDefinition.ensure_exists(barrier.id, barrier.__class__)
         group_id = cls._group_id(barrier, participant)
         scope = f"{barrier.id}:group:{group_id}" if group_id is not None else barrier.id
