@@ -48,6 +48,8 @@ def test_timeline_hold_messages_use_translatable_copy():
     )
     assert '_p("timeline_hold", "Waiting for other participants…")' in source
     assert '"Please wait, the experiment should continue shortly..."' in source
+    assert '_p("timeline_hold", "{arrived} of {total} arrived")' in source
+    assert '_p("timeline_hold", "Your partner is ready to continue.")' in source
 
 
 def test_matching_variables():

@@ -95,6 +95,7 @@ A Group Barrier may be included in the timeline as follows:
         group_type="rock_paper_scissors",
         content="Waiting for your partner",
         on_release=self.score_trial,
+        notify_arrivals=True,
     )
 
 
@@ -115,6 +116,25 @@ same request. That last arriver skips the wait indicator and continues to the
 next page. If a partner's wait row is locked, the regular 0.5-second barrier
 check finishes the release instead. To display dedicated pages or filler tasks
 while participants wait, pass them explicitly with ``waiting_logic``.
+
+Set ``notify_arrivals=True`` to show live arrival progress on the hold
+(``1 of 2 arrived``) and a banner on earlier pages when a partner is already
+waiting (``Your partner is ready to continue.``). Pass
+``on_arrival_message`` to customize that copy; it receives ``kind``
+(``"hold"`` or ``"notice"``), ``waiting_count``, and ``group_size``::
+
+    def arrival_message(*, kind, waiting_count, group_size, **kwargs):
+        if kind == "hold":
+            return f"{waiting_count} of {group_size} arrived"
+        return "Your partner is ready to continue."
+
+    GroupBarrier(
+        id_="finished_trial",
+        group_type="rock_paper_scissors",
+        content="Waiting for your partner",
+        notify_arrivals=True,
+        on_arrival_message=arrival_message,
+    )
 
 Default holds credit the participant's actual visible waiting time, including
 the interval between server release and browser resumption, up to

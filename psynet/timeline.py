@@ -1606,6 +1606,8 @@ class Page(Elt):
         Returns a dictionary containing the `session_id`, the page `type`, and the `page_uuid` .
         """
         from psynet.page import UnityPage
+        from psynet.sync import pending_arrival_notice_for
+        from psynet.timeline_hold import _timeline_hold_channel
 
         return {
             "session_id": self.session_id,
@@ -1615,6 +1617,10 @@ class Page(Elt):
             "is_unity_page": isinstance(self, UnityPage),
             "requires_full_page_reload": self.requires_full_page_reload,
             "expect_scrolling": self.expect_scrolling,
+            "arrival_updates": {
+                "channel": _timeline_hold_channel(participant.id),
+                "notice": pending_arrival_notice_for(participant),
+            },
         }
 
     @property

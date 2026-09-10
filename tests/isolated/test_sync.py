@@ -30,11 +30,13 @@ from psynet.sync import (
     SimpleSyncGroup,
     check_barriers,
     check_sync_groups,
+    pending_arrival_notice_for,
 )
 from psynet.timeline_hold import (
     TimelineHoldRecord,
     _enqueue_timeline_hold_wake,
     _timeline_hold_channel,
+    default_group_barrier_arrival_message,
 )
 
 
@@ -719,6 +721,10 @@ def _count_group_release(
     _group_release_calls.append(group.id)
 
 
+def _custom_arrival_message(*, kind, waiting_count=None, group_size=None, **kwargs):
+    return "custom"
+
+
 def _pair_sync_group(exp, db_session, group_type="main"):
     participants = [new_participant(exp) for _ in range(2)]
     for participant in participants:
@@ -910,6 +916,92 @@ def test_last_group_arrival_defers_when_a_partner_is_locked(
     check_barriers()
     assert _barrier_link_released(first_id, "locked_partner") is True
     assert _barrier_link_released(last_id, "locked_partner") is True
+
+
+def test_default_group_barrier_arrival_message_copy():
+    assert (
+        default_group_barrier_arrival_message(
+            kind="hold", waiting_count=1, group_size=2
+        )
+        == "1 of 2 arrived"
+    )
+    assert (
+        default_group_barrier_arrival_message(
+            kind="notice", waiting_count=1, group_size=2
+        )
+        == "Your partner is ready to continue."
+    )
+    assert (
+        default_group_barrier_arrival_message(
+            kind="notice", waiting_count=1, group_size=3
+        )
+        == "1 participant is ready to continue."
+    )
+    assert (
+        default_group_barrier_arrival_message(
+            kind="notice", waiting_count=2, group_size=3
+        )
+        == "2 participants are ready to continue."
+    )
+
+
+def test_on_arrival_message_enables_notify_arrivals():
+    barrier = GroupBarrier(
+        id_="custom_notice",
+        group_type="main",
+        on_arrival_message=_custom_arrival_message,
+    )
+    assert barrier.notify_arrivals is True
+    assert (
+        barrier._call_arrival_message(
+            kind="notice", waiting_count=1, group_size=2, recipient=None, group=None
+        )
+        == "custom"
+    )
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_arrival_notifies_partner_still_on_earlier_page(
+    in_experiment_directory, db_session, monkeypatch
+):
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(
+        id_="notify_arrivals",
+        group_type="main",
+        content="Waiting for your partner",
+        notify_arrivals=True,
+    )
+    publications = []
+    monkeypatch.setattr(
+        db.redis_conn,
+        "publish",
+        lambda channel_name, data: publications.append(
+            (channel_name, json.loads(data))
+        ),
+    )
+
+    _arrive_at_group_barrier(exp, barrier, first)
+    db_session.commit()
+
+    notices = [
+        target.get("notice")
+        for _, payload in publications
+        for target in payload["targets"]
+    ]
+    hold_messages = [
+        target.get("hold_message")
+        for _, payload in publications
+        for target in payload["targets"]
+    ]
+    assert "Your partner is ready to continue." in notices
+    assert any(message and "1 of 2 arrived" in message for message in hold_messages)
+    assert pending_arrival_notice_for(last) == "Your partner is ready to continue."
+    overlay = barrier.waiting_logic.overlay_html(first)
+    assert "Waiting for your partner" in overlay
+    assert "1 of 2 arrived" in overlay
 
 
 def test_waiting_participants_nowait_requires_for_update():

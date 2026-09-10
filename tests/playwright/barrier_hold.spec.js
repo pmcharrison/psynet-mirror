@@ -121,8 +121,19 @@ test("default barriers hold the current page until websocket release", { tag: "@
       firstParticipant.locator("#psynet-timeline-hold-indicator")
     ).toBeVisible({ timeout: STEP_TIMEOUT_MS });
     await expect(
-      firstParticipant.locator(".psynet-timeline-hold-message")
+      firstParticipant.locator(".psynet-timeline-hold-title")
     ).toHaveText("Waiting for your partner");
+    await expect(
+      firstParticipant.locator(".psynet-timeline-hold-progress")
+    ).toHaveText("1 of 2 arrived");
+    await expect(
+      secondParticipant.locator("#psynet-arrival-notice")
+    ).toHaveText("Your partner is ready to continue.", {
+      timeout: STEP_TIMEOUT_MS
+    });
+    await expect(secondParticipant.locator("#main-body")).toContainText(
+      "Choose your action"
+    );
     await expect(firstParticipant.locator("#main-body")).toContainText(
       "Choose your action"
     );

@@ -83,6 +83,64 @@ def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
         )
 
 
+def _queue_arrival_update(participant_id, *, hold_message=None, notice=None):
+    """Queue an arrival-progress or partner-ready update after the next commit."""
+    try:
+        db.session.info.setdefault(_PENDING_WAKE_KEY, {})[
+            f"arrival:{participant_id}"
+        ] = {
+            "participant_id": participant_id,
+            "reason": "arrival_update",
+            "hold_message": hold_message,
+            "notice": notice,
+        }
+    except Exception:
+        logger.warning(
+            "Failed to queue an arrival update for participant %s.",
+            participant_id,
+            exc_info=True,
+        )
+
+
+def default_group_barrier_arrival_message(
+    *, kind, waiting_count, group_size, **_kwargs
+):
+    """Return default GroupBarrier arrival copy for one recipient."""
+    _p = get_translator(context=True)
+    if kind == "hold":
+        return _p("timeline_hold", "{arrived} of {total} arrived").format(
+            arrived=waiting_count,
+            total=group_size,
+        )
+    if group_size == 2:
+        return _p("timeline_hold", "Your partner is ready to continue.")
+    if waiting_count == 1:
+        return _p("timeline_hold", "1 participant is ready to continue.")
+    return _p("timeline_hold", "{n} participants are ready to continue.").format(
+        n=waiting_count
+    )
+
+
+def _html_overlay_line(text):
+    """Escape overlay text unless the author passed trusted ``Markup``."""
+    if text is None:
+        return ""
+    if isinstance(text, Markup):
+        return str(text)
+    return str(escape(text))
+
+
+def compose_hold_overlay_html(title_html, progress_text=None):
+    """Join a hold title with an optional progress line."""
+    if not progress_text:
+        return title_html
+    return (
+        f'<span class="psynet-timeline-hold-title">{title_html}</span>'
+        f'<span class="psynet-timeline-hold-progress">'
+        f"{_html_overlay_line(progress_text)}</span>"
+    )
+
+
 @event.listens_for(db.session, "after_commit")
 def _publish_timeline_hold_wakes(session):
     wakes = list(session.info.pop(_PENDING_WAKE_KEY, {}).values())
@@ -334,7 +392,7 @@ class _TimelineHoldPage(Page):
             )
         return self.content
 
-    def overlay_html(self):
+    def overlay_html(self, participant=None):
         """Return hold copy as HTML for both Jinja and the dynamic overlay.
 
         Trusted ``Markup`` is preserved; plain strings are escaped so a refresh
@@ -342,10 +400,18 @@ class _TimelineHoldPage(Page):
         """
         content = self.translated_content()
         if content is None:
-            return ""
-        if isinstance(content, Markup):
-            return str(content)
-        return str(escape(content))
+            title_html = ""
+        elif isinstance(content, Markup):
+            title_html = str(content)
+        else:
+            title_html = str(escape(content))
+        return compose_hold_overlay_html(
+            title_html, self.hold_progress_text(participant)
+        )
+
+    def hold_progress_text(self, participant):
+        """Return optional live progress copy for this hold visit."""
+        return None
 
     def timeline_hold_payload(self, participant):
         """Return browser configuration for this hold visit."""
@@ -358,7 +424,7 @@ class _TimelineHoldPage(Page):
         return {
             "channel": _timeline_hold_channel(participant.id),
             "hold_id": self.hold_id,
-            "message": self.overlay_html(),
+            "message": self.overlay_html(participant),
             "page_uuid": participant.page_uuid,
             "wake_token": record.wake_token,
             "safety_poll_ms": round(self.check_interval * 1000),

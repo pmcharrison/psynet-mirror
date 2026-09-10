@@ -110,8 +110,13 @@ from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
 from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
-from psynet.timeline_hold import _queue_timeline_hold_wake, _TimelineHoldPage
-from psynet.utils import get_config, get_logger
+from psynet.timeline_hold import (
+    _queue_arrival_update,
+    _queue_timeline_hold_wake,
+    _TimelineHoldPage,
+    default_group_barrier_arrival_message,
+)
+from psynet.utils import call_function_with_context, get_config, get_logger
 
 logger = get_logger()
 
@@ -157,6 +162,13 @@ class _BarrierHoldPage(_TimelineHoldPage):
             )
         link.timeline_hold = record
         self.barrier._try_check_on_arrival()
+        self.barrier._notify_arrivals(participant)
+
+    def hold_progress_text(self, participant):
+        """Return arrival progress for a participant waiting at this barrier."""
+        if participant is None:
+            return None
+        return self.barrier._hold_progress_text(participant)
 
     def prepare_to_resume(self, participant):
         if (
@@ -342,9 +354,22 @@ class Barrier(EltCollection):
         participant.active_barriers[self.id] = link
         if not self._uses_timeline_hold:
             self._try_check_on_arrival()
+            self._notify_arrivals(participant)
 
     def _try_check_on_arrival(self):
         """Optionally release this barrier from the arriving participant request."""
+
+    def _notify_arrivals(self, arriving_participant):
+        """Optionally tell the group that someone arrived at this barrier."""
+
+    def _hold_progress_text(self, participant):
+        """Return hold-overlay progress copy, if this barrier publishes arrivals."""
+        return None
+
+    def _participant_is_waiting(self, participant):
+        """Return whether this participant is still waiting at this barrier."""
+        link = participant.active_barriers.get(self.id)
+        return link is not None and not bool(link.released)
 
     def get_waiting_participants(self, for_update: bool = False, nowait: bool = False):
         return self.get_waiting_participants_from_barrier_id(
@@ -523,6 +548,20 @@ class GroupBarrier(Barrier):
         :class:`~psynet.sync.Grouper`'s ``content`` and of trial-maker
         ``sync_group_wait_content``.
 
+    notify_arrivals
+        If ``True``, waiting participants see live arrival progress on the hold
+        overlay, and group members who have not reached this barrier yet see a
+        banner on their current page. Passing ``on_arrival_message`` implies
+        ``True``.
+
+    on_arrival_message
+        Optional callable that returns copy for one recipient. It receives
+        ``kind`` (``"hold"`` or ``"notice"``), ``waiting_count``,
+        ``group_size``, and the usual context arguments (``recipient``,
+        ``group``, ``barrier``, ``experiment``). Return ``None`` to hide that
+        surface. Same serialization rules as ``on_release``. The default pair
+        notice is "Your partner is ready to continue."
+
     """
 
     @staticmethod
@@ -553,6 +592,8 @@ class GroupBarrier(Barrier):
         timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
         expected_wait=None,
         content=None,
+        notify_arrivals: bool = False,
+        on_arrival_message: Optional[Callable] = None,
     ):
         self._validate_max_wait_action(max_wait_action)
         super().__init__(
@@ -567,6 +608,8 @@ class GroupBarrier(Barrier):
         self.max_wait_action = max_wait_action
         self.group_type = group_type
         self.on_release = on_release
+        self.on_arrival_message = on_arrival_message
+        self.notify_arrivals = bool(notify_arrivals) or on_arrival_message is not None
         self.timeout_between_barriers_time = timeout_between_barriers_time
         if timeout_between_barriers_action not in ("kick", "fail"):
             raise ValueError(
@@ -593,6 +636,69 @@ class GroupBarrier(Barrier):
                 )
                 return
             raise
+
+    def _hold_progress_text(self, participant):
+        """Return hold-overlay progress when arrival notices are enabled."""
+        if not self.notify_arrivals or not self._participant_is_waiting(participant):
+            return None
+        group = participant.active_sync_groups.get(self.group_type)
+        if group is None:
+            return None
+        waiting_count = sum(
+            1
+            for member in group.active_participants
+            if self._participant_is_waiting(member)
+        )
+        return self._call_arrival_message(
+            kind="hold",
+            waiting_count=waiting_count,
+            group_size=len(group.active_participants),
+            recipient=participant,
+            group=group,
+        )
+
+    def _call_arrival_message(self, **kwargs):
+        """Return author or default arrival copy for one recipient."""
+        callback = self.on_arrival_message or default_group_barrier_arrival_message
+        return call_function_with_context(callback, barrier=self, **kwargs)
+
+    def _notify_arrivals(self, arriving_participant):
+        """Publish hold progress and partner-ready notices after an arrival."""
+        if not self.notify_arrivals:
+            return
+        if arriving_participant.failed or not self._participant_is_waiting(
+            arriving_participant
+        ):
+            return
+        group = arriving_participant.active_sync_groups.get(self.group_type)
+        if group is None:
+            return
+        waiting_count = sum(
+            1
+            for member in group.active_participants
+            if self._participant_is_waiting(member)
+        )
+        group_size = len(group.active_participants)
+        for member in group.active_participants:
+            if member.failed:
+                continue
+            is_waiting = self._participant_is_waiting(member)
+            text = self._call_arrival_message(
+                kind="hold" if is_waiting else "notice",
+                waiting_count=waiting_count,
+                group_size=group_size,
+                recipient=member,
+                group=group,
+            )
+            if not text:
+                continue
+            if is_waiting:
+                hold_html = None
+                if self._uses_timeline_hold:
+                    hold_html = self.waiting_logic.overlay_html(member)
+                _queue_arrival_update(member.id, hold_message=hold_html)
+            else:
+                _queue_arrival_update(member.id, notice=str(text))
 
     def handle_max_wait_timeout(self, participant: Participant):
         """Kick from the sync group when requested, then release the barrier link."""
@@ -1351,6 +1457,43 @@ def _next_waiting_barrier(excluded_ids):
         .populate_existing()
         .first()
     )
+
+
+def pending_arrival_notice_for(participant):
+    """Return a partner-ready notice if this participant is behind a waiter."""
+    if participant is None or getattr(participant, "failed", False):
+        return None
+    groups = getattr(participant, "active_sync_groups", None) or {}
+    notice = None
+    for group in groups.values():
+        for member in group.active_participants:
+            if member.id == participant.id:
+                continue
+            for link in list(member.active_barriers.values()):
+                if link.released:
+                    continue
+                barrier = link.get_barrier()
+                if not isinstance(barrier, GroupBarrier) or not barrier.notify_arrivals:
+                    continue
+                if barrier._participant_is_waiting(participant):
+                    continue
+                waiting_count = sum(
+                    1
+                    for other in group.active_participants
+                    if barrier._participant_is_waiting(other)
+                )
+                if waiting_count == 0:
+                    continue
+                text = barrier._call_arrival_message(
+                    kind="notice",
+                    waiting_count=waiting_count,
+                    group_size=len(group.active_participants),
+                    recipient=participant,
+                    group=group,
+                )
+                if text:
+                    notice = str(text)
+    return notice
 
 
 def check_barriers():

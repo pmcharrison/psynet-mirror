@@ -878,6 +878,82 @@
     };
 
     psynet.timelineHold = null;
+    psynet.arrivalUpdates = null;
+
+    psynet.updateTimelineHoldMessage = function (message) {
+      let messageElement = document.querySelector(
+        "#psynet-timeline-hold-indicator .psynet-timeline-hold-message",
+      );
+      if (messageElement) {
+        messageElement.innerHTML = message || "";
+      }
+    };
+
+    psynet.hideArrivalNotice = function () {
+      document.getElementById("psynet-arrival-notice")?.remove();
+    };
+
+    psynet.showArrivalNotice = function (message) {
+      if (!message || document.body.classList.contains("timeline-held")) {
+        return;
+      }
+      let notice = document.getElementById("psynet-arrival-notice");
+      if (!notice) {
+        notice = document.createElement("div");
+        notice.id = "psynet-arrival-notice";
+        notice.setAttribute("role", "status");
+        notice.setAttribute("aria-live", "polite");
+        document.getElementById("timeline-hold-region")?.appendChild(notice);
+      }
+      notice.textContent = message;
+    };
+
+    psynet.applyArrivalNotice = function (notice) {
+      if (notice) {
+        psynet.showArrivalNotice(notice);
+      } else {
+        psynet.hideArrivalNotice();
+      }
+    };
+
+    psynet.handleArrivalUpdateMessage = function (message) {
+      if (message.type !== "timeline_hold_wake") {
+        return;
+      }
+      (message.targets || []).forEach((target) => {
+        if (target.hold_message && psynet.timelineHold) {
+          psynet.updateTimelineHoldMessage(target.hold_message);
+        }
+        if (Object.prototype.hasOwnProperty.call(target, "notice")) {
+          psynet.applyArrivalNotice(target.notice);
+        }
+      });
+    };
+
+    psynet.stopArrivalUpdates = function () {
+      if (!psynet.arrivalUpdates) return;
+      if (psynet.arrivalUpdates.connection) {
+        psynet.arrivalUpdates.connection.close();
+      }
+      psynet.arrivalUpdates = null;
+    };
+
+    psynet.ensureArrivalUpdates = function (config) {
+      if (!config?.channel) return;
+      if (psynet.arrivalUpdates?.channel === config.channel) {
+        psynet.applyArrivalNotice(config.notice);
+        return;
+      }
+      psynet.stopArrivalUpdates();
+      psynet.arrivalUpdates = {
+        channel: config.channel,
+        connection: PsyNetWebSocketChannel.connect({
+          channel: config.channel,
+          onMessage: psynet.handleArrivalUpdateMessage,
+        }),
+      };
+      psynet.applyArrivalNotice(config.notice);
+    };
 
     psynet.updatePageForTimelineHold = function (page) {
       psynet.submissionPageUuid = page.attributes.page_uuid;
@@ -909,6 +985,7 @@
       }
       indicator.querySelector(".psynet-timeline-hold-message").innerHTML =
         message || "";
+      psynet.hideArrivalNotice();
       document.body.classList.add("timeline-held");
       let mainBody = document.getElementById("main-body");
       if (mainBody) {
@@ -1059,6 +1136,7 @@
         },
         onMessage(message) {
           if (controller.stopped) return;
+          psynet.handleArrivalUpdateMessage(message);
           let matchingTarget = (message.targets || []).find(
             (target) =>
               message.type === "timeline_hold_wake" &&
@@ -1092,6 +1170,7 @@
       if (hold) {
         psynet.beginTimelineHold(hold);
       }
+      psynet.ensureArrivalUpdates(psynet.page.attributes?.arrival_updates);
     };
 
     psynet.prepareTimelineFragment = function (payload) {
@@ -3199,6 +3278,7 @@
       if (psynet.isSameSessionPageUpdate(response)) {
         psynet.page = response.page;
         psynet.submissionPageUuid = response.page.attributes.page_uuid;
+        psynet.ensureArrivalUpdates(response.page.attributes?.arrival_updates);
         psynet.trial.registerEvent("pageUpdated");
         psynet.nextPagePending = false;
         psynet.restoreSubmissionControlState();
