@@ -6,6 +6,8 @@ const {
   beginExperiment,
   enterTimelineAfterGateway,
   installTimelineHoldReleaseProbe,
+  installTimelineHoldReleaseProbeOnContext,
+  startTimelineHoldSocketTracker,
   readTimelineHoldReleaseProbe,
   startExperiment,
   stopExperiment,
@@ -34,11 +36,34 @@ function entryPathRequests(records) {
   );
 }
 
+function publishedWakeTokens(holdFrames) {
+  const tokens = [];
+  for (const frame of holdFrames) {
+    const jsonStart = frame.indexOf("{");
+    if (jsonStart < 0) {
+      continue;
+    }
+    try {
+      const payload = JSON.parse(frame.slice(jsonStart));
+      for (const target of payload.targets || []) {
+        if (target.wake_token) {
+          tokens.push(target.wake_token);
+        }
+      }
+    } catch {
+      // Keep going; the summary still includes the raw frame.
+    }
+  }
+  return tokens;
+}
+
 function holdReleaseSummary({
   afterConsentMs,
   afterTimelineMs,
   probe,
-  resumeRequests
+  resumeRequests,
+  holdFrames = [],
+  waitingWakeToken = null
 }) {
   const wake = probe.wakeReason
     ? `wake ${probe.wakeReason}`
@@ -46,6 +71,8 @@ function holdReleaseSummary({
   return (
     `release ${afterConsentMs}ms after last consent, ` +
     `${afterTimelineMs}ms after last timeline (${wake}; ` +
+    `waiting token ${waitingWakeToken || "missing"}; ` +
+    `published ${publishedWakeTokens(holdFrames).join(",") || "none"}; ` +
     `resume ${summarizeParticipantRequests(resumeRequests)})`
   );
 }
@@ -100,14 +127,17 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
   let secondParticipant;
   let firstEntry;
   let secondEntry;
+  let holdSockets;
 
   try {
+    await installTimelineHoldReleaseProbeOnContext(firstContext);
     const recruitmentUrl = await experiment.urlPromise;
     firstParticipant = await beginExperiment(
       await firstContext.newPage(),
       firstContext,
       withFreshParticipantIds(recruitmentUrl, "stacked_hold_first")
     );
+    holdSockets = startTimelineHoldSocketTracker(firstParticipant);
     firstEntry = await enterTimelineAfterGateway(
       firstParticipant,
       STEP_TIMEOUT_MS
@@ -123,6 +153,9 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
       firstParticipant.locator(".psynet-timeline-hold-message")
     ).toContainText("Waiting for your partner");
     await installTimelineHoldReleaseProbe(firstParticipant);
+    const waitingWakeToken = await firstParticipant.evaluate(
+      () => psynet.timelineHold?.hold?.wake_token || null
+    );
     const firstResumePromise = waitForHeldParticipantToResume(firstParticipant, {
       prompt: "Choose your action",
       timeout: STEP_TIMEOUT_MS
@@ -174,12 +207,23 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
       firstEntry.tracker.records,
       secondEntry.start.consentClickedAtMs
     );
+    const holdFrames = holdSockets?.frames || [];
     const releaseSummary = holdReleaseSummary({
       afterConsentMs,
       afterTimelineMs,
       probe,
-      resumeRequests
+      resumeRequests,
+      holdFrames,
+      waitingWakeToken
     });
+    expect(
+      waitingWakeToken,
+      `first arriver hold is missing a wake token (${releaseSummary})`
+    ).toBeTruthy();
+    expect(
+      publishedWakeTokens(holdFrames),
+      `last arriver finalize did not wake the waiting hold (${releaseSummary})`
+    ).toContain(waitingWakeToken);
     expect(
       afterTimelineMs,
       `first arriver still held after last arriver painted (${releaseSummary})`
@@ -192,6 +236,7 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
       unexpectedBlockingRequests(resumeRequests, ENTRY_REQUEST_MAX_MS),
       `first arriver hold-resume blocking: ${releaseSummary}`
     ).toEqual([]);
+    console.log(`first arriver hold release: ${releaseSummary}`);
 
     await secondEntry.tracker.flush();
     expect(
@@ -208,6 +253,7 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
   } finally {
     firstEntry?.tracker.stop();
     secondEntry?.tracker.stop();
+    holdSockets?.stop();
     await firstContext.close();
     await secondContext.close();
     await stopExperiment(experiment.proc);

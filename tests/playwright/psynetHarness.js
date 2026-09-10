@@ -1030,31 +1030,60 @@ async function captureFirstTimelineAfterGateway(page, timeout = 120000) {
   return entry.html;
 }
 
+function timelineHoldReleaseProbeScript() {
+  if (window.__psynetHoldReleaseProbe) {
+    return;
+  }
+  const probe = {
+    wakeReceivedAtMs: null,
+    holdEndedAtMs: null,
+    wakeReason: null
+  };
+  window.__psynetHoldReleaseProbe = probe;
+  window.addEventListener("timelineHoldWakeReceived", (event) => {
+    if (probe.wakeReceivedAtMs == null) {
+      probe.wakeReceivedAtMs = Date.now();
+      probe.wakeReason = event.detail?.reason || null;
+    }
+  });
+  window.addEventListener("timelineHoldEnded", () => {
+    if (probe.holdEndedAtMs == null) {
+      probe.holdEndedAtMs = Date.now();
+    }
+  });
+}
+
+async function installTimelineHoldReleaseProbeOnContext(context) {
+  // Install before navigation so a later full-page resume cannot drop the probe.
+  await context.addInitScript(timelineHoldReleaseProbeScript);
+}
+
 async function installTimelineHoldReleaseProbe(page) {
   // Record the first hold-wake and hold-ended browser events. These are
   // hold-controller signals, not a live eventLog poll.
-  await page.evaluate(() => {
-    if (window.__psynetHoldReleaseProbe) {
-      return;
+  await page.evaluate(timelineHoldReleaseProbeScript);
+}
+
+function startTimelineHoldSocketTracker(page) {
+  const frames = [];
+  const onWebSocket = (ws) => {
+    ws.on("framereceived", (event) => {
+      const payload = String(event.payload || "");
+      if (
+        payload.includes("timeline_hold_wake") ||
+        payload.includes("wake_token")
+      ) {
+        frames.push(payload);
+      }
+    });
+  };
+  page.on("websocket", onWebSocket);
+  return {
+    frames,
+    stop() {
+      page.off("websocket", onWebSocket);
     }
-    const probe = {
-      wakeReceivedAtMs: null,
-      holdEndedAtMs: null,
-      wakeReason: null
-    };
-    window.__psynetHoldReleaseProbe = probe;
-    window.addEventListener("timelineHoldWakeReceived", (event) => {
-      if (probe.wakeReceivedAtMs == null) {
-        probe.wakeReceivedAtMs = Date.now();
-        probe.wakeReason = event.detail?.reason || null;
-      }
-    });
-    window.addEventListener("timelineHoldEnded", () => {
-      if (probe.holdEndedAtMs == null) {
-        probe.holdEndedAtMs = Date.now();
-      }
-    });
-  });
+  };
 }
 
 async function readTimelineHoldReleaseProbe(page) {
@@ -1233,6 +1262,8 @@ module.exports = {
   captureFirstTimelineAfterGateway,
   enterTimelineAfterGateway,
   installTimelineHoldReleaseProbe,
+  installTimelineHoldReleaseProbeOnContext,
+  startTimelineHoldSocketTracker,
   readTimelineHoldReleaseProbe,
   waitForHeldParticipantToResume,
   clickConsentButton,
