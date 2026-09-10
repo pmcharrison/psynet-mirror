@@ -5698,6 +5698,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 # still holds its waiters. Return this request's already-prepared
                 # hold page instead of waiting to relock one of those participants.
                 return experiment._participant_request_query().get(participant_id)
+            # ``SET LOCAL lock_timeout`` expires at the check commit.
+            _set_transaction_lock_timeout(
+                get_config().get("timeline_lock_timeout_seconds")
+            )
             participant = (
                 experiment._participant_request_query()
                 .with_for_update(of=Participant)
