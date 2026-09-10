@@ -55,7 +55,18 @@ fold these checks into `psynet test local`.
 
 Wait for the effect the last action was supposed to produce: a durable prompt,
 a control becoming enabled, or a URL change. Do not assert countdown text or
-short-lived status labels.
+short-lived status labels. When the contract is first paint — for example the
+last group member skipping a partner wait — assert the first `GET /timeline`
+HTML. An eventual prompt can arrive from the poller after a hold was already
+shown:
+
+```js
+const firstPaint = readTimelinePageFromHtml(
+  await captureFirstTimelineAfterGateway(page)
+);
+expect(firstPaint.type).toBe("ModularPage");
+expect(firstPaint.showsHold).toBe(false);
+```
 
 Gateway, consent, and timeline pages have different DOM. Do not assume
 `#main-body` exists on the ad page. If the timeline is known in advance, encode

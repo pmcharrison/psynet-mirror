@@ -173,6 +173,10 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
     - For `VideoPrompt`, verify `video#prompt` playback behavior.
     - Align assertions with how that step is implemented in experiment/template code.
 
+13. **Assert first timeline paint for last-arriver skip**:
+    - When the last group member must never see a wait, inspect the first `GET /timeline` HTML (`captureFirstTimelineAfterGateway` / `#psynet-template-data` page type and hold marker).
+    - Do not treat an eventual action prompt as proof; the poller can hide a first-paint hold.
+
 ## Automatic code review
 
 Before finalizing a merge request, prompt the user to run an automatic code

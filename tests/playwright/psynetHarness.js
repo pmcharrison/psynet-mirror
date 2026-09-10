@@ -860,6 +860,42 @@ async function completeInitialGateway(page, timeout = 120000) {
   await gatewayButton.click();
 }
 
+function isFirstTimelineDocumentResponse(response) {
+  let url;
+  try {
+    url = new URL(response.url());
+  } catch {
+    return false;
+  }
+  return (
+    response.request().method() === "GET" &&
+    url.pathname === "/timeline" &&
+    response.ok()
+  );
+}
+
+async function captureFirstTimelineAfterGateway(page, timeout = 120000) {
+  const responsePromise = page.waitForResponse(isFirstTimelineDocumentResponse, {
+    timeout
+  });
+  await completeInitialGateway(page, timeout);
+  return (await responsePromise).text();
+}
+
+function readTimelinePageFromHtml(html) {
+  const match = html.match(
+    /<script id="psynet-template-data" type="application\/json">\s*([\s\S]*?)\s*<\/script>/
+  );
+  if (!match) {
+    throw new Error("Timeline HTML is missing #psynet-template-data.");
+  }
+  const payload = JSON.parse(match[1]);
+  return {
+    type: payload?.page?.attributes?.type ?? null,
+    showsHold: html.includes('id="psynet-timeline-hold-indicator"')
+  };
+}
+
 async function clickConsentButton(page, timeout = 120000) {
   const consentButton = page.locator("#consent");
   await expect(consentButton).toBeVisible({ timeout });
@@ -991,6 +1027,7 @@ module.exports = {
   advanceUntilPromptContains,
   assertNoBackendError,
   beginExperiment,
+  captureFirstTimelineAfterGateway,
   clickConsentButton,
   clickFinish,
   clickNextAndWait,
@@ -1011,6 +1048,7 @@ module.exports = {
   waitForAudioRecordingReady,
   waitForVideoRecordingReady,
   waitForTimelinePageReady,
+  readTimelinePageFromHtml,
   withExperiment,
   withFreshParticipantIds,
   waitForNextEnabled,

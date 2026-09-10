@@ -97,6 +97,8 @@ test("default barriers hold the current page until websocket release", { tag: "@
       withFreshParticipantIds(recruitmentUrl, "barrier_hold_second")
     );
 
+    // Both participants enter together, so this spec does not cover a
+    // last-arriver first paint. See stacked_entry_holds.spec.js.
     await Promise.all([
       completeInitialGateway(firstParticipant),
       completeInitialGateway(secondParticipant)
