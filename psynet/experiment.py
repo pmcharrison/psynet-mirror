@@ -3354,34 +3354,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 raise
             if Experiment._is_transient_transaction_error(err):
                 raise
-            if not isinstance(err, self.HandledError):
-                handled = self.handle_error(
-                    err,
-                    participant=participant,
-                    trial=participant.current_trial,
-                    node=(
-                        participant.current_trial.node
-                        if participant.current_trial
-                        else None
-                    ),
-                    network=(
-                        participant.current_trial.network
-                        if participant.current_trial
-                        else None
-                    ),
-                )
-            else:
-                handled = err
-            # handle_error rolls back, so recovery must be prepared afterwards
-            # in this same request. The client still receives JSON and navigates
-            # to /timeline?unique_id=... to render the stored plan.
-            self._prepare_tracked_fatal_recovery(handled, err)
             return ResponseResult(
                 payload={},
-                flask_response=error_response(
-                    error_text="There was an error processing this response.",
-                    status=500,
-                    simple=True,
+                flask_response=Experiment._record_fatal_response_error(
+                    self, err, participant
                 ),
             )
 
@@ -5853,23 +5829,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls._handle_response_fatal_error(experiment, participant_id, error)
 
     @classmethod
-    def _handle_response_fatal_error(cls, experiment, participant_id, error):
-        participant = Participant.query.get(participant_id)
+    def _record_fatal_response_error(cls, experiment, error, participant):
+        """Prepare tracked recovery and return the /response error payload.
+
+        ``handle_error`` rolls back, so recovery must be prepared afterwards
+        in this same request. The client still receives JSON and navigates
+        to ``/timeline?unique_id=...`` to render the stored plan.
+        """
         if isinstance(error, experiment.HandledError):
             handled = error
         else:
             handled = experiment.handle_error(
                 error,
                 participant=participant,
-                trial=participant.current_trial,
+                trial=getattr(participant, "current_trial", None),
                 node=(
                     participant.current_trial.node
-                    if participant.current_trial
+                    if getattr(participant, "current_trial", None)
                     else None
                 ),
                 network=(
                     participant.current_trial.network
-                    if participant.current_trial
+                    if getattr(participant, "current_trial", None)
                     else None
                 ),
             )
@@ -5879,6 +5860,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             status=500,
             simple=True,
         )
+
+    @classmethod
+    def _handle_response_fatal_error(cls, experiment, participant_id, error):
+        participant = Participant.query.get(participant_id)
+        return cls._record_fatal_response_error(experiment, error, participant)
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod

@@ -572,6 +572,7 @@ def test_fatal_response_failure_returns_json_and_prepares_tracked_recovery():
         patch(
             "psynet.experiment.error_response", return_value="json error"
         ) as error_response,
+        patch.object(Experiment, "_prepare_tracked_fatal_recovery") as prepare_recovery,
     ):
         result = Experiment.process_response(
             experiment,
@@ -590,10 +591,28 @@ def test_fatal_response_failure_returns_json_and_prepares_tracked_recovery():
         simple=True,
     )
     experiment.handle_error.assert_called_once()
-    experiment._prepare_tracked_fatal_recovery.assert_called_once_with(
+    prepare_recovery.assert_called_once_with(
         handled,
         event.process_response.side_effect,
     )
+
+
+def test_fatal_response_helpers_share_one_recorder():
+    experiment = MagicMock()
+    participant = SimpleNamespace(id=7, current_trial=None)
+    error = ValueError("boom")
+
+    with (
+        patch("psynet.experiment.Participant") as participant_cls,
+        patch.object(
+            Experiment, "_record_fatal_response_error", return_value="shared"
+        ) as record,
+    ):
+        participant_cls.query.get.return_value = participant
+        result = Experiment._handle_response_fatal_error(experiment, 7, error)
+
+    assert result == "shared"
+    record.assert_called_once_with(experiment, error, participant)
 
 
 @pytest.mark.parametrize("method", ["GET", "POST"])
