@@ -144,7 +144,7 @@ def bot_class(headless=None):
 
     class PYTEST_BOT_CLASS(BotBase):
         def sign_up(self):
-            """Accept HIT, give consent and start experiment.
+            """Accept the assignment, give consent, and start the experiment.
 
             This uses Selenium to click through buttons on the ad,
             consent, and instruction pages.
@@ -308,7 +308,26 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
     )
 
     old_uuid = get_uuid()
-    find_button().click()
+    button = find_button()
+    # In-flow footers sit after the page content. Scrolling to the document
+    # bottom can cover the target with the footer; bring the control itself
+    # into view instead.
+    driver.execute_script(
+        """
+        const el = arguments[0];
+        el.scrollIntoView({block: 'center', inline: 'nearest'});
+        const y = el.getBoundingClientRect().top + window.pageYOffset
+            - (window.innerHeight / 2);
+        window.scrollTo(0, Math.max(0, y));
+        document.documentElement.scrollTop = Math.max(0, y);
+        document.body.scrollTop = Math.max(0, y);
+        """,
+        button,
+    )
+    try:
+        button.click()
+    except ElementClickInterceptedException:
+        driver.execute_script("arguments[0].click();", button)
     if finished:
         wait_until(
             lambda: "recruiter-exit" in driver.current_url,
@@ -316,7 +335,7 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             error_message="Never reached the recruiter-exit route, seems like the experiment never finished.",
         )
     else:
-        if driver.current_url == "http://localhost:5000/error-page":
+        if parse.urlparse(driver.current_url).path == "/error-page":
             raise RuntimeError(
                 "Unexpectedly hit an error page, check the server logs for details."
             )

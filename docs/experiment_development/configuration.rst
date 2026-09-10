@@ -48,7 +48,7 @@ global variables above. For example:
 .. code-block:: text
 
     [Custom settings]
-    show_abort_button = true
+    show_early_exit_button = true
     base_payment = 1.2
     currency = €
 
@@ -59,7 +59,7 @@ Secondly, they can also be set by creating a config dictionary in the ``Experime
     class Exp(Experiment):
         config = {
             "wage_per_hour": 12.0,
-            "show_abort_button": True,
+            "show_early_exit_button": True,
         }
 
 Do not set the same key in both places. If a variable appears in both
@@ -240,19 +240,143 @@ General
 
     Accessing routes included in this list will raise a ``PermissionError`` and no data will be returned.
 
-``show_abort_button`` *bool* |psynet-icon|
-    If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
-    e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-    assures the participant is compensated on the basis of the amount of reward that has been accumulated.
-    Default ``False``.
+``show_early_exit_button`` *bool* |psynet-icon|
+    If ``True``, participants may request to leave early. The timeline footer
+    then includes **Leave** (a page may
+    still hide it with ``show_early_exit_button=False``). **Leave** opens an in-page
+    confirmation, so choosing **Cancel** preserves the current page and
+    response state. When an error makes continuation impossible, PsyNet
+    follows the recruiter's tracked recovery policy. Generic, local, and lab
+    recruitment has nothing to ask, so PsyNet commits the plan on the server
+    and still tells the participant that an error occurred, without a Finish
+    or Submit control. Prolific and Lucid
+    keep a recovery page with the platform action they need. The ad page does
+    not provide an exit control.
+    Confirming a paid leave marks the participant failed, so Prolific uses the
+    unsuccessful/partial-payment route; Lucid terminates the panel session.
+    **Leave** is never offered once the participant is finishing (the
+    end-of-experiment pages, the release pages, or a participant who has
+    already left), because leaving there could only reduce their payment.
+    Default: ``False``.
+
+    ``Page(show_abort_button=...)`` and ``Page(show_termination_button=...)`` are
+    deprecated aliases for the per-page override; use
+    ``show_early_exit_button=...`` on the page instead.
+
+    Confirmation copy is outcome-based: it states whether the participant will
+    be paid, with concrete amounts where PsyNet can compute them. Paid
+    recruiters gate *paid* leave on ``min_reward_for_paid_early_exit``. Below
+    that threshold, Leave still opens a confirmation that offers
+    **Leave without payment** (responses saved, no PsyNet payment, and
+    platform-specific return instructions). Automatic error recovery ignores
+    the voluntary payment threshold and uses the recruiter's configured error
+    outcome. Lucid always permits termination and never talks about PsyNet
+    payment.
+
+    PsyNet represents every terminal outcome with an
+    :class:`~psynet.exit.ExitPlan`: successful completion, unsuccessful
+    completion, rejected consent, voluntary Leave, and fatal-error recovery.
+    The plan records the outcome, recruiter path, and
+    :class:`~psynet.exit.PaymentDecision` that will be used when payment is
+    processed. Its :class:`~psynet.exit.PaymentState` distinguishes a complete
+    decision, a decision deferred after an error, and recruiters for which
+    PsyNet payment is not applicable. It is stored on
+    :attr:`~psynet.participant.Participant.exit_plan`, giving recruiter handoff
+    and later payment settlement one source of truth.
+    Spend caps are still applied immediately before transfer.
+
+    Voluntary Leave prepares one stable plan when the participant enters a page
+    and commits it only after the participant confirms. Rendering the page does
+    not change the offer, and refreshing restores the same plan. Successful and
+    unsuccessful timeline endings commit their plans as they enter their
+    existing end branches. After a fatal error, PsyNet stores one recovery plan
+    during the failing request. Recruiters with nothing to ask (generic,
+    HotAir, and lab) commit that plan on the server, finalize the worker
+    session, and still show that an error occurred, with no extra click.
+    Recruiter exit is reserved for finished and voluntary-leave sessions.
+    Prolific and Lucid still show a recovery
+    page and commit when the participant continues (or Lucid's redirect timer
+    fires). If that recovery page is refreshed before the plan commits, PsyNet
+    restores the same presentation so an unfinished platform handoff can
+    resume.
+
+    Experiments can customize voluntary Leave copy by overriding
+    :meth:`~psynet.experiment.Experiment.plan_exit` and replacing the
+    confirmation while preserving the planned path::
+
+        from dataclasses import replace
+        from psynet.exit import ExitContext
+
+        class Exp(Experiment):
+            def plan_exit(self, participant, context):
+                plan = super().plan_exit(participant, context)
+                if context is ExitContext.VOLUNTARY:
+                    plan = replace(
+                        plan,
+                        confirmation=replace(
+                            plan.confirmation,
+                            message="Your responses so far will still be saved.",
+                        ),
+                    )
+                return plan
+
+    The same hook receives ``ExitContext.ERROR_RECOVERY`` for fatal errors; the
+    recruiter does not apply the voluntary paid-exit threshold in that context.
+    If the detailed reward calculation itself fails, Prolific records a
+    deferred payment decision, uses recovery copy without a reward quote, and
+    calculates the unquoted remainder when payment is processed.
+
+    Recruiters provide both tracked and untracked error-page content through
+    :meth:`~psynet.recruiters.PsyNetRecruiterMixin.error_page_presentation`.
+    The hook receives an optional participant and plan and always returns an
+    :class:`~psynet.exit.ErrorRecoveryPresentation`, which declares the
+    copy and any POST, button, or redirect required by the platform. Whether
+    tracked fatal recovery *shows* that page is a separate recruiter policy,
+    :meth:`~psynet.recruiters.PsyNetRecruiterMixin.shows_error_recovery_page`,
+    not an inference from a missing button. The mixin default is to skip that
+    page; a custom recruiter that presents recovery UI must override the
+    policy. Override
+    ``error_page_presentation`` on a custom recruiter to customize error pages;
+    ``Experiment.error_page_content`` and recruiter ``error_page_content``
+    overrides are no longer supported. A tracked participant is never treated
+    as an unidentified session: if they already left through a voluntary plan,
+    that plan's presentation is reused; if they have no plan, the recruiter
+    still addresses them     as a known participant. Fatal errors record the
+    exception type on ``failure_tags`` and fail the session with
+    ``error_recovery`` when a recovery plan is stored. Error-page Submit,
+    Continue, and auto-redirect are armed only while that recovery plan is
+    still prepared; a reused committed plan keeps its explanation copy without
+    those controls.
+
+    Once a participant has been created, PsyNet stores fatal recovery during
+    the failing request. Recruiters that present recovery UI render it from
+    ``/timeline?unique_id=<unique-id>``; generic recovery is already committed
+    by then, so ``/timeline`` finalizes the session and still renders the error
+    page.
+    Reloading therefore re-reads the stored plan instead of running it again.
+    ``/error-page`` is reserved for untracked errors and never treats an
+    enumerable participant ID as session authority. Errors encountered while
+    creating the participant still use Dallinger's error response so that
+    specific refusal explanations remain available.
+
+    Experiments may also override
+    :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when
+    paid leave is available.
 
 ``show_reward`` *bool* |psynet-icon|
-    If ``True`` (default), then the participant's current estimated reward is displayed
-    at the bottom of the page.
+    If ``True``, then the participant's current estimated reward is displayed
+    at the bottom of the page, and the end-of-experiment page reports it.
+    If left unset, the recruiter decides: Prolific and the lab recruiters show
+    the reward, while generic and local recruitment does not, because PsyNet
+    cannot pay anyone in those cases. Lucid recruitment forbids showing rewards.
 
 ``show_footer`` *bool* |psynet-icon|
-    If ``True`` (default), then a footer is displayed at the bottom of the page containing a `Help` button
-    and reward information if ``show_reward`` is set to ``True``.
+    If ``True`` (default), then a footer may be displayed at the bottom of the
+    page. It holds reward information if ``show_reward`` resolves to ``True``, a
+    `Comment` button if ``leave_comments_on_every_page`` is set, and **Leave** if
+    ``show_early_exit_button`` is set or the recruiter requires one (Lucid). The
+    footer is omitted when none of these apply, so that an empty bar does not
+    take up space.
 
 ``show_progress_bar`` *bool* |psynet-icon|
     If ``True`` (default), then a progress bar is displayed at the top of the page.
@@ -279,7 +403,7 @@ Payment
 
 ``base_payment`` *float* |dlgr-icon|
     Base payment in the currency set via the ``currency`` config variable.
-    All workers who accept the HIT are guaranteed this much compensation.
+    Successful participants receive this much compensation from the recruiter.
 
 ``big_base_payment`` *bool* |psynet-icon|
     Set this to ``True`` if you REALLY want to set ``base_payment`` to a value > 20.
@@ -298,8 +422,12 @@ Payment
 ``max_participant_payment`` *float* |psynet-icon|
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.
 
-``min_accumulated_reward_for_abort`` *float* |psynet-icon|
-    The threshold of reward accumulated, in the currency set via the ``currency`` config variable, for the participant to be able to receive compensation when aborting an experiment using the `Abort experiment` button. Default: ``0.20``.
+``min_reward_for_paid_early_exit`` *float* |psynet-icon|
+    The minimum accumulated reward, in the currency set via the ``currency``
+    config variable, required before a paid recruiter offers *paid* footer **Leave**.
+    Below this threshold, **Leave** still opens a confirmation that offers leaving
+    without payment. Lucid termination is not gated by this value.
+    Default: ``0.20``.
 
 ``soft_max_experiment_payment`` *float* |psynet-icon|
     The recruiting process stops if ``amount_spent()`` (recorded
@@ -321,10 +449,8 @@ General
     A boolean on whether recruitment should be automatic.
 
 ``description`` *str* |dlgr-icon|
-    Depending on the recruiter being used, either
-
-    * The description of the HIT (Amazon Mechanical Turk), or
-    * the description of the Study (Prolific).
+    A description of the study used in deployment metadata. The default Lab
+    ad page does not render this value.
 
 ``initial_recruitment_size`` *int* |dlgr-icon|
     The number of participants initially to be recruited. This value is used during the
@@ -333,41 +459,32 @@ General
 ``recruiter`` *str* |dlgr-icon|
     The recruiter class to use during the experiment run. While this can be a
     full class name, it is more common to use the class's ``nickname`` property
-    for this value; for example ``mturk``, ``prolific``, ``cli``, ``bots``,
-    or ``multi``.
+    for this value; for example ``prolific``, ``generic``, ``hotair``, or
+    ``lucid-recruiter``. PsyNet does not support Dallinger's ``mturk``, ``bots``,
+    or ``multi`` recruiters.
 
     .. note::
 
         When running in debug mode, the HotAir recruiter (``hotair``) will
-        always be used. The exception is if the ``--bots`` option is passed to
-        ``psynet debug``, in which case the BotRecruiter will be used instead.
+        always be used. PsyNet's testing commands may use Dallinger's
+        BotRecruiter internally; this does not make ``recruiter = bots`` a
+        supported deployment configuration.
 
 ``recruiters`` *str* |dlgr-icon|
-    When using multiple recruiters in a single experiment run via the ``multi``
-    setting for the ``recruiter`` config key, ``recruiters`` allows you to
-    specify which recruiters you'd like to use, and how many participants to
-    recruit from each. The special syntax for this value is:
-
-    ``recruiters = [nickname 1]: [recruits], [nickname 2]: [recruits], etc.``
-
-    For example, to recruit 5 human participants via MTurk, and 5 bot participants,
-    the configuration would be:
-
-    ``recruiters = mturk: 5, bots: 5``
+    A Dallinger configuration key for the ``multi`` recruiter. PsyNet does not
+    support multi-recruiter deployments; deploy separate experiment instances
+    for each recruitment platform instead.
 
 ``title`` *str* |dlgr-icon|
-    Depending on the recruiter being used, either
-
-    * The title of the HIT (Amazon Mechanical Turk), or
-    * the title of the Study (Prolific).
+    The participant-facing title of the study.
 
 Allowed browsers and devices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``allow_mobile_devices`` *bool* |psynet-icon|
-    Allows the user to use mobile devices. If it is set to false it will tell the user to open the experiment on
-    their computer.
-    Default: ``False``.
+    Allows participants to take the experiment on a phone or tablet. If
+    ``False``, they are asked to switch to a computer.
+    Default: ``True``.
 
 ``force_google_chrome`` *bool* |psynet-icon|
     Forces the user to use the Google Chrome browser. If another browser is used, it will give detailed instructions on how to install Google Chrome.
@@ -391,7 +508,13 @@ Allowed browsers and devices
     Default: ``False``.
 
 ``min_browser_version`` *str* |psynet-icon|
-    The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: ``80.0``.
+    The minimum version of Chrome a participant needs to take a study.
+    Default: ``105.0``.
+
+    Chrome 105 (August 2022) is the first release supporting CSS ``:has()``, which the
+    default participant theme uses to style selected response options. Lowering this
+    value is supported, but participants on older browsers will not see selected
+    options highlighted.
 
 Recruiters
 ~~~~~~~~~~
@@ -403,22 +526,11 @@ General
     Whether the experiment should be published when deploying. It is currently used in Prolific and Lucid recruitment: In the case of Prolific recruitment, if ``False`` a draft study will be created which later can be published via the Prolific web UI; in the case of Lucid recruitment, if ``False`` an awarded survey will be created which later can be published (set 'live') via the Lucid web UI. Default is ``True``.
     Default: ``True``.
 
-Amazon Mechanical Turk
+General infrastructure
 ----------------------
 
-``approve_requirement`` *int* |dlgr-icon|
-    The percentage of past MTurk HITs that must have been approved for a worker
-    to qualify to participate in your experiment. 1-100.
-
-``assign_qualifications`` *bool* |dlgr-icon|
-    A boolean which controls whether an experiment-specific qualification
-    (based on the experiment ID), and a group qualification (based on the value
-    of ``group_name``) will be assigned to participants by the recruiter.
-    This feature assumes a recruiter which supports qualifications,
-    like the ``MTurkRecruiter``.
-
 ``aws_access_key_id`` *str* |dlgr-icon| |sensitive-icon|
-    AWS access key ID.
+    AWS access key ID used for services such as EC2 and S3.
 
 ``aws_region`` *str* |dlgr-icon|
     AWS region to use. Default: ``us-east-1``.
@@ -437,30 +549,11 @@ Amazon Mechanical Turk
     * ``bot``
 
 ``disable_when_duration_exceeded`` *bool* |dlgr-icon|
-    Whether to disable recruiting and expire the HIT when the duration has been
-    exceeded. This only has an effect when ``clock_on`` is enabled.
+    Whether to disable recruiting when the duration has been exceeded. PsyNet
+    requires this setting to be ``False``.
 
 ``duration`` *float* |dlgr-icon|
-    How long in hours participants have until the HIT will time out.
-
-``group_name`` *str* |dlgr-icon|
-    Assign a named qualification to workers who complete a HIT.
-
-``keywords`` *str* |dlgr-icon|
-    A comma-separated list of keywords to use on Amazon Mechanical Turk.
-
-``lifetime`` *int* |dlgr-icon|
-    How long in hours that your HIT remains visible to workers.
-
-``mturk_qualification_blocklist`` *str* |dlgr-icon|
-    Comma-separated list of qualification names. Workers with qualifications in
-    this list will be prevented from viewing and accepting the HIT.
-
-``mturk_qualification_requirements`` *str* |dlgr-icon|
-    A JSON list of qualification documents to pass to Amazon Mechanical Turk.
-
-``us_only`` *bool* |dlgr-icon|
-    Controls whether this HIT is available only to MTurk workers in the U.S.
+    Maximum experiment duration in hours.
 
 Lab Recruiter
 -------------
@@ -579,8 +672,13 @@ completion code (of type ``UNSUCCESSFUL``) with a fixed screen-out payment actio
 researcher-actor: when the participant clicks Submit, PsyNet completes the submission on Prolific
 on their behalf. Participants do not enter a completion code. Prolific automatically pays them
 this fixed amount; PsyNet additionally pays a bonus topping them up to their accumulated reward
-(see ``prolific_unsuccessful_topup``). Participants who hit an error page are offered a button
-that submits locally the same way. Successful participants are completed with a researcher-actor
+(see ``prolific_unsuccessful_topup``). For participants who hit an error page, PsyNet finalizes
+the recovery plan automatically and then explains the payment outcome. **Submit to Prolific**
+sends the submission with the same completion code. Participants then see a confirmation
+page that the submission has been sent to Prolific, and do not enter a completion code.
+Successful participants click **Finish**, then **Submit to Prolific**; after Submit, recruiter-exit
+reloads that same confirmation rather than leaving the submit heading on a done page.
+Successful participants are completed with a researcher-actor
 copy of the DEFAULT auto-approve code. Because this feature spends money automatically, Prolific
 deployments must set ``prolific_screen_out_slots`` explicitly (see below); deployment fails with
 an explanatory error otherwise.
@@ -944,8 +1042,9 @@ Config variables not to be set manually
     this payment limit being reached.
 
 ``mode`` *str* |dlgr-icon|
-    The value for ``mode`` is determined by the invoking command-line command and will either be set to ``debug``
-    (local debugging) ``sandbox`` (MTurk sandbox), or ``live`` (MTurk).
+    The value for ``mode`` is determined by the invoking command-line command
+    and is set to ``debug`` for local development, ``sandbox`` for a remote
+    test deployment, or ``live`` for a production deployment.
 
 ``psynet_version`` *str* |psynet-icon|
     The version of the `psynet` package.

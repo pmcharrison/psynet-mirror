@@ -6,7 +6,9 @@ description: Migrates an existing PsyNet experiment through PsyNet 14 breaking c
 # Upgrade to PsyNet 14
 
 Use this skill when an experiment needs to move onto PsyNet 14, or when PsyNet
-raises an in-place timeline / page JavaScript contract error.
+raises an in-place timeline / page JavaScript contract error, a recruiter
+migration error (``mturk``, ``bots``, ``multi``, ``error_page_content``,
+``ad_requirements``), or an ``early_exit`` rename warning.
 
 **Do not use this skill for greenfield custom pages.** Point new authors at the
 custom-frontends tutorial instead (published URL below).

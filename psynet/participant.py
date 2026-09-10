@@ -37,7 +37,7 @@ from psynet.timeline import Page
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject
+from .field import PythonDict, PythonList, PythonObject
 from .utils import (
     NoArgumentProvided,
     call_function_with_context,
@@ -220,7 +220,6 @@ if TYPE_CHECKING:
 
 # pylint: disable=unused-import
 
-UniqueConstraint(dallinger.models.Participant.worker_id)
 UniqueConstraint(dallinger.models.Participant.unique_id)
 
 
@@ -289,10 +288,13 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         once they hit a :class:`~psynet.timeline.SuccessfulEndPage`.
         Should not be modified directly.
 
-    aborted : bool
-        Whether the participant has aborted the experiment.
-        A participant is considered to have aborted the experiment
-        once they have hit the "Abort experiment" button on the "Abort experiment" confirmation page.
+    early_exited : bool
+        Whether the participant's session ended through an early-exit plan,
+        either after they confirmed Leave or during automatic error recovery.
+
+    exit_plan : dict or None
+        The server-owned :class:`~psynet.exit.ExitPlan` snapshot for this
+        participant's terminal outcome.
 
     answer : object
         The most recent answer submitted by the participant.
@@ -365,7 +367,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     page_uuid = Column(String)
     page_count = Column(Integer)
-    aborted = Column(Boolean)
+    early_exited = Column(Boolean)
+    exit_plan = Column(PythonDict)
     complete = Column(Boolean)
     pending_redirect = Column(String)
     answer = Column(PythonObject)
@@ -616,11 +619,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
 
     @property
-    def aborted_modules(self):
+    def early_exited_modules(self):
         return [
             log.module_id
             for log in sorted(self._module_states, key=lambda x: x.time_started)
-            if log.aborted
+            if log.early_exited
         ]
 
     @property
@@ -706,7 +709,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.page_count = 0
-        self.aborted = False
+        self.early_exited = False
+        self.exit_plan = None
         self.complete = False
         self.vars = {}
         self.time_credit = 0.0
@@ -952,21 +956,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.failure_tags = combined
         return self
 
-    def abort_info(self):
-        """
-            Information that will be shown to a participant if they click the abort button,
-            e.g. in the case of an error where the participant is unable to finish the experiment.
-
-        :returns: ``dict`` which may be rendered to the worker as an HTML table
-            when they abort the experiment.
-        """
-        return {
-            "assignment_id": self.assignment_id,
-            "hit_id": self.hit_id,
-            "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
-        }
-
-    def fail(self, reason=None):
+    def fail(self, reason=None, *, redirect_to_end=True):
         """
         Mark this participant as failed.
 
@@ -986,6 +976,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ----------
         reason : str, optional
             Failure tag to append, for example ``"premature_exit"``.
+        redirect_to_end : bool, optional
+            Whether to enter the unsuccessful-end timeline branch. Error
+            recovery sets this to ``False`` because its exit plan owns the
+            terminal handoff.
         """
         if self.failed:
             logger.info("Participant %i already failed, not failing again.", self.id)
@@ -1025,7 +1019,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         for group in list(self.active_sync_groups.values()):
             group.remove_participant(self)
 
-        self._redirect_to_unsuccessful_end(exp)
+        if redirect_to_end:
+            self._redirect_to_unsuccessful_end(exp)
 
     def _fail_incomplete_trials(self, reason):
         """Fail this participant's unfinished trials.
@@ -1418,10 +1413,10 @@ class ParticipantDriver:
             participant = Participant.query.get(self.id)
             return participant.get_current_page()
 
-    def fail(self, reason=None):
+    def fail(self, reason=None, *, redirect_to_end=True):
         with transaction(commit=True):
             participant = Participant.query.get(self.id)
-            participant.fail(reason)
+            participant.fail(reason, redirect_to_end=redirect_to_end)
 
     def from_db(self, attr: str):
         with transaction(commit=False):

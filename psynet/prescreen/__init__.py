@@ -1181,6 +1181,9 @@ class AttentionTest(Module):
                 ),
                 time_estimate=time_estimate_per_trial,
                 bot_response=lambda: None,
+                # The explanation plus eight response options is taller than a
+                # laptop window.
+                expect_scrolling=True,
             ),
             conditional(
                 "exclude_check_1",

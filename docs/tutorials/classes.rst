@@ -176,15 +176,15 @@ looks like:
     {% extends "timeline-page.html" %}
 
     {% block main_body %}
-        That's the end of the experiment!
-        {% if config.show_reward %}
+        That's the end!
+        {% if experiment.show_reward %}
             {% include "final-page-rewards.html" %}
         {% endif %}
         Thank you for taking part.
 
         <p class="vspace"></p>
         <p>
-            Please click "Finish" to finalize the session.
+            Click Finish to finalize the session.
         </p>
         <p class="vspace"></p>
 
