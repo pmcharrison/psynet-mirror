@@ -807,6 +807,7 @@ def test_last_group_arrival_releases_without_poller(
     exp = get_experiment()
     participants, group = _pair_sync_group(exp, db_session)
     first, last = participants
+    group_id = group.id
     _group_release_calls.clear()
     barrier = GroupBarrier(
         id_="last_arrival",
@@ -823,26 +824,28 @@ def test_last_group_arrival_releases_without_poller(
     )
 
     _arrive_at_group_barrier(exp, barrier, first)
+    first_wake = first.timeline_holds[0].wake_token
     db_session.commit()
     assert barrier.id in first.active_barriers
     assert not barrier.waiting_logic.participant_can_resume(exp, first)
     assert _group_release_calls == []
 
     _arrive_at_group_barrier(exp, barrier, last)
+    last_wake = last.timeline_holds[0].wake_token
     assert barrier.waiting_logic.participant_can_resume(exp, last)
     db_session.commit()
 
     assert barrier.id not in first.active_barriers
     assert barrier.id not in last.active_barriers
-    assert _group_release_calls == [group.id]
+    assert _group_release_calls == [group_id]
     assert barrier.waiting_logic.participant_can_resume(exp, last)
     wake_tokens = {
         target["wake_token"]
         for _, payload in publications
         for target in payload["targets"]
     }
-    assert first.timeline_holds[0].wake_token in wake_tokens
-    assert last.timeline_holds[0].wake_token in wake_tokens
+    assert first_wake in wake_tokens
+    assert last_wake in wake_tokens
     assert all(
         target["reason"] == "barrier_released"
         for _, payload in publications
@@ -850,7 +853,7 @@ def test_last_group_arrival_releases_without_poller(
     )
 
     check_barriers()
-    assert _group_release_calls == [group.id]
+    assert _group_release_calls == [group_id]
 
 
 @pytest.mark.parametrize(
