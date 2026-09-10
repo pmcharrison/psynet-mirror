@@ -857,7 +857,9 @@ async function completeInitialGateway(page, timeout = 120000) {
   const gatewayButton = page.locator("#consent");
   await expect(gatewayButton).toBeVisible({ timeout });
   await expect(gatewayButton).toBeEnabled({ timeout });
+  const consentClickedAtMs = Date.now();
   await gatewayButton.click();
+  return { consentClickedAtMs };
 }
 
 function isTimelineDocumentResponse(response) {
@@ -930,7 +932,8 @@ function startParticipantRequestTracker(page) {
         ...parsed,
         status: response.status(),
         durationMs: requestDurationMs(request, wallMs),
-        busy: response.status() === 503
+        busy: response.status() === 503,
+        startedAtMs: startedAt.get(request) || Date.now()
       });
     })();
     pending.push(task);
@@ -979,7 +982,6 @@ async function enterTimelineAfterGateway(page, timeout = 120000) {
   const timelineResponsePromise = page.waitForResponse(isTimelineDocumentResponse, {
     timeout
   });
-  const consentClickedAt = Date.now();
   let startSeenAt = null;
   page
     .locator("#starting-experiment")
@@ -988,10 +990,10 @@ async function enterTimelineAfterGateway(page, timeout = 120000) {
       startSeenAt = Date.now();
     })
     .catch(() => {});
-  await completeInitialGateway(page, timeout);
+  const { consentClickedAtMs } = await completeInitialGateway(page, timeout);
   const timelineResponse = await timelineResponsePromise;
   await timelineResponse.finished().catch(() => {});
-  const timelineAt = Date.now();
+  const timelineAtMs = Date.now();
   const html = await timelineResponse.text().catch(() => "");
   await tracker.flush();
   return {
@@ -1007,15 +1009,17 @@ async function enterTimelineAfterGateway(page, timeout = 120000) {
       status: timelineResponse.status(),
       durationMs: requestDurationMs(
         timelineResponse.request(),
-        timelineAt - consentClickedAt
+        timelineAtMs - consentClickedAtMs
       ),
       busy: timelineResponse.status() === 503,
       busyPage: html.includes("temporarily busy")
     },
     start: {
       sawStartPage: startSeenAt !== null,
-      dwellMs: startSeenAt !== null ? timelineAt - startSeenAt : 0,
-      consentToTimelineMs: timelineAt - consentClickedAt
+      dwellMs: startSeenAt !== null ? timelineAtMs - startSeenAt : 0,
+      consentToTimelineMs: timelineAtMs - consentClickedAtMs,
+      consentClickedAtMs,
+      timelineAtMs
     }
   };
 }
@@ -1024,6 +1028,61 @@ async function captureFirstTimelineAfterGateway(page, timeout = 120000) {
   const entry = await enterTimelineAfterGateway(page, timeout);
   entry.tracker.stop();
   return entry.html;
+}
+
+async function installTimelineHoldReleaseProbe(page) {
+  // Record the first hold-wake and hold-ended browser events. These are
+  // hold-controller signals, not a live eventLog poll.
+  await page.evaluate(() => {
+    if (window.__psynetHoldReleaseProbe) {
+      return;
+    }
+    const probe = {
+      wakeReceivedAtMs: null,
+      holdEndedAtMs: null,
+      wakeReason: null
+    };
+    window.__psynetHoldReleaseProbe = probe;
+    window.addEventListener("timelineHoldWakeReceived", (event) => {
+      if (probe.wakeReceivedAtMs == null) {
+        probe.wakeReceivedAtMs = Date.now();
+        probe.wakeReason = event.detail?.reason || null;
+      }
+    });
+    window.addEventListener("timelineHoldEnded", () => {
+      if (probe.holdEndedAtMs == null) {
+        probe.holdEndedAtMs = Date.now();
+      }
+    });
+  });
+}
+
+async function readTimelineHoldReleaseProbe(page) {
+  return page
+    .evaluate(() => window.__psynetHoldReleaseProbe || null)
+    .then((probe) => probe || {
+      wakeReceivedAtMs: null,
+      holdEndedAtMs: null,
+      wakeReason: null
+    })
+    .catch(() => ({
+      wakeReceivedAtMs: null,
+      holdEndedAtMs: null,
+      wakeReason: null
+    }));
+}
+
+async function waitForHeldParticipantToResume(
+  page,
+  { prompt, timeout = 120000 } = {}
+) {
+  if (!prompt) {
+    throw new Error("waitForHeldParticipantToResume requires a prompt.");
+  }
+  await expect(page.locator("#main-body")).toContainText(prompt, { timeout });
+  await expect(page.locator("#psynet-timeline-hold-indicator")).toHaveCount(0);
+  await expect(page.locator("body")).not.toHaveClass(/timeline-held/);
+  return { resumedAtMs: Date.now() };
 }
 
 function readTimelinePageFromHtml(html) {
@@ -1173,6 +1232,9 @@ module.exports = {
   beginExperiment,
   captureFirstTimelineAfterGateway,
   enterTimelineAfterGateway,
+  installTimelineHoldReleaseProbe,
+  readTimelineHoldReleaseProbe,
+  waitForHeldParticipantToResume,
   clickConsentButton,
   clickFinish,
   clickNextAndWait,

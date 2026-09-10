@@ -5,10 +5,13 @@ const {
   assertNoBackendError,
   beginExperiment,
   enterTimelineAfterGateway,
+  installTimelineHoldReleaseProbe,
+  readTimelineHoldReleaseProbe,
   startExperiment,
   stopExperiment,
   summarizeParticipantRequests,
   unexpectedBlockingRequests,
+  waitForHeldParticipantToResume,
   waitForTimelinePageReady,
   withFreshParticipantIds
 } = require("./psynetHarness");
@@ -18,12 +21,38 @@ const STEP_TIMEOUT_MS = 120000;
 const ENTRY_REQUEST_MAX_MS = 2500;
 const START_PAGE_MAX_MS = 6000;
 const BLOCKING_REQUEST_MS = 4000;
+// Below one late safety poll (2s + up to 1s jitter). A missed websocket wake
+// that waits for that poll should fail instead of looking like a successful
+// partner release.
+const PARTNER_HOLD_RELEASE_MAX_MS = 2500;
 
 function entryPathRequests(records) {
   return records.filter((record) =>
     ["create_participant", "load_participant", "timeline_document"].includes(
       record.kind
     )
+  );
+}
+
+function holdReleaseSummary({
+  afterConsentMs,
+  afterTimelineMs,
+  probe,
+  resumeRequests
+}) {
+  const wake = probe.wakeReason
+    ? `wake ${probe.wakeReason}`
+    : "no hold wake event";
+  return (
+    `release ${afterConsentMs}ms after last consent, ` +
+    `${afterTimelineMs}ms after last timeline (${wake}; ` +
+    `resume ${summarizeParticipantRequests(resumeRequests)})`
+  );
+}
+
+function responsesSince(records, startedAtMs) {
+  return records.filter(
+    (record) => record.kind === "response" && record.startedAtMs >= startedAtMs
   );
 }
 
@@ -59,7 +88,9 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
 }) => {
   // Enter one participant at a time. The last arriver's first GET /timeline
   // document must already be the action page; waiting for that prompt later
-  // can hide a hold that the poller then clears.
+  // can hide a hold that the poller then clears. The first arriver must leave
+  // their hold when that last timeline request finishes, not on a later
+  // safety poll.
   const experiment = startExperiment(
     path.resolve("demos/experiments/rock_paper_scissors")
   );
@@ -91,6 +122,11 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
     await expect(
       firstParticipant.locator(".psynet-timeline-hold-message")
     ).toContainText("Waiting for your partner");
+    await installTimelineHoldReleaseProbe(firstParticipant);
+    const firstResumePromise = waitForHeldParticipantToResume(firstParticipant, {
+      prompt: "Choose your action",
+      timeout: STEP_TIMEOUT_MS
+    });
 
     secondParticipant = await beginExperiment(
       await secondContext.newPage(),
@@ -127,15 +163,36 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
       secondParticipant.getByRole("button", { name: "rock" })
     ).toBeVisible();
 
-    await expect(firstParticipant.locator("#main-body")).toContainText(
-      "Choose your action",
-      { timeout: STEP_TIMEOUT_MS }
-    );
-    await expect(
-      firstParticipant.locator("#psynet-timeline-hold-indicator")
-    ).toHaveCount(0);
-
+    const firstResume = await firstResumePromise;
+    const afterConsentMs =
+      firstResume.resumedAtMs - secondEntry.start.consentClickedAtMs;
+    const afterTimelineMs =
+      firstResume.resumedAtMs - secondEntry.start.timelineAtMs;
+    const probe = await readTimelineHoldReleaseProbe(firstParticipant);
     await firstEntry.tracker.flush();
+    const resumeRequests = responsesSince(
+      firstEntry.tracker.records,
+      secondEntry.start.consentClickedAtMs
+    );
+    const releaseSummary = holdReleaseSummary({
+      afterConsentMs,
+      afterTimelineMs,
+      probe,
+      resumeRequests
+    });
+    expect(
+      afterTimelineMs,
+      `first arriver still held after last arriver painted (${releaseSummary})`
+    ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+    expect(
+      afterConsentMs,
+      `first arriver still held after last arriver started (${releaseSummary})`
+    ).toBeLessThan(START_PAGE_MAX_MS + PARTNER_HOLD_RELEASE_MAX_MS);
+    expect(
+      unexpectedBlockingRequests(resumeRequests, ENTRY_REQUEST_MAX_MS),
+      `first arriver hold-resume blocking: ${releaseSummary}`
+    ).toEqual([]);
+
     await secondEntry.tracker.flush();
     expect(
       unexpectedBlockingRequests(firstEntry.tracker.records, BLOCKING_REQUEST_MS),

@@ -69,6 +69,22 @@ expect(entry.timeline.durationMs).toBeLessThan(2500);
 expect(entry.start.consentToTimelineMs).toBeLessThan(6000);
 ```
 
+When a partner is already on a hold, start `waitForHeldParticipantToResume`
+before the last arriver consents. Assert the waiting partner reaches the next
+durable prompt soon after that last arriver's first timeline paint, not after
+another safety-poll cycle:
+
+```js
+await installTimelineHoldReleaseProbe(firstPage);
+const firstResumePromise = waitForHeldParticipantToResume(firstPage, {
+  prompt: "Choose your action",
+});
+const lastEntry = await enterTimelineAfterGateway(lastPage);
+const firstResume = await firstResumePromise;
+expect(firstResume.resumedAtMs - lastEntry.start.timelineAtMs).toBeLessThan(2500);
+expect(firstResume.resumedAtMs - lastEntry.start.consentClickedAtMs).toBeLessThan(8500);
+```
+
 Gateway, consent, and timeline pages have different DOM. Do not assume
 `#main-body` exists on the ad page. If the timeline is known in advance, encode
 that sequence; treat a mismatch as a failure rather than hunting for a Next
