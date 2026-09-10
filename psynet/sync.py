@@ -77,6 +77,7 @@ Callable attributes on barriers (e.g., ``on_release``) are serialized via
 
 import copy
 import hashlib
+import json
 import random
 import uuid
 from contextlib import contextmanager
@@ -1483,8 +1484,46 @@ class BarrierInstance(SQLBase, SQLMixin):
         group_id = cls._group_id(barrier, participant)
         registered_barrier = barrier.for_registry()
         behavior_hash = cls._behavior_hash(registered_barrier)
+        # region agent log
+        open("/opt/cursor/logs/debug.log", "a").write(
+            json.dumps(
+                {
+                    "hypothesisId": "A,B,C,D",
+                    "location": "psynet/sync.py:BarrierInstance.for_arrival",
+                    "message": "incoming barrier behavior",
+                    "data": {
+                        "barrier_id": barrier.id,
+                        "group_id": group_id,
+                        "behavior_hash": behavior_hash,
+                        "state": cls._debug_behavior_state(registered_barrier),
+                    },
+                    "timestamp": timenow().timestamp(),
+                }
+            )
+            + "\n"
+        )
+        # endregion
         instance = cls._active_instance(barrier.id, group_id)
         if instance is not None:
+            # region agent log
+            open("/opt/cursor/logs/debug.log", "a").write(
+                json.dumps(
+                    {
+                        "hypothesisId": "A,B,D",
+                        "location": "psynet/sync.py:BarrierInstance.for_arrival",
+                        "message": "active instance behavior",
+                        "data": {
+                            "barrier_id": barrier.id,
+                            "group_id": group_id,
+                            "stored_hash": instance.behavior_hash,
+                            "state": cls._debug_behavior_state(instance.barrier),
+                        },
+                        "timestamp": timenow().timestamp(),
+                    }
+                )
+                + "\n"
+            )
+            # endregion
             instance._validate_behavior(behavior_hash)
             return instance
 
@@ -1543,8 +1582,38 @@ class BarrierInstance(SQLBase, SQLMixin):
         serialized = PythonObject.serialize((barrier.__class__, state))
         return hashlib.sha256(serialized.encode()).hexdigest()
 
+    @staticmethod
+    def _debug_behavior_state(barrier):
+        """Serialize individual fields for temporary behavior-hash diagnostics."""
+        return {
+            key: {
+                "type": f"{type(value).__module__}.{type(value).__qualname__}",
+                "serialized": PythonObject.serialize(value),
+            }
+            for key, value in vars(barrier).items()
+        }
+
     def _validate_behavior(self, behavior_hash):
         """Reject incompatible reuse of one active waiting pool."""
+        # region agent log
+        open("/opt/cursor/logs/debug.log", "a").write(
+            json.dumps(
+                {
+                    "hypothesisId": "C",
+                    "location": "psynet/sync.py:BarrierInstance._validate_behavior",
+                    "message": "compare behavior hashes",
+                    "data": {
+                        "barrier_id": self.barrier_id,
+                        "stored_hash": self.behavior_hash,
+                        "incoming_hash": behavior_hash,
+                        "matches": self.behavior_hash == behavior_hash,
+                    },
+                    "timestamp": timenow().timestamp(),
+                }
+            )
+            + "\n"
+        )
+        # endregion
         if self.behavior_hash != behavior_hash:
             raise ValueError(
                 f"Barrier ID '{self.barrier_id}' was reused with different behavior "
