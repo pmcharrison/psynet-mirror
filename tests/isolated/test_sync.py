@@ -988,7 +988,7 @@ def test_finalize_barrier_arrivals_commits_checks_before_participant_relock(
     )
     monkeypatch.setattr(
         "psynet.sync._run_pending_barrier_checks",
-        lambda checks: events.append("check"),
+        lambda checks: events.append("check") or True,
     )
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
     monkeypatch.setattr(db.session, "commit", lambda: events.append("commit"))
@@ -1003,6 +1003,44 @@ def test_finalize_barrier_arrivals_commits_checks_before_participant_relock(
     assert events == ["check", "commit", "participant_relock", "commit"]
     assert result.page is page
     assert result.payload["page"] == {"participant_id": 1}
+
+
+def test_finalize_barrier_arrivals_does_not_relock_after_losing_claim(monkeypatch):
+    """A peer that owns the check may keep participant rows locked."""
+    events = []
+    participant = SimpleNamespace(id=1)
+
+    class Query:
+        def with_for_update(self, **kwargs):
+            events.append("participant_relock")
+            return self
+
+        def get(self, participant_id):
+            events.append("participant_read")
+            return participant
+
+    experiment = SimpleNamespace(_participant_request_query=lambda: Query())
+    result = SimpleNamespace(page=object(), payload={"page": "hold"})
+
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout", lambda seconds: None
+    )
+    monkeypatch.setattr(
+        "psynet.sync._run_pending_barrier_checks",
+        lambda checks: events.append("check") or False,
+    )
+    monkeypatch.setattr(db.session, "commit", lambda: events.append("commit"))
+
+    returned = Experiment._finalize_barrier_arrivals(
+        experiment,
+        participant_id=1,
+        checks=["instance"],
+        result=result,
+    )
+
+    assert returned is participant
+    assert events == ["check", "commit", "participant_read"]
+    assert result.payload == {"page": "hold"}
 
 
 @pytest.mark.parametrize(

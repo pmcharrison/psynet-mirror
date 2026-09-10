@@ -1628,20 +1628,24 @@ def _check_claimed_barrier_instance(instance):
 
 
 def _run_pending_barrier_checks(instance_ids):
-    """Run post-commit arrival checks, deferring lock contention to the poller."""
+    """Run post-commit checks and report whether this request claimed them all."""
+    all_claimed = True
     for instance_id in instance_ids:
         instance = BarrierInstance.query.get(instance_id)
         try:
             with db.session.begin_nested():
-                _check_claimed_barrier_instance(instance)
+                claimed = _check_claimed_barrier_instance(instance)
+                all_claimed = all_claimed and claimed
         except Exception as err:
             if not is_transient_transaction_error(err):
                 raise
+            all_claimed = False
             logger.debug(
                 "Barrier '%s' instance %s deferred because a waiter is locked.",
                 instance.barrier_id if instance is not None else None,
                 instance_id,
             )
+    return all_claimed
 
 
 def _process_barrier_instance(instance_id, *, retry=False):

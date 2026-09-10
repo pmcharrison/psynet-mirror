@@ -5688,11 +5688,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             _set_transaction_lock_timeout(
                 get_config().get("timeline_lock_timeout_seconds")
             )
-            _run_pending_barrier_checks(checks)
+            all_claimed = _run_pending_barrier_checks(checks)
             # Barrier checks can lock and update every participant waiting at the
             # instance. Release those partner locks before reacquiring the
             # submitting participant for timeline advancement.
             db.session.commit()
+            if not all_claimed:
+                # Another request owns at least one barrier check and therefore
+                # still holds its waiters. Return this request's already-prepared
+                # hold page instead of waiting to relock one of those participants.
+                return experiment._participant_request_query().get(participant_id)
             participant = (
                 experiment._participant_request_query()
                 .with_for_update(of=Participant)
