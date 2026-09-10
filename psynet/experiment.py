@@ -5337,8 +5337,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 experiment.prepare_voluntary_exit_plan(participant)
             participant_id = participant.id
             unique_id = participant.unique_id
-            page_uuid = participant.page_uuid
             db.session.commit()
+            participant, page = cls._finalize_pending_timeline_barriers(
+                experiment, participant, page
+            )
+            page_uuid = participant.page_uuid
             return cls._render_timeline_page_read_only(
                 experiment=experiment,
                 participant_id=participant_id,
@@ -5677,6 +5680,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return participant.page_uuid
 
     @classmethod
+    def _finalize_pending_timeline_barriers(cls, experiment, participant, page):
+        """Run queued arrival checks before ``/timeline`` renders a hold."""
+        from types import SimpleNamespace
+
+        from .sync import _take_pending_barrier_checks
+
+        checks = _take_pending_barrier_checks()
+        if not checks:
+            return participant, page
+        result = SimpleNamespace(page=page, payload={})
+        participant = cls._finalize_barrier_arrivals(
+            experiment,
+            participant.id,
+            checks,
+            result,
+        )
+        page = result.page
+        if page is not None:
+            page.pre_render()
+        return participant, page
+
+    @classmethod
     def _finalize_barrier_arrivals(cls, experiment, participant_id, checks, result):
         """Run queued arrival checks in short transactions before rendering."""
         from .sync import (
@@ -5694,10 +5719,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # submitting participant for timeline advancement.
             db.session.commit()
             if not all_claimed:
-                # Another request owns at least one barrier check and therefore
-                # still holds its waiters. Return this request's already-prepared
-                # hold page instead of waiting to relock one of those participants.
-                return experiment._participant_request_query().get(participant_id)
+                # Another request owns at least one in-flight check and may still
+                # hold its waiters. Do not wait to relock those rows. If that
+                # winner already moved this participant off the hold, return the
+                # advanced page so the last arriver does not first-paint a wait.
+                participant = experiment._participant_request_query().get(
+                    participant_id
+                )
+                page = experiment.timeline.get_current_elt(experiment, participant)
+                if page is not None and not getattr(page, "is_timeline_hold", False):
+                    result.page = page
+                    result.payload["page"] = page.__json__(participant)
+                return participant
             # ``SET LOCAL lock_timeout`` expires at the check commit.
             _set_transaction_lock_timeout(
                 get_config().get("timeline_lock_timeout_seconds")

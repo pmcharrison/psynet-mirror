@@ -489,6 +489,7 @@ class Barrier(EltCollection):
 
             for participant in participants_to_release:
                 self.release(participant)
+            self._advance_released_hold_waiters(participants_to_release)
         instance = BarrierInstance.query.get(barrier_instance_id)
         if instance is not None and instance.group_id is not None:
             instance.active = any(
@@ -497,6 +498,21 @@ class Barrier(EltCollection):
                 if self.id in participant.active_barriers
             )
         return waiting_participants
+
+    def _advance_released_hold_waiters(self, participants):
+        """Move released hold waiters onto the next timeline element.
+
+        Partners otherwise stay at this hold until their next request, so the
+        last arriver would immediately sit on the next barrier (often with the
+        same wait copy) until those clients catch up.
+        """
+        from .experiment import get_experiment
+
+        experiment = get_experiment()
+        for participant in participants:
+            page = experiment.timeline.get_current_elt(experiment, participant)
+            if getattr(page, "is_timeline_hold", False):
+                experiment._advance_past_ready_holds(participant, page)
 
 
 class GroupBarrier(Barrier):
@@ -1585,9 +1601,17 @@ def pending_arrival_notice_for(participant):
 
 
 def _check_claimed_barrier_instance(instance):
-    """Claim and evaluate one active instance in the current transaction."""
+    """Claim and evaluate one instance, or report that the work is already done.
+
+    Returns
+    -------
+    bool
+        ``True`` if this request ran the check or the instance is already
+        finished. ``False`` only when another request currently owns the
+        advisory claim, so waiters may still be locked.
+    """
     if instance is None or not instance.active:
-        return False
+        return True
     if not _claim_barrier_instance(instance.id):
         return False
     barrier = instance.get_barrier()
