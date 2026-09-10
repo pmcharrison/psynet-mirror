@@ -906,6 +906,7 @@
         document.getElementById("timeline-hold-region")?.appendChild(notice);
       }
       notice.textContent = message;
+      notice.title = message;
     };
 
     psynet.applyArrivalNotice = function (notice) {

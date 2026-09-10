@@ -560,7 +560,10 @@ class GroupBarrier(Barrier):
         ``group_size``, and the usual context arguments (``recipient``,
         ``group``, ``barrier``, ``experiment``). Return ``None`` to hide that
         surface. Same serialization rules as ``on_release``. The default pair
-        notice is "Your partner is ready to continue."
+        notice is "Your partner is ready to continue." Notice copy stays on
+        one line in the banner (overflow ellipsizes), so keep
+        ``kind="notice"`` return values to a short sentence. Hold overlay
+        copy may use a second line.
 
     """
 

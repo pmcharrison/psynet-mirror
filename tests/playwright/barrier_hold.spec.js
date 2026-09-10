@@ -126,11 +126,15 @@ test("default barriers hold the current page until websocket release", { tag: "@
     await expect(
       firstParticipant.locator(".psynet-timeline-hold-progress")
     ).toHaveText("1 of 2 arrived");
-    await expect(
-      secondParticipant.locator("#psynet-arrival-notice")
-    ).toHaveText("Your partner is ready to continue.", {
+    const arrivalNotice = secondParticipant.locator("#psynet-arrival-notice");
+    await expect(arrivalNotice).toHaveText("Your partner is ready to continue.", {
       timeout: STEP_TIMEOUT_MS
     });
+    await expect(arrivalNotice).toHaveCSS("white-space", "nowrap");
+    await expect(arrivalNotice).toHaveAttribute(
+      "title",
+      "Your partner is ready to continue."
+    );
     await expect(secondParticipant.locator("#main-body")).toContainText(
       "Choose your action"
     );
