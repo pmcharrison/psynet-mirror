@@ -66,7 +66,9 @@ rechecks the authoritative link state.
 inside the arrival request. That lets a ``Grouper`` form groups as soon as
 the last needed member is waiting, and lets ``GroupBarrier`` release the
 group without waiting for the poller. Lock contention is swallowed and left
-for the 0.5 s poller so a locked partner cannot abort the submit.
+for the 0.5 s poller so a locked partner cannot abort the submit. If the
+check locked anyone else, the arrival request commits immediately and
+relocks only the arriver, so partners are not left idle in that transaction.
 
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
 ``serialize_callable`` so they can be stored inside ``BarrierRecord`` safely.
@@ -113,6 +115,7 @@ from psynet.participant import Participant
 from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.timeline_hold import (
+    _commit_and_relock_participant,
     _queue_arrival_update,
     _queue_timeline_hold_wake,
     _TimelineHoldPage,
@@ -163,7 +166,7 @@ class _BarrierHoldPage(_TimelineHoldPage):
                 f"'{self.barrier_id}'."
             )
         link.timeline_hold = record
-        self.barrier._try_check_on_arrival()
+        self.barrier._try_check_on_arrival(participant)
         self.barrier._notify_arrivals(participant)
 
     def hold_progress_text(self, participant):
@@ -355,20 +358,24 @@ class Barrier(EltCollection):
         )
         participant.active_barriers[self.id] = link
         if not self._uses_timeline_hold:
-            self._try_check_on_arrival()
+            self._try_check_on_arrival(participant)
             self._notify_arrivals(participant)
 
-    def _try_check_on_arrival(self):
+    def _try_check_on_arrival(self, participant):
         """Release waiters now if this arrival completed the barrier.
 
         Uses a savepoint so a ``NOWAIT`` miss rolls back only this check and
         leaves the 0.5 s poller to finish. The arriving participant's request
         can still commit. Groupers use this to form groups as soon as the
         last needed member arrives, without waiting for the clock.
+
+        A successful check that locked other waiters commits before returning.
+        ``FOR UPDATE`` survives savepoints, so otherwise those partner rows
+        would stay locked for the rest of this HTTP request.
         """
         try:
             with db.session.begin_nested():
-                self.check()
+                waiting = self.check()
         except Exception as err:
             if is_transient_transaction_error(err):
                 logger.debug(
@@ -377,6 +384,8 @@ class Barrier(EltCollection):
                 )
                 return
             raise
+        if waiting and any(waiter.id != participant.id for waiter in waiting):
+            _commit_and_relock_participant(participant)
 
     def _notify_arrivals(self, arriving_participant):
         """Optionally tell the group that someone arrived at this barrier."""
@@ -410,7 +419,8 @@ class Barrier(EltCollection):
         for_update
             Set to ``True`` if you plan to update the resulting participant objects and their barrier links.
             The objects will be locked for update in the database
-            and only released at the end of the transaction.
+            and only released when this transaction commits. Last-arrival
+            checks commit as soon as they have locked other waiters.
 
         nowait
             If ``True`` (with ``for_update``), fail immediately when any waiter
@@ -465,6 +475,15 @@ class Barrier(EltCollection):
         """Run any side-effecting checks before deciding who to release."""
 
     def check(self):
+        """Lock waiters, release whoever is ready, and return the locked waiters.
+
+        Returns
+        -------
+        list of Participant
+            Participants locked for this check, including people who were not
+            released. Last-arrival handling uses this to drop partner row locks
+            before the rest of the HTTP request continues.
+        """
         waiting_participants = self.get_waiting_participants(
             for_update=True, nowait=True
         )
@@ -491,6 +510,7 @@ class Barrier(EltCollection):
 
             for participant in participants_to_release:
                 self.release(participant)
+        return waiting_participants
 
 
 class GroupBarrier(Barrier):

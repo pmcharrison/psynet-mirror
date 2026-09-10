@@ -3254,11 +3254,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
-        # Fail immediately when another request holds this row so a hold
-        # resume and a submit cannot block each other for the lock timeout.
         participant = (
             self._participant_request_query()
-            .with_for_update(of=Participant, nowait=True)
+            .with_for_update(of=Participant)
             .populate_existing()
             .get(participant_id)
         )

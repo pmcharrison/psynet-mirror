@@ -129,7 +129,7 @@ def test_locked_request_query_keeps_relationships_unloaded(
     with assert_query_count(min_queries=1, max_queries=1):
         participant = (
             experiment._participant_request_query()
-            .with_for_update(of=Participant, nowait=True)
+            .with_for_update(of=Participant)
             .populate_existing()
             .get(participant_id)
         )

@@ -179,6 +179,35 @@ def _discard_timeline_hold_wakes(session):
     session.info.pop(_PENDING_WAKE_KEY, None)
 
 
+def _commit_and_relock_participant(participant):
+    """Commit so partner ``FOR UPDATE`` locks drop, then relock this participant.
+
+    PostgreSQL holds row locks until the outer transaction commits, including
+    through released savepoints. Last-arrival ``check()`` locks every waiter, so
+    without this commit the rest of the HTTP request leaves partners idle in
+    that transaction. Hold wakes are published after the arriver is locked
+    again so Redis publish cannot yield while nobody holds this row.
+    """
+    from psynet.participant import Participant
+
+    participant_id = participant.id
+    pending_wakes = db.session.info.pop(_PENDING_WAKE_KEY, None)
+    db.session.commit()
+    relocked = (
+        Participant.query.with_for_update(of=Participant)
+        .populate_existing()
+        .get(participant_id)
+    )
+    if relocked is None:
+        raise RuntimeError(
+            f"Participant {participant_id} disappeared after a coordination commit."
+        )
+    if pending_wakes:
+        db.session.info[_PENDING_WAKE_KEY] = pending_wakes
+        _publish_timeline_hold_wakes(db.session)
+    return relocked
+
+
 @register_table
 class TimelineHoldRecord(SQLBase, SQLMixin):
     """Store timing, compensation, and lifecycle data for one timeline hold."""

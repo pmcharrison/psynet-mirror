@@ -106,10 +106,13 @@ automatically on the server because author code blocks may contain
 non-idempotent external side effects. Shared
 coordination metadata, such as barrier registry rows, must likewise be created
 or refreshed in short transactions rather than remaining uncommitted through
-rendering. The barrier poller locks waiters with ``FOR UPDATE NOWAIT`` so a
-participant write cannot stall other groups; if any waiter is busy, that
-barrier is skipped until the next tick. The sync-group recount job likewise
-skip-locks one group at a time.
+rendering. When the last participant arrives at a barrier, that request runs
+``check()``, which locks every waiter. If anyone else was waiting, PsyNet
+commits immediately and relocks only the arriver, so partner rows are not held
+for the rest of the write phase. The barrier poller locks waiters with
+``FOR UPDATE NOWAIT`` so a participant write cannot stall other groups; if any
+waiter is busy, that barrier is skipped until the next tick. The sync-group
+recount job likewise skip-locks one group at a time.
 
 The fragment must contain the elements the persistent document replaces:
 

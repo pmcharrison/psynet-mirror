@@ -7,6 +7,7 @@ import pytest
 from dallinger import db
 from dallinger.models import timenow
 from sqlalchemy import Column, String, text
+from sqlalchemy.exc import OperationalError
 
 from psynet.dashboard.sync_groups import (
     _fail_sync_group_participant,
@@ -72,6 +73,13 @@ class RecordingBarrier(Barrier):
 
 class ReleaseAllBarrier(Barrier):
     def choose_who_to_release(self, waiting_participants):
+        return waiting_participants
+
+
+class WaitForTwoBarrier(Barrier):
+    def choose_who_to_release(self, waiting_participants):
+        if len(waiting_participants) < 2:
+            return []
         return waiting_participants
 
 
@@ -797,6 +805,25 @@ def _barrier_link_released(participant_id, barrier_id):
         ).scalar()
 
 
+def _participant_row_is_locked(participant_id):
+    """Return whether another connection holds ``FOR UPDATE`` on this participant."""
+    with db.engine.connect() as conn:
+        trans = conn.begin()
+        try:
+            conn.execute(
+                text("SELECT id FROM participant WHERE id = :id FOR UPDATE NOWAIT"),
+                {"id": participant_id},
+            )
+        except OperationalError as err:
+            if getattr(getattr(err, "orig", None), "pgcode", None) == "55P03":
+                return True
+            raise
+        else:
+            return False
+        finally:
+            trans.rollback()
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
@@ -876,21 +903,46 @@ def test_last_group_arrival_releases_without_poller(
     assert barrier.id not in last.active_barriers
     assert _group_release_calls == [group_id]
     assert barrier.waiting_logic.participant_can_resume(exp, last)
-    wake_tokens = {
-        target["wake_token"]
+    release_targets = [
+        target
         for _, payload in publications
         for target in payload["targets"]
-    }
+        if target.get("reason") == "barrier_released"
+    ]
+    wake_tokens = {target["wake_token"] for target in release_targets}
     assert first_wake in wake_tokens
     assert last_wake in wake_tokens
-    assert all(
-        target["reason"] == "barrier_released"
-        for _, payload in publications
-        for target in payload["targets"]
-    )
 
     check_barriers()
     assert _group_release_calls == [group_id]
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_last_arrival_does_not_keep_partner_rows_locked(
+    in_experiment_directory, db_session
+):
+    """Last-arrival check must not leave partners idle-in-transaction.
+
+    ``check()`` takes ``FOR UPDATE`` on every waiter. PostgreSQL holds those
+    locks until the outer transaction commits, so the rest of the last
+    arriver's request would otherwise block the partner's ``/response``.
+    """
+    exp = get_experiment()
+    participants, _group = _pair_sync_group(exp, db_session)
+    first, last = participants
+    barrier = GroupBarrier(id_="release_partner_locks", group_type="main")
+
+    _arrive_at_group_barrier(exp, barrier, first)
+    db_session.commit()
+    first_id = first.id
+    last_id = last.id
+
+    _arrive_at_group_barrier(exp, barrier, last)
+
+    assert not _participant_row_is_locked(first_id)
+    assert _participant_row_is_locked(last_id)
 
 
 @pytest.mark.parametrize(
@@ -1352,14 +1404,6 @@ def test_shared_barrier_id_preserves_each_visit_waiting_mode(
     for participant in [held_participant, page_participant]:
         participant.status = "working"
 
-    held_barrier = ReleaseAllBarrier(id_="shared")
-    held_barrier.receive_participant(held_participant)
-    held_barrier.waiting_logic.consume(exp, held_participant)
-    page_barrier = ReleaseAllBarrier(id_="shared", waiting_logic=WaitPage(wait_time=1))
-    page_barrier.receive_participant(page_participant)
-    db_session.commit()
-    held_wake_token = held_participant.timeline_holds[0].wake_token
-
     publications = []
     monkeypatch.setattr(
         db.redis_conn,
@@ -1367,11 +1411,29 @@ def test_shared_barrier_id_preserves_each_visit_waiting_mode(
         lambda channel_name, data: publications.append(json.loads(data)),
     )
 
-    check_barriers()
+    held_barrier = WaitForTwoBarrier(id_="shared")
+    held_barrier.receive_participant(held_participant)
+    held_barrier.waiting_logic.consume(exp, held_participant)
+    page_barrier = WaitForTwoBarrier(id_="shared", waiting_logic=WaitPage(wait_time=1))
+    page_barrier.receive_participant(page_participant)
+    held_wake_token = held_participant.timeline_holds[0].wake_token
 
-    targets = publications[0]["targets"]
-    assert [target["wake_token"] for target in targets] == [held_wake_token]
-    assert all("page_uuid" not in target for target in targets)
+    release_targets = [
+        target
+        for payload in publications
+        for target in payload["targets"]
+        if target.get("reason") == "barrier_released"
+    ]
+    assert [target["wake_token"] for target in release_targets] == [held_wake_token]
+    assert all("page_uuid" not in target for target in release_targets)
+
+    check_barriers()
+    assert [
+        target["wake_token"]
+        for payload in publications
+        for target in payload["targets"]
+        if target.get("reason") == "barrier_released"
+    ] == [held_wake_token]
 
 
 @pytest.mark.parametrize(
