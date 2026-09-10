@@ -135,6 +135,27 @@ test("default barriers hold the current page until websocket release", { tag: "@
       "title",
       "Your partner is ready to continue."
     );
+    await secondParticipant.evaluate(() => {
+      window.psynet.showArrivalNotice(
+        "Your partner is ready to continue. Please wait a little longer while we get everything ready for the next trial."
+      );
+    });
+    const longNotice = await arrivalNotice.evaluate((el) => ({
+      height: el.getBoundingClientRect().height,
+      overflowed: el.scrollWidth > el.clientWidth,
+    }));
+    expect(longNotice.overflowed).toBeTruthy();
+    expect(longNotice.height).toBeLessThan(64);
+    if (process.env.ARTIFACT_DIR) {
+      await secondParticipant.setViewportSize({ width: 375, height: 667 });
+      await secondParticipant.screenshot({
+        path: `${process.env.ARTIFACT_DIR}/rps_arrival_notice_phone.png`,
+      });
+      await secondParticipant.setViewportSize({ width: 1280, height: 720 });
+    }
+    await secondParticipant.evaluate(() => {
+      window.psynet.showArrivalNotice("Your partner is ready to continue.");
+    });
     await expect(secondParticipant.locator("#main-body")).toContainText(
       "Choose your action"
     );
