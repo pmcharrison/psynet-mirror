@@ -144,6 +144,19 @@ def _take_pending_barrier_checks():
     return sorted(db.session.info.pop(_PENDING_BARRIER_CHECKS_KEY, set()))
 
 
+def _hold_instance_id_for_page(participant, page):
+    """Return the unreleased hold instance for this page, if any."""
+    if not getattr(page, "is_timeline_hold", False):
+        return None
+    barrier_id = getattr(page, "barrier_id", None)
+    if barrier_id is None:
+        return None
+    link = participant.active_barriers.get(barrier_id)
+    if link is None or link.released or link.barrier_instance_id is None:
+        return None
+    return link.barrier_instance_id
+
+
 @event.listens_for(db.session, "after_rollback")
 def _discard_pending_barrier_checks(session):
     session.info.pop(_PENDING_BARRIER_CHECKS_KEY, None)

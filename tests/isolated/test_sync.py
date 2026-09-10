@@ -1543,6 +1543,31 @@ def test_last_timeline_arrival_skips_stacked_partner_holds(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_finalize_rechecks_current_hold_when_follow_up_queue_is_dropped(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Stacked entry holds must finish even if a later queued check is lost."""
+    from psynet.sync import _take_pending_barrier_checks as original_take
+
+    seen = {"count": 0}
+
+    def drop_follow_ups():
+        checks = original_take()
+        seen["count"] += 1
+        if seen["count"] > 1:
+            return []
+        return checks
+
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", drop_follow_ups)
+    test_last_timeline_arrival_skips_stacked_partner_holds(
+        in_experiment_directory, db_session
+    )
+    assert seen["count"] > 1
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_check_barriers_skips_locked_waiters_and_continues(
     in_experiment_directory, db_session
 ):
