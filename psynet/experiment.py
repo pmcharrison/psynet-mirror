@@ -5676,6 +5676,39 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         payload["page"] = page.__json__(participant)
         return participant.page_uuid
 
+    @classmethod
+    def _finalize_barrier_arrivals(cls, experiment, participant_id, checks, result):
+        """Run queued arrival checks in short transactions before rendering."""
+        from .sync import (
+            _run_pending_barrier_checks,
+            _take_pending_barrier_checks,
+        )
+
+        while checks:
+            _set_transaction_lock_timeout(
+                get_config().get("timeline_lock_timeout_seconds")
+            )
+            _run_pending_barrier_checks(checks)
+            participant = (
+                experiment._participant_request_query()
+                .with_for_update(of=Participant)
+                .populate_existing()
+                .get(participant_id)
+            )
+            if participant is None:
+                raise RuntimeError(
+                    f"Participant {participant_id} disappeared after barrier arrival."
+                )
+            page = experiment._advance_past_ready_holds(
+                participant,
+                experiment.timeline.get_current_elt(experiment, participant),
+            )
+            result.page = page
+            result.payload["page"] = page.__json__(participant)
+            db.session.commit()
+            checks = _take_pending_barrier_checks()
+        return participant
+
     @staticmethod
     def _render_prepared_partial_timeline_payload(page, experiment, participant):
         """
@@ -5728,6 +5761,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     @with_transaction
     def route_response(cls):
+        from .sync import _take_pending_barrier_checks
+
         exp = get_experiment()
         _set_transaction_lock_timeout(get_config().get("timeline_lock_timeout_seconds"))
         json_data = json.loads(request.values["json"])
@@ -5767,17 +5802,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return busy
             raise
 
+        pending_barrier_checks = _take_pending_barrier_checks()
         if result.flask_response is not None:
             return result.flask_response
 
+        write_committed = False
         try:
             payload = result.payload
             participant = Participant.query.get(participant_id)
             page = result.page
             page_uuid_after_response = None
             render_fragment = False
+            approved = payload.get("submission") == "approved"
+            if approved and pending_barrier_checks:
+                db.session.commit()
+                write_committed = True
+                participant = cls._finalize_barrier_arrivals(
+                    exp,
+                    participant_id,
+                    pending_barrier_checks,
+                    result,
+                )
+                payload = result.payload
+                page = result.page
             if (
-                payload.get("submission") == "approved"
+                approved
                 and include_timeline_fragment
                 and get_config().get("inplace_timeline_transitions")
             ):
@@ -5792,7 +5841,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                             exp, participant, page, payload
                         )
             db.session.commit()
+            write_committed = True
         except Exception as err:
+            if write_committed:
+                return cls._handle_response_render_error(exp, participant_id, err)
             return cls._handle_response_prepare_error(exp, participant_id, err)
 
         if render_fragment:

@@ -63,13 +63,12 @@ wake. Each participant's hold channel (`psynet_timeline_hold:<id>`) publishes
 that wake only after the database transaction commits; the browser then
 rechecks the authoritative link state.
 
-``Barrier`` also evaluates those hooks when a participant arrives, inside the
-arrival request. That lets a ``Grouper`` form groups as soon as
-the last needed member is waiting, and lets ``GroupBarrier`` release the
-group without waiting for the poller. Lock contention is swallowed and left
-for the 0.5 s poller so a locked partner cannot abort the submit. If the
-check locked anyone else, the arrival request commits immediately and
-relocks only the arriver, so partners are not left idle in that transaction.
+``Barrier`` also queues those hooks when a participant arrives. After the
+arrival transaction commits, the response route evaluates the barrier in a
+short coordination transaction before rendering. That lets a ``Grouper`` form
+groups and a ``GroupBarrier`` release the group without waiting for the poller,
+while waiter locks remain outside the main write transaction. Lock contention
+is left for the 0.5 s poller so a locked partner cannot abort the submit.
 
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
 ``serialize_callable`` so each ``BarrierInstance`` retains stable behavior.
@@ -91,6 +90,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    event,
     text,
 )
 from sqlalchemy import inspect as sa_inspect
@@ -116,7 +116,6 @@ from psynet.participant import Participant
 from psynet.serialize import SerializedCallable, serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.timeline_hold import (
-    _commit_and_relock_participant,
     _queue_arrival_update,
     _queue_timeline_hold_wake,
     _TimelineHoldPage,
@@ -125,6 +124,25 @@ from psynet.timeline_hold import (
 from psynet.utils import call_function_with_context, get_config, get_logger
 
 logger = get_logger()
+
+_PENDING_BARRIER_CHECKS_KEY = "psynet_pending_barrier_checks"
+
+
+def _queue_barrier_check(barrier_instance_id):
+    """Queue one instance for checking after the arrival transaction commits."""
+    db.session.info.setdefault(_PENDING_BARRIER_CHECKS_KEY, set()).add(
+        barrier_instance_id
+    )
+
+
+def _take_pending_barrier_checks():
+    """Take the barrier checks queued by the preceding successful transaction."""
+    return sorted(db.session.info.pop(_PENDING_BARRIER_CHECKS_KEY, set()))
+
+
+@event.listens_for(db.session, "after_rollback")
+def _discard_pending_barrier_checks(session):
+    session.info.pop(_PENDING_BARRIER_CHECKS_KEY, None)
 
 
 def _claim_barrier_instance(instance_id, *, wait=False):
@@ -206,7 +224,7 @@ class _BarrierHoldPage(_TimelineHoldPage):
                 f"'{self.barrier_id}'."
             )
         link.timeline_hold = record
-        self.barrier._try_check_on_arrival(participant, link.barrier_instance)
+        self.barrier._queue_check_on_arrival(link.barrier_instance)
         self.barrier._notify_arrivals(participant)
 
     def hold_progress_text(self, participant):
@@ -399,43 +417,12 @@ class Barrier(EltCollection):
         )
         participant.active_barriers[self.id] = link
         if not self._uses_timeline_hold:
-            self._try_check_on_arrival(participant, barrier_instance)
+            self._queue_check_on_arrival(barrier_instance)
             self._notify_arrivals(participant)
 
-    def _try_check_on_arrival(self, participant, barrier_instance=None):
-        """Release waiters now if this arrival completed the barrier.
-
-        Uses a savepoint so a ``NOWAIT`` miss rolls back only this check and
-        leaves the 0.5 s poller to finish. The arriving participant's request
-        can still commit. Groupers use this to form groups as soon as the
-        last needed member arrives, without waiting for the clock.
-
-        A successful check that locked other waiters commits before returning.
-        ``FOR UPDATE`` survives savepoints, so otherwise those partner rows
-        would stay locked for the rest of this HTTP request.
-        """
-        if barrier_instance is None:
-            barrier_instance = participant.active_barriers[self.id].barrier_instance
-        if not _claim_barrier_instance(barrier_instance.id):
-            logger.debug(
-                "Barrier '%s' arrival check deferred because its instance is claimed.",
-                self.id,
-            )
-            return
-        registered_barrier = barrier_instance.barrier
-        try:
-            with db.session.begin_nested():
-                waiting = registered_barrier._check_instance(barrier_instance.id)
-        except Exception as err:
-            if is_transient_transaction_error(err):
-                logger.debug(
-                    "Barrier '%s' arrival check deferred because a waiter is locked.",
-                    self.id,
-                )
-                return
-            raise
-        if waiting and any(waiter.id != participant.id for waiter in waiting):
-            _commit_and_relock_participant(participant)
+    def _queue_check_on_arrival(self, barrier_instance):
+        """Schedule the fast release check for immediately after commit."""
+        _queue_barrier_check(barrier_instance.id)
 
     def _notify_arrivals(self, arriving_participant):
         """Optionally tell the group that someone arrived at this barrier."""
@@ -523,10 +510,10 @@ class GroupBarrier(Barrier):
     If ``accepts_top_ups=False``, then there's no hope for new participants, so the group will be released
     and failed.
 
-    The last arrival tries ``check()`` in that same request so partners are
-    released without waiting for the 0.5 s poller. On the default hold path
-    that arriver then skips the wait indicator. If a partner wait row is
-    locked, the poller finishes the release.
+    After the arrival write commits, the same request evaluates the barrier in
+    a short transaction so partners are released without waiting for the 0.5 s
+    poller. On the default hold path that arriver then skips the wait indicator.
+    If a partner wait row is locked, the poller finishes the release.
 
     Parameters
     ----------
@@ -1627,6 +1614,36 @@ def pending_arrival_notice_for(participant):
     return notice
 
 
+def _check_claimed_barrier_instance(instance):
+    """Claim and evaluate one active instance in the current transaction."""
+    if instance is None or not instance.active:
+        return False
+    if not _claim_barrier_instance(instance.id):
+        return False
+    barrier = instance.barrier
+    if not isinstance(barrier, Barrier):
+        raise RuntimeError(f"Barrier instance '{instance.id}' is missing or invalid.")
+    barrier._check_instance(instance.id)
+    return True
+
+
+def _run_pending_barrier_checks(instance_ids):
+    """Run post-commit arrival checks, deferring lock contention to the poller."""
+    for instance_id in instance_ids:
+        instance = BarrierInstance.query.get(instance_id)
+        try:
+            with db.session.begin_nested():
+                _check_claimed_barrier_instance(instance)
+        except Exception as err:
+            if not is_transient_transaction_error(err):
+                raise
+            logger.debug(
+                "Barrier '%s' instance %s deferred because a waiter is locked.",
+                instance.barrier_id if instance is not None else None,
+                instance_id,
+            )
+
+
 def _process_barrier_instance(instance_id, *, retry=False):
     """Try one barrier visit and report whether waiter contention deferred it."""
     barrier_id = None
@@ -1639,14 +1656,7 @@ def _process_barrier_instance(instance_id, *, retry=False):
             if instance is None or not instance.active:
                 return False
             barrier_id = instance.barrier_id
-            if not _claim_barrier_instance(instance_id):
-                return False
-            barrier = instance.barrier
-            if not isinstance(barrier, Barrier):
-                raise RuntimeError(
-                    f"Barrier instance '{instance_id}' is missing or invalid."
-                )
-            barrier._check_instance(instance_id)
+            _check_claimed_barrier_instance(instance)
     except Exception as err:
         if is_transient_transaction_error(err):
             qualifier = " still locked on retry" if retry else " deferred"

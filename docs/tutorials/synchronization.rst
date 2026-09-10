@@ -118,13 +118,14 @@ For localized experiments, mark custom ``content`` for translation as described
 in :doc:`internationalization`.
 The browser receives a WebSocket notification when the barrier releases and
 performs only occasional HTTP checks as a fallback. When the last needed
-member arrives, PsyNet evaluates the barrier in that same request, so a
-:class:`~psynet.sync.SimpleGrouper` can form the group immediately and a
-:class:`~psynet.sync.GroupBarrier` can release partners without waiting for
-the poller. The last arriver skips the wait indicator and continues to the
-next page. If a partner's wait row is locked, the regular 0.5-second barrier
-check finishes the release instead. To display dedicated pages or filler tasks
-while participants wait, pass them explicitly with ``waiting_logic``.
+member arrives, PsyNet commits the arrival and evaluates the barrier in a short
+coordination transaction before rendering the response. This lets a
+:class:`~psynet.sync.SimpleGrouper` form the group immediately and a
+:class:`~psynet.sync.GroupBarrier` release partners without waiting for the
+poller. The last arriver skips the wait indicator and continues to the next
+page. If a partner's wait row is locked, the regular 0.5-second barrier check
+finishes the release instead. To display dedicated pages or filler tasks while
+participants wait, pass them explicitly with ``waiting_logic``.
 
 Custom barriers should implement
 :meth:`~psynet.sync.Barrier.check_waiting_participants` for side-effecting

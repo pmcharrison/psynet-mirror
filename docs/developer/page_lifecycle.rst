@@ -59,12 +59,14 @@ those libraries before managed page JavaScript activates.
 Timeline requests separate state mutation from rendering:
 
 1. A short write transaction locks the participant, advances or records the
-   timeline state, resolves the page, and runs ``pre_render()``.
-2. PsyNet commits that transaction, releasing participant and coordination
-   locks and publishing any queued hold wakes.
-3. HTML, JSON, or an inplace fragment is rendered in a fresh PostgreSQL
+   timeline state, and resolves the provisional page.
+2. If that phase records barrier arrivals, PsyNet commits them and evaluates
+   the affected barrier instances in a short coordination transaction.
+3. PsyNet resolves the final page, runs ``pre_render()``, and commits any
+   preparation writes, releasing locks and publishing queued hold wakes.
+4. HTML, JSON, or an inplace fragment is rendered in a fresh PostgreSQL
    read-only transaction with SQLAlchemy autoflush disabled.
-4. PsyNet verifies that rendering created no new, dirty, or deleted ORM
+5. PsyNet verifies that rendering created no new, dirty, or deleted ORM
    objects, then rolls back the read transaction.
 
 ``pre_render()`` is therefore the supported hook for render preparation that
@@ -107,10 +109,10 @@ non-idempotent external side effects. Barrier definitions and per-group visit
 instances are created in the arrival request's transaction. The poller claims
 an instance with an advisory transaction lock, rather than locking mutable
 metadata that another request needs to update. When the last participant
-arrives at a barrier, that request evaluates the barrier while locking every
-waiter. If anyone else was waiting, PsyNet commits immediately and relocks only
-the arriver, so partner rows are not held for the rest of the write phase. The
-barrier poller locks waiters with
+arrives at a barrier, PsyNet commits the normal write phase and evaluates the
+barrier in a short coordination transaction before rendering. This preserves
+the fast route without holding partner rows through author code or
+``pre_render()``. The barrier poller locks waiters with
 ``FOR UPDATE NOWAIT`` so a participant write cannot stall other groups; if any
 waiter is busy, that barrier is skipped until the next tick. The sync-group
 recount job likewise skip-locks one group at a time.

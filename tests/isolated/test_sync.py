@@ -31,6 +31,8 @@ from psynet.sync import (
     GroupBarrier,
     SimpleGrouper,
     SimpleSyncGroup,
+    _run_pending_barrier_checks,
+    _take_pending_barrier_checks,
     check_barriers,
     check_sync_groups,
     pending_arrival_notice_for,
@@ -267,6 +269,22 @@ def test_barrier_definition_and_instance_use_request_transaction(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_pending_barrier_checks_are_discarded_on_rollback(
+    in_experiment_directory, db_session
+):
+    participant = new_participant(get_experiment())
+    participant.status = "working"
+    barrier = ReleaseAllBarrier(id_="rolled_back_arrival")
+    _arrive_at_group_barrier(get_experiment(), barrier, participant)
+
+    db_session.rollback()
+
+    assert _take_pending_barrier_checks() == []
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_group_barrier_reuses_one_instance_per_group_visit(
     in_experiment_directory, db_session
 ):
@@ -394,10 +412,10 @@ def test_same_barrier_id_keeps_each_group_visits_callback(
 
     _arrive_at_group_barrier(exp, first_barrier, first_group[0])
     _arrive_at_group_barrier(exp, second_barrier, second_group[0])
-    db_session.commit()
+    _commit_barrier_arrivals()
     _arrive_at_group_barrier(exp, first_barrier, first_group[1])
     _arrive_at_group_barrier(exp, second_barrier, second_group[1])
-    db_session.commit()
+    _commit_barrier_arrivals()
 
     db_session.refresh(first_sync_group)
     db_session.refresh(second_sync_group)
@@ -427,7 +445,7 @@ def test_group_barrier_accepts_same_callback_bound_to_each_participants_model(
         )
         _arrive_at_group_barrier(exp, barrier, participant)
 
-    db_session.commit()
+    _commit_barrier_arrivals()
     db_session.refresh(sync_group)
     assert sync_group.var.callback_owner == owners[0].id
 
@@ -456,7 +474,7 @@ def test_group_allocator(in_experiment_directory, db_session):
     participants = [new_participant(exp) for _ in range(6)]
 
     _arrive_at_group_barrier(exp, grouper, participants[0])
-    db.session.commit()
+    _commit_barrier_arrivals()
 
     assert BarrierDefinition.query.get("main_grouper") is not None
     assert "main_grouper" in participants[0].active_barriers
@@ -467,7 +485,7 @@ def test_group_allocator(in_experiment_directory, db_session):
         assert participant.sync_group is None
 
     _arrive_at_group_barrier(exp, grouper, participants[1])
-    db.session.commit()
+    _commit_barrier_arrivals()
 
     assert not grouper.can_participant_exit(participants[0])
 
@@ -476,7 +494,7 @@ def test_group_allocator(in_experiment_directory, db_session):
 
     _arrive_at_group_barrier(exp, grouper, participants[2])
 
-    db.session.commit()
+    _commit_barrier_arrivals()
 
     assert grouper.can_participant_exit(participants[0])
 
@@ -521,11 +539,11 @@ def test_simple_grouper_groups_on_last_arrival(in_experiment_directory, db_sessi
     )
 
     _arrive_at_group_barrier(exp, grouper, first)
-    db_session.commit()
+    _commit_barrier_arrivals()
     assert first.sync_group is None
 
     _arrive_at_group_barrier(exp, grouper, second)
-    db_session.commit()
+    _commit_barrier_arrivals()
     db_session.refresh(first)
     db_session.refresh(second)
     assert first.sync_group is not None
@@ -890,6 +908,15 @@ def _arrive_at_group_barrier(exp, barrier, participant):
         barrier.waiting_logic.consume(exp, participant)
 
 
+def _commit_barrier_arrivals():
+    """Mirror the response route's write and coordination commits."""
+    db.session.commit()
+    checks = _take_pending_barrier_checks()
+    if checks:
+        _run_pending_barrier_checks(checks)
+        db.session.commit()
+
+
 def _barrier_link_released(participant_id, barrier_id):
     with db.engine.connect() as conn:
         return conn.execute(
@@ -1103,15 +1130,15 @@ def test_last_group_arrival_releases_without_poller(
 
     _arrive_at_group_barrier(exp, barrier, first)
     first_wake = first.timeline_holds[0].wake_token
-    db_session.commit()
+    _commit_barrier_arrivals()
     assert barrier.id in first.active_barriers
     assert not barrier.waiting_logic.participant_can_resume(exp, first)
     assert _group_release_calls == []
 
     _arrive_at_group_barrier(exp, barrier, last)
     last_wake = last.timeline_holds[0].wake_token
-    assert barrier.waiting_logic.participant_can_resume(exp, last)
-    db_session.commit()
+    assert not barrier.waiting_logic.participant_can_resume(exp, last)
+    _commit_barrier_arrivals()
 
     assert barrier.id not in first.active_barriers
     assert barrier.id not in last.active_barriers
@@ -1137,19 +1164,14 @@ def test_last_group_arrival_releases_without_poller(
 def test_last_arrival_does_not_keep_partner_rows_locked(
     in_experiment_directory, db_session
 ):
-    """Last-arrival check must not leave partners idle-in-transaction.
-
-    ``check()`` takes ``FOR UPDATE`` on every waiter. PostgreSQL holds those
-    locks until the outer transaction commits, so the rest of the last
-    arriver's request would otherwise block the partner's ``/response``.
-    """
+    """Arrival defers waiter locking until after the write transaction commits."""
     exp = get_experiment()
     participants, _group = _pair_sync_group(exp, db_session)
     first, last = participants
     barrier = GroupBarrier(id_="release_partner_locks", group_type="main")
 
     _arrive_at_group_barrier(exp, barrier, first)
-    db_session.commit()
+    _commit_barrier_arrivals()
     first_id = first.id
     last_id = last.id
 
@@ -1157,6 +1179,9 @@ def test_last_arrival_does_not_keep_partner_rows_locked(
 
     assert not _participant_row_is_locked(first_id)
     assert _participant_row_is_locked(last_id)
+    _commit_barrier_arrivals()
+    assert not _participant_row_is_locked(first_id)
+    assert not _participant_row_is_locked(last_id)
 
 
 @pytest.mark.parametrize(
@@ -1174,11 +1199,11 @@ def test_last_group_arrival_releases_explicit_waiting_logic_without_poller(
     )
 
     barrier.receive_participant(first)
-    db_session.commit()
+    _commit_barrier_arrivals()
     assert barrier.id in first.active_barriers
 
     barrier.receive_participant(last)
-    db_session.commit()
+    _commit_barrier_arrivals()
 
     assert barrier.id not in first.active_barriers
     assert barrier.id not in last.active_barriers
@@ -1194,7 +1219,7 @@ def test_last_group_arrival_defers_when_a_partner_is_locked(
     first, last = _pair_sync_group(exp, db_session)[0]
     barrier = GroupBarrier(id_="locked_partner", group_type="main")
     _arrive_at_group_barrier(exp, barrier, first)
-    db_session.commit()
+    _commit_barrier_arrivals()
     first_id = first.id
     last_id = last.id
 
@@ -1205,7 +1230,7 @@ def test_last_group_arrival_defers_when_a_partner_is_locked(
             {"id": first_id},
         )
         _arrive_at_group_barrier(exp, barrier, last)
-        db_session.commit()
+        _commit_barrier_arrivals()
         assert _barrier_link_released(first_id, "locked_partner") is False
         assert _barrier_link_released(last_id, "locked_partner") is False
         trans.rollback()
