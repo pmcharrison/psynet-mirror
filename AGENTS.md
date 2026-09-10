@@ -176,6 +176,7 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
 13. **Assert first timeline paint for last-arriver skip**:
     - When the last group member must never see a wait, inspect the first `GET /timeline` HTML (`captureFirstTimelineAfterGateway` / `#psynet-template-data` page type and hold marker).
     - Do not treat an eventual action prompt as proof; the poller can hide a first-paint hold.
+    - Budget entry requests (`POST /participant`, first `GET /timeline`, time on `Starting experiment...`) and fail on unexpected 503 busy or lock-timeout waits.
 
 ## Automatic code review
 

@@ -61,11 +61,12 @@ HTML. An eventual prompt can arrive from the poller after a hold was already
 shown:
 
 ```js
-const firstPaint = readTimelinePageFromHtml(
-  await captureFirstTimelineAfterGateway(page)
-);
-expect(firstPaint.type).toBe("ModularPage");
-expect(firstPaint.showsHold).toBe(false);
+const entry = await enterTimelineAfterGateway(page);
+expect(entry.paint.type).toBe("ModularPage");
+expect(entry.paint.showsHold).toBe(false);
+expect(entry.timeline.busy).toBe(false);
+expect(entry.timeline.durationMs).toBeLessThan(2500);
+expect(entry.start.consentToTimelineMs).toBeLessThan(6000);
 ```
 
 Gateway, consent, and timeline pages have different DOM. Do not assume

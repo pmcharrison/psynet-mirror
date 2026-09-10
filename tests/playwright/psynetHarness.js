@@ -860,26 +860,165 @@ async function completeInitialGateway(page, timeout = 120000) {
   await gatewayButton.click();
 }
 
-function isFirstTimelineDocumentResponse(response) {
+function isTimelineDocumentResponse(response) {
   let url;
   try {
     url = new URL(response.url());
   } catch {
     return false;
   }
-  return (
-    response.request().method() === "GET" &&
-    url.pathname === "/timeline" &&
-    response.ok()
+  return response.request().method() === "GET" && url.pathname === "/timeline";
+}
+
+function parseTrackedParticipantRequest(urlLike, method) {
+  let url;
+  try {
+    url = new URL(urlLike);
+  } catch {
+    return null;
+  }
+  const path = url.pathname;
+  if (method === "POST" && path === "/participant") {
+    return { kind: "create_participant", method, path };
+  }
+  if (method === "POST" && path === "/load-participant") {
+    return { kind: "load_participant", method, path };
+  }
+  if (method === "GET" && path === "/start") {
+    return { kind: "start_page", method, path };
+  }
+  if (method === "GET" && path === "/timeline") {
+    return {
+      kind: url.searchParams.has("mode") ? "timeline_json" : "timeline_document",
+      method,
+      path
+    };
+  }
+  if (method === "POST" && path === "/response") {
+    return { kind: "response", method, path };
+  }
+  return null;
+}
+
+function requestDurationMs(request, fallbackMs) {
+  const timing = request.timing();
+  if (timing && timing.responseEnd >= 0) {
+    return timing.responseEnd;
+  }
+  return fallbackMs;
+}
+
+function startParticipantRequestTracker(page) {
+  const records = [];
+  const pending = [];
+  const startedAt = new WeakMap();
+  const onRequest = (request) => {
+    if (parseTrackedParticipantRequest(request.url(), request.method())) {
+      startedAt.set(request, Date.now());
+    }
+  };
+  const onResponse = (response) => {
+    const request = response.request();
+    const parsed = parseTrackedParticipantRequest(response.url(), request.method());
+    if (!parsed) {
+      return;
+    }
+    const task = (async () => {
+      await response.finished().catch(() => {});
+      const wallMs = Date.now() - (startedAt.get(request) || Date.now());
+      records.push({
+        ...parsed,
+        status: response.status(),
+        durationMs: requestDurationMs(request, wallMs),
+        busy: response.status() === 503
+      });
+    })();
+    pending.push(task);
+  };
+  page.on("request", onRequest);
+  page.on("response", onResponse);
+  return {
+    records,
+    async flush() {
+      await Promise.all(pending);
+    },
+    stop() {
+      page.off("request", onRequest);
+      page.off("response", onResponse);
+    }
+  };
+}
+
+function summarizeParticipantRequests(records) {
+  if (!records.length) {
+    return "no tracked requests";
+  }
+  return records
+    .map((record) => {
+      const duration = record.durationMs == null ? "?" : `${Math.round(record.durationMs)}ms`;
+      return `${record.method} ${record.path} ${record.status} ${duration}${
+        record.busy ? " busy" : ""
+      }`;
+    })
+    .join("; ");
+}
+
+function unexpectedBlockingRequests(records, maxDurationMs) {
+  return records.filter(
+    (record) => record.busy || (record.durationMs ?? 0) >= maxDurationMs
   );
 }
 
-async function captureFirstTimelineAfterGateway(page, timeout = 120000) {
-  const responsePromise = page.waitForResponse(isFirstTimelineDocumentResponse, {
+async function enterTimelineAfterGateway(page, timeout = 120000) {
+  const tracker = startParticipantRequestTracker(page);
+  const timelineResponsePromise = page.waitForResponse(isTimelineDocumentResponse, {
     timeout
   });
+  const consentClickedAt = Date.now();
+  let startSeenAt = null;
+  page
+    .locator("#starting-experiment")
+    .waitFor({ state: "visible", timeout })
+    .then(() => {
+      startSeenAt = Date.now();
+    })
+    .catch(() => {});
   await completeInitialGateway(page, timeout);
-  return (await responsePromise).text();
+  const timelineResponse = await timelineResponsePromise;
+  await timelineResponse.finished().catch(() => {});
+  const timelineAt = Date.now();
+  const html = await timelineResponse.text().catch(() => "");
+  await tracker.flush();
+  return {
+    html,
+    tracker,
+    paint: html.includes("psynet-template-data")
+      ? readTimelinePageFromHtml(html)
+      : {
+          type: null,
+          showsHold: false
+        },
+    timeline: {
+      status: timelineResponse.status(),
+      durationMs: requestDurationMs(
+        timelineResponse.request(),
+        timelineAt - consentClickedAt
+      ),
+      busy: timelineResponse.status() === 503,
+      busyPage: html.includes("temporarily busy")
+    },
+    start: {
+      sawStartPage: startSeenAt !== null,
+      dwellMs: startSeenAt !== null ? timelineAt - startSeenAt : 0,
+      consentToTimelineMs: timelineAt - consentClickedAt
+    }
+  };
+}
+
+async function captureFirstTimelineAfterGateway(page, timeout = 120000) {
+  const entry = await enterTimelineAfterGateway(page, timeout);
+  entry.tracker.stop();
+  return entry.html;
 }
 
 function readTimelinePageFromHtml(html) {
@@ -1028,6 +1167,7 @@ module.exports = {
   assertNoBackendError,
   beginExperiment,
   captureFirstTimelineAfterGateway,
+  enterTimelineAfterGateway,
   clickConsentButton,
   clickFinish,
   clickNextAndWait,
@@ -1049,6 +1189,9 @@ module.exports = {
   waitForVideoRecordingReady,
   waitForTimelinePageReady,
   readTimelinePageFromHtml,
+  startParticipantRequestTracker,
+  summarizeParticipantRequests,
+  unexpectedBlockingRequests,
   withExperiment,
   withFreshParticipantIds,
   waitForNextEnabled,

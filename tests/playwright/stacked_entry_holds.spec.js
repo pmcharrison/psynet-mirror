@@ -4,15 +4,55 @@ const { test, expect } = require("./fixtures");
 const {
   assertNoBackendError,
   beginExperiment,
-  captureFirstTimelineAfterGateway,
-  readTimelinePageFromHtml,
+  enterTimelineAfterGateway,
   startExperiment,
   stopExperiment,
+  summarizeParticipantRequests,
+  unexpectedBlockingRequests,
   waitForTimelinePageReady,
   withFreshParticipantIds
 } = require("./psynetHarness");
 
 const STEP_TIMEOUT_MS = 120000;
+// Below the 5s timeline lock timeout so a lock-wait busy path fails this test.
+const ENTRY_REQUEST_MAX_MS = 2500;
+const START_PAGE_MAX_MS = 6000;
+const BLOCKING_REQUEST_MS = 4000;
+
+function entryPathRequests(records) {
+  return records.filter((record) =>
+    ["create_participant", "load_participant", "timeline_document"].includes(
+      record.kind
+    )
+  );
+}
+
+function assertEntryWasResponsive(entry, label) {
+  const summary = summarizeParticipantRequests(entry.tracker.records);
+  const entryRequests = entryPathRequests(entry.tracker.records);
+  expect(entry.timeline.status, `${label} first GET /timeline (${summary})`).toBe(
+    200
+  );
+  expect(entry.timeline.busy, `${label} first GET /timeline was busy (${summary})`).toBe(
+    false
+  );
+  expect(
+    entry.timeline.busyPage,
+    `${label} first GET /timeline rendered a busy page (${summary})`
+  ).toBe(false);
+  expect(
+    unexpectedBlockingRequests(entryRequests, ENTRY_REQUEST_MAX_MS),
+    `${label} unexpected entry blocking: ${summary}`
+  ).toEqual([]);
+  expect(
+    entry.timeline.durationMs,
+    `${label} GET /timeline took ${Math.round(entry.timeline.durationMs)}ms (${summary})`
+  ).toBeLessThan(ENTRY_REQUEST_MAX_MS);
+  expect(
+    entry.start.consentToTimelineMs,
+    `${label} stayed on Starting experiment... for ${entry.start.consentToTimelineMs}ms (${summary})`
+  ).toBeLessThan(START_PAGE_MAX_MS);
+}
 
 test("last arriver's first timeline page skips stacked partner holds", { tag: "@both" }, async ({
   browser
@@ -27,6 +67,8 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
   const secondContext = await browser.newContext();
   let firstParticipant;
   let secondParticipant;
+  let firstEntry;
+  let secondEntry;
 
   try {
     const recruitmentUrl = await experiment.urlPromise;
@@ -35,11 +77,13 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
       firstContext,
       withFreshParticipantIds(recruitmentUrl, "stacked_hold_first")
     );
-    const firstPaint = readTimelinePageFromHtml(
-      await captureFirstTimelineAfterGateway(firstParticipant, STEP_TIMEOUT_MS)
+    firstEntry = await enterTimelineAfterGateway(
+      firstParticipant,
+      STEP_TIMEOUT_MS
     );
-    expect(firstPaint.type).toBe("_BarrierHoldPage");
-    expect(firstPaint.showsHold).toBe(true);
+    assertEntryWasResponsive(firstEntry, "first arriver");
+    expect(firstEntry.paint.type).toBe("_BarrierHoldPage");
+    expect(firstEntry.paint.showsHold).toBe(true);
     await waitForTimelinePageReady(firstParticipant, STEP_TIMEOUT_MS);
     await expect(
       firstParticipant.locator("#psynet-timeline-hold-indicator")
@@ -53,11 +97,21 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
       secondContext,
       withFreshParticipantIds(recruitmentUrl, "stacked_hold_second")
     );
-    const secondPaint = readTimelinePageFromHtml(
-      await captureFirstTimelineAfterGateway(secondParticipant, STEP_TIMEOUT_MS)
+    secondEntry = await enterTimelineAfterGateway(
+      secondParticipant,
+      STEP_TIMEOUT_MS
     );
-    expect(secondPaint.type).toBe("ModularPage");
-    expect(secondPaint.showsHold).toBe(false);
+    assertEntryWasResponsive(secondEntry, "last arriver");
+    expect(secondEntry.paint.type).toBe("ModularPage");
+    expect(secondEntry.paint.showsHold).toBe(false);
+    expect(
+      secondEntry.timeline.durationMs,
+      `last arriver GET /timeline ${Math.round(secondEntry.timeline.durationMs)}ms vs first ${Math.round(firstEntry.timeline.durationMs)}ms`
+    ).toBeLessThan(firstEntry.timeline.durationMs + ENTRY_REQUEST_MAX_MS);
+    expect(
+      secondEntry.start.consentToTimelineMs,
+      `last arriver Starting experiment... ${secondEntry.start.consentToTimelineMs}ms vs first ${firstEntry.start.consentToTimelineMs}ms`
+    ).toBeLessThan(firstEntry.start.consentToTimelineMs + ENTRY_REQUEST_MAX_MS);
     await waitForTimelinePageReady(secondParticipant, STEP_TIMEOUT_MS);
     await expect(secondParticipant.locator("#main-body")).toContainText(
       "Choose your action",
@@ -81,9 +135,22 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
       firstParticipant.locator("#psynet-timeline-hold-indicator")
     ).toHaveCount(0);
 
+    await firstEntry.tracker.flush();
+    await secondEntry.tracker.flush();
+    expect(
+      unexpectedBlockingRequests(firstEntry.tracker.records, BLOCKING_REQUEST_MS),
+      `first arriver unexpected blocking: ${summarizeParticipantRequests(firstEntry.tracker.records)}`
+    ).toEqual([]);
+    expect(
+      unexpectedBlockingRequests(secondEntry.tracker.records, BLOCKING_REQUEST_MS),
+      `last arriver unexpected blocking: ${summarizeParticipantRequests(secondEntry.tracker.records)}`
+    ).toEqual([]);
+
     await assertNoBackendError(firstParticipant);
     await assertNoBackendError(secondParticipant);
   } finally {
+    firstEntry?.tracker.stop();
+    secondEntry?.tracker.stop();
     await firstContext.close();
     await secondContext.close();
     await stopExperiment(experiment.proc);
