@@ -28,6 +28,7 @@ from tqdm import tqdm
 from psynet.timeline import NullElt
 
 from . import deployment_info
+from .cache import IMMUTABLE_CACHE_CONTROL, IMMUTABLE_CACHE_MAX_AGE
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .export.path_safety import UnsafePathError, normalize_relative_path
 from .field import PythonDict, PythonObject
@@ -1155,13 +1156,13 @@ class ManagedAsset(Asset):
         """Return the SHA-256 digest of the asset's current input path."""
         return self._get_sha256_contents(self.input_path, self.is_folder)
 
-    @cache
     def _get_md5_contents(self, path, is_folder):
+        """Hash the current bytes at ``path``."""
         f = md5_directory if is_folder else md5_file
         return f(path)
 
-    @cache
     def _get_sha256_contents(self, path, is_folder):
+        """Hash the current bytes at ``path``."""
         f = sha256_directory if is_folder else sha256_file
         return f(path)
 
@@ -1170,11 +1171,18 @@ class ManagedAsset(Asset):
 
     def _assign_content_addressed_paths(self):
         """Set SHA-256 identity and the shared object/host path."""
+        previous_sha256 = self.sha256_contents
         self.sha256_contents = self.get_sha256_contents()
         self.md5_contents = self.get_md5_contents()
         self.content_id = self.sha256_contents
         self.object_path = content_object_path(self.sha256_contents)
         self.host_path = self.object_path
+        if (
+            previous_sha256
+            and previous_sha256 != self.sha256_contents
+            and self.access_token
+        ):
+            self.rotate_access_token()
 
     def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
         if self.needs_storage_backend and isinstance(storage, NoStorage):
@@ -2373,7 +2381,11 @@ class LocalStorage(AssetStorage):
             abort(404)
         if os.path.isdir(file_system_path):
             abort(400)
-        return send_file(file_system_path, max_age=0)
+        response = send_file(file_system_path, max_age=IMMUTABLE_CACHE_MAX_AGE)
+        response.cache_control.public = None
+        response.cache_control.private = True
+        response.cache_control.immutable = True
+        return response
 
     def check_cache(self, host_path: str, is_folder: bool):
         if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
@@ -2522,7 +2534,7 @@ class S3TransferBackend:
     def check_recursive(self, recursive, local_path):
         assert recursive == os.path.isdir(local_path)
 
-    def upload(self, path, s3_key, recursive):
+    def upload(self, path, s3_key, recursive, cache_control=None):
         raise NotImplementedError
 
     def download(self, s3_key, target_path, recursive):
@@ -2533,11 +2545,12 @@ class S3TransferBackend:
 
 
 class S3Boto3TransferBackend(S3TransferBackend):
-    def upload(self, path, s3_key, recursive):
+    def upload(self, path, s3_key, recursive, cache_control=None):
         client = get_s3_client()
         self.check_recursive(recursive, path)
+        kwargs = {"ExtraArgs": {"CacheControl": cache_control}} if cache_control else {}
         if os.path.isfile(path):
-            client.upload_file(path, self.s3_bucket, s3_key)
+            client.upload_file(path, self.s3_bucket, s3_key, **kwargs)
         else:
             for _dir_path, _dir_names, _file_names in walk(path):
                 _rel_dir_path = os.path.relpath(_dir_path, path)
@@ -2547,7 +2560,12 @@ class S3Boto3TransferBackend(S3TransferBackend):
                         _file_key = os.path.join(s3_key, _file_name)
                     else:
                         _file_key = os.path.join(s3_key, _rel_dir_path, _file_name)
-                    client.upload_file(_local_path, self.s3_bucket, _file_key)
+                    client.upload_file(
+                        _local_path,
+                        self.s3_bucket,
+                        _file_key,
+                        **kwargs,
+                    )
 
     def _download(self, client, s3_key, target_path):
         import botocore
@@ -2618,21 +2636,23 @@ class S3AwscliTransferBackend(S3TransferBackend):
                 "AWS CLI is not installed. Please install it and try again."
             )
 
-    def copy(self, source, target, recursive):
+    def copy(self, source, target, recursive, cache_control=None):
         cmd = ["aws", "s3", "cp", source, target]
         if recursive:
             cmd.append("--recursive")
+        if cache_control:
+            cmd.extend(["--cache-control", cache_control])
         self.run_command(cmd)
 
-    def upload(self, path, s3_key, recursive):
+    def upload(self, path, s3_key, recursive, cache_control=None):
         self.check_recursive(recursive, path)
         url = self.get_s3_url(s3_key)
         try:
-            self.copy(path, url, recursive)
+            self.copy(path, url, recursive, cache_control)
         except AwsCliError as err:
             if "NoSuchBucket" in str(err):
                 S3Storage.create_bucket(self.s3_bucket)
-                self.copy(path, url, recursive)
+                self.copy(path, url, recursive, cache_control)
             else:
                 raise
 
@@ -2720,10 +2740,12 @@ class S3Storage(AssetStorage):
 
     def _receive_deposit(self, asset, host_path):
         s3_key = self.get_s3_key(host_path)
-        if asset.is_folder:
-            self.upload_folder(asset.input_path, s3_key)
-        else:
-            self.upload_file(asset.input_path, s3_key)
+        upload = self.upload_folder if asset.is_folder else self.upload_file
+        upload(
+            asset.input_path,
+            s3_key,
+            cache_control=IMMUTABLE_CACHE_CONTROL,
+        )
 
     def get_url(self, host_path: str):
         s3_key = self.get_s3_key(host_path)
@@ -2869,14 +2891,29 @@ class S3Storage(AssetStorage):
     def _download(self, s3_key, target_path, recursive):
         return self.backend.download(s3_key, target_path, recursive)
 
-    def upload_file(self, path, s3_key):
-        return self._upload(path, s3_key, recursive=False)
+    def upload_file(self, path, s3_key, cache_control=None):
+        return self._upload(
+            path,
+            s3_key,
+            recursive=False,
+            cache_control=cache_control,
+        )
 
-    def upload_folder(self, path, s3_key):
-        return self._upload(path, s3_key, recursive=True)
+    def upload_folder(self, path, s3_key, cache_control=None):
+        return self._upload(
+            path,
+            s3_key,
+            recursive=True,
+            cache_control=cache_control,
+        )
 
-    def _upload(self, path, s3_key, recursive):
-        return self.backend.upload(path, s3_key, recursive)
+    def _upload(self, path, s3_key, recursive, cache_control=None):
+        return self.backend.upload(
+            path,
+            s3_key,
+            recursive,
+            cache_control=cache_control,
+        )
 
     @staticmethod
     def create_bucket(s3_bucket):

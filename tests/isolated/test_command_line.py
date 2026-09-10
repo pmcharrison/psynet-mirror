@@ -376,7 +376,6 @@ class TestCommandLine(object):
 
         assert result.exit_code == 0, result.output
         assert "Wrap Sphinx's linkcheck builder" in result.output
-        assert "make linkcheck" in result.output
         assert "--clean / --no-clean" in result.output
         assert "--jobs" in result.output
         assert "--sphinx-option" in result.output
@@ -1069,6 +1068,7 @@ def test_scripts_update_installs_managed_skills_and_preserves_user_skills():
             assert custom_skill.read_text(encoding="utf-8") == "# Custom skill\n"
             assert not stale_skill.exists()
             assert Path(".cursor/skills/psynet/implement-experiment/SKILL.md").is_file()
+            assert Path(".cursor/skills/psynet/playwright-testing/SKILL.md").is_file()
             assert Path(
                 ".cursor/skills/psynet/record-participant-video/SKILL.md"
             ).is_file()

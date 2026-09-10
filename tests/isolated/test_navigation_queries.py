@@ -8,6 +8,13 @@ from dallinger import db
 from flask import Flask
 from sqlalchemy import inspect
 
+from psynet.exit import (
+    EarlyExitConfirmation,
+    ExitContext,
+    ExitPath,
+    ExitPlan,
+    PaymentState,
+)
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
@@ -43,6 +50,44 @@ def participant_with_module_state(db_session):
     unique_id = participant.unique_id
     db.session.remove()
     return unique_id
+
+
+def test_exit_plan_persists_and_rolls_back(db_session):
+    experiment = get_experiment()
+    participant = Participant(
+        experiment=experiment,
+        recruiter_id="hotair",
+        worker_id=str(uuid.uuid4()),
+        hit_id=str(uuid.uuid4()),
+        assignment_id=str(uuid.uuid4()),
+        mode="debug",
+    )
+    plan = ExitPlan.create(
+        context=ExitContext.VOLUNTARY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+        confirmation=EarlyExitConfirmation(
+            title="Leave?",
+            message="Responses saved.",
+            confirm_label="Leave",
+            cancel_label="Continue",
+        ),
+    )
+    participant.exit_plan = plan.to_dict()
+    db.session.add(participant)
+    db.session.commit()
+    participant_id = participant.id
+    db.session.remove()
+
+    reloaded = Participant.query.get(participant_id)
+    assert ExitPlan.from_dict(reloaded.exit_plan) == plan
+
+    reloaded.exit_plan = plan.mark_committed().to_dict()
+    db.session.flush()
+    db.session.rollback()
+    db.session.remove()
+    assert Participant.query.get(participant_id).exit_plan == plan.to_dict()
 
 
 def test_participant_request_query_loads_relationships_only_when_used(
@@ -239,3 +284,48 @@ def test_response_handler_skips_unused_participant_relationships(
     assert body["submission"] == "approved"
     assert _table_query_count(profiler, "participant_link_barrier") == 0
     assert _table_query_count(profiler, "module_state") <= 2
+
+
+def test_timeline_redirects_finished_participants_to_the_exit_page(
+    db_session, request_participant
+):
+    """Back from the exit page must not revive a finished participant's timeline."""
+    from datetime import datetime
+
+    experiment = get_experiment()
+    unique_id = request_participant
+    participant = Participant.query.filter_by(unique_id=unique_id).one()
+    participant.complete = True
+    participant.progress = 1.0
+    participant.end_time = datetime.now()
+    db.session.commit()
+    participant_id = participant.id
+    db.session.remove()
+
+    with _timeline_request(unique_id):
+        response = experiment.route_timeline()
+
+    assert response.status_code in (301, 302)
+    assert (
+        f"/recruiter-exit?participant_id={participant_id}"
+        in response.headers["Location"]
+    )
+
+
+def test_timeline_does_not_redirect_before_successful_end_logic(
+    db_session, request_participant
+):
+    """Progress reaches one before the successful end branch marks completion."""
+    experiment = get_experiment()
+    unique_id = request_participant
+    participant = Participant.query.filter_by(unique_id=unique_id).one()
+    participant.complete = False
+    participant.progress = 1.0
+    db.session.commit()
+    db.session.remove()
+
+    with _timeline_request(unique_id):
+        response = experiment.route_timeline()
+
+    assert response.status_code == 200
+    assert json.loads(response.get_data())["attributes"]["unique_id"] == unique_id

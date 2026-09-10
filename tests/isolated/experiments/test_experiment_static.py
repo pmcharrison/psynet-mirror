@@ -125,10 +125,10 @@ class TestExp:
                 driver,
                 "main-body",
                 """
-                That\'s the end of the experiment! You will receive a reward of $0.11
-                for the time you spent on the experiment. You have also been awarded a performance reward of $9.09.
+                That's the end! You will receive a reward of $0.11
+                for the time you spent. You have also been awarded a performance reward of $9.09.
                 Thank you for taking part.
-                Please click "Finish" to finalize the session. Finish
+                Click Finish to finalize the session. Finish
                 """,
             )
 

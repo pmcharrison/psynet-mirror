@@ -1,14 +1,14 @@
 ---
 name: develop-experiment-front-end
-description: Develop and test PsyNet experiment front-end interfaces with ModularPage, Native Graphics, and Playwright checks. Use when building or validating participant-facing pages, controls, custom prompts, or UI evidence screenshots.
+description: Develop PsyNet experiment front-end interfaces with ModularPage, Native Graphics, and custom pages. Use when building participant-facing pages, controls, or custom prompts.
 ---
 
 # Develop experiment front end
 
 ## Prerequisites
 
-- For Playwright screenshots or participant-flow video evidence, use
-  `record-participant-video/SKILL.md`.
+- For Playwright walks and layout checks, use `playwright-testing/SKILL.md`.
+- For participant-flow video evidence, use `record-participant-video/SKILL.md`.
 
 ## Modular pages
 
@@ -54,8 +54,9 @@ More wholesale customization can be achieved by creating a custom `Page` subclas
 
 Customizations should be tested robustly.
 Construct a minimal experiment timeline to do this,
-and construct a Playwright test for each custom component.
-Use the Playwright test to create screenshots at key moments, and review these screenshots.
+and construct a Playwright test for each custom component as described in
+`playwright-testing/SKILL.md`. Use that test to create screenshots at key
+moments, and run the layout check from that skill before each screenshot.
 For canonical participant video evidence, follow `record-participant-video/SKILL.md`.
 Ensure that:
 

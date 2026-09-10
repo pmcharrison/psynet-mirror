@@ -83,7 +83,7 @@ If participants exchange live actions or messages within a trial, also read
 
 ## Recruitment and platform design
 
-- Treat Prolific, Connect, MTurk, Cint, or Lucid as recruitment layers. PsyNet
+- Treat Prolific, Connect, Cint, or Lucid as recruitment layers. PsyNet
   should still own the lobby, grouping, timeout, overflow, and completion logic.
 - Prefer Prolific or CloudResearch Connect for small scheduled cohorts because
   they support participant IDs, targeted recontact, messages, quotas, and manual

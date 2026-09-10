@@ -26,7 +26,7 @@ However, other backends are possible, for example to store assets on Amazon S3.
 See the :class:`~psynet.asset.S3Storage` class for more details.
 
 Managed assets are stored by SHA-256 content identity under paths of the form
-``objects/sha256/<digest>``. Local and on-demand browser access uses a permanent
+``objects/sha256/<digest>``. Local and on-demand browser access uses a stable,
 random access token:
 
 .. code-block:: text
@@ -39,6 +39,14 @@ object URL instead (bytes are not proxied through PsyNet). External assets keep
 their raw URL and are not proxied through PsyNet. On-demand assets are also
 served via ``/asset/<access_token>`` and are generated when requested rather
 than deposited into object storage by default.
+
+Deposited managed assets receive a long-lived immutable cache policy. Local
+asset responses are marked private so shared proxies do not retain participant
+media. If a local asset is deposited again with different contents, PsyNet
+rotates its access token and the old URL stops working. S3-backed assets instead
+change their direct, content-addressed object URL when their contents change.
+On-demand assets continue to revalidate because their bytes are generated at
+request time.
 
 .. warning::
     PsyNet's asset management system currently has some performance overhead that can make it slow
@@ -312,7 +320,7 @@ that is responsible for exporting the database contents once an experiment is fi
 By default (``--assets collected``), PsyNet exports managed assets deposited
 during the experiment — for example recordings. Cached stimuli, external URLs,
 and on-demand assets are omitted. Use ``--assets none`` to skip asset files.
-See :ref:`data` for the export layout.
+See :doc:`/deploy/data` for the export layout.
 
 .. warning::
     Large experiments can still take a while to export when many collected
@@ -329,7 +337,7 @@ See :ref:`data` for the export layout.
             ~/Downloads/my-experiment-assets
 
     If you are unfamiliar with the ``scp`` command, you can read more about it
-    `here <https://linux.die.net/man/1/scp>`_.
+    `here <https://man7.org/linux/man-pages/man1/scp.1.html>`_.
 
     If you are using S3 storage, you can download the assets using the ``aws s3 cp`` command.
     for example:

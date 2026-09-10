@@ -28,7 +28,6 @@ from bs4 import BeautifulSoup
 from dallinger.config import experiment_available
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import _descendent_classes
-from flask import url_for
 from flask.globals import current_app
 from flask.templating import Environment, _render
 from sqlalchemy import or_
@@ -586,12 +585,13 @@ def _render_with_translations(
     app = current_app._get_current_object()  # type: ignore[attr-defined]
     gettext = get_translator()
     pgettext = get_translator(context=True)
+    from psynet.static_resources import versioned_url_for
 
     jinja_functions = {
         **app.jinja_env.globals,
         "gettext": gettext,
         "pgettext": pgettext,
-        "url_for": url_for,
+        "url_for": versioned_url_for,
     }
 
     translation = Translations.load("translations", [locale])
