@@ -710,6 +710,41 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     assert "b_good" in processed_barriers
 
 
+_group_release_calls = []
+
+
+def _count_group_release(
+    group, participants, participant=None, barrier=None, experiment=None
+):
+    _group_release_calls.append(group.id)
+
+
+def _pair_sync_group(exp, db_session, group_type="main"):
+    participants = [new_participant(exp) for _ in range(2)]
+    for participant in participants:
+        participant.status = "working"
+    group = SimpleSyncGroup(
+        group_type=group_type,
+        initial_group_size=2,
+        max_group_size=2,
+        min_group_size=2,
+        n_active_participants=2,
+        accepts_top_ups=False,
+    )
+    db_session.add(group)
+    for participant in participants:
+        group.add_participant(participant)
+    group.leader = participants[0]
+    db_session.commit()
+    return participants, group
+
+
+def _arrive_at_group_barrier(exp, barrier, participant):
+    barrier.receive_participant(participant)
+    if barrier._uses_timeline_hold:
+        barrier.waiting_logic.consume(exp, participant)
+
+
 def _barrier_link_released(participant_id, barrier_id):
     with db.engine.connect() as conn:
         return conn.execute(
@@ -761,6 +796,117 @@ def test_check_barriers_skips_locked_waiters_and_continues(
 
     check_barriers()
     assert _barrier_link_released(locked_id, "a_locked") is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_last_group_arrival_releases_without_poller(
+    in_experiment_directory, db_session, monkeypatch
+):
+    exp = get_experiment()
+    participants, group = _pair_sync_group(exp, db_session)
+    first, last = participants
+    _group_release_calls.clear()
+    barrier = GroupBarrier(
+        id_="last_arrival",
+        group_type="main",
+        on_release=_count_group_release,
+    )
+    publications = []
+    monkeypatch.setattr(
+        db.redis_conn,
+        "publish",
+        lambda channel_name, data: publications.append(
+            (channel_name, json.loads(data))
+        ),
+    )
+
+    _arrive_at_group_barrier(exp, barrier, first)
+    db_session.commit()
+    assert barrier.id in first.active_barriers
+    assert not barrier.waiting_logic.participant_can_resume(exp, first)
+    assert _group_release_calls == []
+
+    _arrive_at_group_barrier(exp, barrier, last)
+    assert barrier.waiting_logic.participant_can_resume(exp, last)
+    db_session.commit()
+
+    assert barrier.id not in first.active_barriers
+    assert barrier.id not in last.active_barriers
+    assert _group_release_calls == [group.id]
+    assert barrier.waiting_logic.participant_can_resume(exp, last)
+    wake_tokens = {
+        target["wake_token"]
+        for _, payload in publications
+        for target in payload["targets"]
+    }
+    assert first.timeline_holds[0].wake_token in wake_tokens
+    assert last.timeline_holds[0].wake_token in wake_tokens
+    assert all(
+        target["reason"] == "barrier_released"
+        for _, payload in publications
+        for target in payload["targets"]
+    )
+
+    check_barriers()
+    assert _group_release_calls == [group.id]
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_last_group_arrival_releases_explicit_waiting_logic_without_poller(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(
+        id_="last_arrival_page",
+        group_type="main",
+        waiting_logic=WaitPage(wait_time=1),
+    )
+
+    barrier.receive_participant(first)
+    db_session.commit()
+    assert barrier.id in first.active_barriers
+
+    barrier.receive_participant(last)
+    db_session.commit()
+
+    assert barrier.id not in first.active_barriers
+    assert barrier.id not in last.active_barriers
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_last_group_arrival_defers_when_a_partner_is_locked(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="locked_partner", group_type="main")
+    _arrive_at_group_barrier(exp, barrier, first)
+    db_session.commit()
+    first_id = first.id
+    last_id = last.id
+
+    with db.engine.connect() as conn:
+        trans = conn.begin()
+        conn.execute(
+            text("SELECT id FROM participant WHERE id = :id FOR UPDATE"),
+            {"id": first_id},
+        )
+        _arrive_at_group_barrier(exp, barrier, last)
+        db_session.commit()
+        assert _barrier_link_released(first_id, "locked_partner") is False
+        assert _barrier_link_released(last_id, "locked_partner") is False
+        trans.rollback()
+
+    check_barriers()
+    assert _barrier_link_released(first_id, "locked_partner") is True
+    assert _barrier_link_released(last_id, "locked_partner") is True
 
 
 def test_waiting_participants_nowait_requires_for_update():

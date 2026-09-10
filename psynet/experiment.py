@@ -3304,7 +3304,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if should_resume:
                     participant.inc_progress(event.time_estimate)
                     self.timeline.advance_page(self, participant)
-                page = self.timeline.get_current_elt(self, participant)
+                page = self._advance_past_ready_holds(
+                    participant, self.timeline.get_current_elt(self, participant)
+                )
                 return ResponseResult(
                     payload=self._approved_payload(participant, page),
                     page=page,
@@ -3344,7 +3346,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.inc_progress(event.time_estimate)
 
             self.timeline.advance_page(self, participant)
-            page = self.timeline.get_current_elt(self, participant)
+            page = self._advance_past_ready_holds(
+                participant, self.timeline.get_current_elt(self, participant)
+            )
             return ResponseResult(
                 payload=self._approved_payload(participant, page),
                 page=page,
@@ -3360,6 +3364,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     self, err, participant
                 ),
             )
+
+    def _advance_past_ready_holds(self, participant, page):
+        """Skip holds that are already clear after this request's writes.
+
+        Used when the last group member arrives and ``GroupBarrier`` releases
+        the hold before ``/response`` returns, so that arriver never sees wait UI.
+        """
+        while getattr(page, "is_timeline_hold", False) and page.prepare_resume_if_ready(
+            self, participant
+        ):
+            page.account_wait(participant, settle=True)
+            participant.inc_progress(page.time_estimate)
+            self.timeline.advance_page(self, participant)
+            page = self.timeline.get_current_elt(self, participant)
+        return page
 
     def response_rejected(self, message):
         logger.warning(

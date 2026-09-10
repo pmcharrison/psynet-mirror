@@ -62,6 +62,10 @@ wake. Each participant's hold channel (`psynet_timeline_hold:<id>`) publishes
 that wake only after the database transaction commits; the browser then
 rechecks the authoritative link state.
 
+``GroupBarrier`` also tries that same ``check()`` when the last group member
+arrives, inside the arrival request. Lock contention is swallowed and left for
+the 0.5 s poller so a locked partner cannot abort the submit.
+
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
 ``serialize_callable`` so they can be stored inside ``BarrierRecord`` safely.
 """
@@ -134,8 +138,15 @@ class _BarrierHoldPage(_TimelineHoldPage):
         return self.barrier.max_wait_action == "fail"
 
     def participant_can_resume(self, experiment, participant):
-        """Return whether the barrier released this participant."""
-        return self.barrier_id not in participant.active_barriers
+        """Return whether the barrier released this participant.
+
+        Check the in-session ``released`` flag. SQLAlchemy does not drop a
+        just-released link from ``active_barriers`` until the collection
+        expires, so membership alone would hide a same-request last-arrival
+        release from ``_advance_past_ready_holds``.
+        """
+        link = participant.active_barriers.get(self.barrier_id)
+        return link is None or bool(link.released)
 
     def on_hold_record_created(self, participant, record):
         link = participant.active_barriers.get(self.barrier_id)
@@ -145,6 +156,7 @@ class _BarrierHoldPage(_TimelineHoldPage):
                 f"'{self.barrier_id}'."
             )
         link.timeline_hold = record
+        self.barrier._try_check_on_arrival()
 
     def prepare_to_resume(self, participant):
         if (
@@ -328,6 +340,11 @@ class Barrier(EltCollection):
             arrival_time=timenow(),
         )
         participant.active_barriers[self.id] = link
+        if not self._uses_timeline_hold:
+            self._try_check_on_arrival()
+
+    def _try_check_on_arrival(self):
+        """Optionally release this barrier from the arriving participant request."""
 
     def get_waiting_participants(self, for_update: bool = False, nowait: bool = False):
         return self.get_waiting_participants_from_barrier_id(
@@ -441,6 +458,11 @@ class GroupBarrier(Barrier):
     If ``accepts_top_ups=False``, then there's no hope for new participants, so the group will be released
     and failed.
 
+    The last arrival tries ``check()`` in that same request so partners are
+    released without waiting for the 0.5 s poller. On the default hold path
+    that arriver then skips the wait indicator. If a partner wait row is
+    locked, the poller finishes the release.
+
     Parameters
     ----------
 
@@ -552,6 +574,25 @@ class GroupBarrier(Barrier):
                 f"got {timeout_between_barriers_action!r}"
             )
         self.timeout_between_barriers_action = timeout_between_barriers_action
+
+    def _try_check_on_arrival(self):
+        """Release the group now if this arrival completed it.
+
+        Uses a savepoint so a ``NOWAIT`` miss rolls back only this check and
+        leaves the 0.5 s poller to finish. The arriving participant's request
+        can still commit.
+        """
+        try:
+            with db.session.begin_nested():
+                self.check()
+        except Exception as err:
+            if is_transient_transaction_error(err):
+                logger.debug(
+                    "Barrier '%s' arrival check deferred because a waiter is locked.",
+                    self.id,
+                )
+                return
+            raise
 
     def handle_max_wait_timeout(self, participant: Participant):
         """Kick from the sync group when requested, then release the barrier link."""

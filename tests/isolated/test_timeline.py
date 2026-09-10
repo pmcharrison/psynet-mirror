@@ -239,6 +239,27 @@ def test_same_session_page_payload_uses_pre_render_contents():
     assert payload["page"]["contents"] == "after"
 
 
+def test_advance_past_ready_holds_skips_a_cleared_hold():
+    hold = MagicMock()
+    hold.is_timeline_hold = True
+    hold.prepare_resume_if_ready.return_value = True
+    hold.time_estimate = 1.5
+    nxt = MagicMock()
+    nxt.is_timeline_hold = False
+    experiment = Experiment.__new__(Experiment)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.return_value = nxt
+    participant = SimpleNamespace()
+    participant.inc_progress = MagicMock()
+
+    page = experiment._advance_past_ready_holds(participant, hold)
+
+    assert page is nxt
+    hold.account_wait.assert_called_once_with(participant, settle=True)
+    participant.inc_progress.assert_called_once_with(1.5)
+    experiment.timeline.advance_page.assert_called_once_with(experiment, participant)
+
+
 def test_template_fragment_input_wraps_main_body_content():
     page = Page(template_fragment_str="<p id='fragment-only'>Fragment content</p>")
 

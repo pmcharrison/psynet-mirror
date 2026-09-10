@@ -11,9 +11,11 @@ and platform docs when a study is near deployment.
   `waiting_logic_expected_repetitions`, `max_wait_time`, and time-credit
   handling.
 - `psynet.sync.GroupBarrier` releases all active members of a `SyncGroup` once
-  they are waiting at the same barrier. It checks `min_group_size`, can wait for
-  top-ups, can fail under-quota groups, and accepts `on_release(group,
-  participants)` for atomic shared updates.
+  they are waiting at the same barrier. The last arrival tries `check()` in that
+  request so the group does not wait for the 0.5 s poller; lock contention falls
+  back to the poller. It checks `min_group_size`, can wait for top-ups, can fail
+  under-quota groups, and accepts `on_release(group, participants)` for atomic
+  shared updates.
 - `psynet.sync.SimpleGrouper` creates `SyncGroup`s by waiting for `batch_size`
   participants and partitioning them into groups of `initial_group_size`.
   `min_group_size`, `max_group_size`, `join_existing_groups`, and
