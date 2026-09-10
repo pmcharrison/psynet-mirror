@@ -107,10 +107,10 @@ non-idempotent external side effects. Barrier definitions and per-group visit
 instances are created in the arrival request's transaction. The poller claims
 an instance with an advisory transaction lock, rather than locking mutable
 metadata that another request needs to update. When the last participant
-arrives at a barrier, that request runs
-``check()``, which locks every waiter. If anyone else was waiting, PsyNet
-commits immediately and relocks only the arriver, so partner rows are not held
-for the rest of the write phase. The barrier poller locks waiters with
+arrives at a barrier, that request evaluates the barrier while locking every
+waiter. If anyone else was waiting, PsyNet commits immediately and relocks only
+the arriver, so partner rows are not held for the rest of the write phase. The
+barrier poller locks waiters with
 ``FOR UPDATE NOWAIT`` so a participant write cannot stall other groups; if any
 waiter is busy, that barrier is skipped until the next tick. The sync-group
 recount job likewise skip-locks one group at a time.

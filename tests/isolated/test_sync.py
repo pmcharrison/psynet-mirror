@@ -28,7 +28,6 @@ from psynet.sync import (
     Barrier,
     BarrierDefinition,
     BarrierInstance,
-    BarrierRecord,
     GroupBarrier,
     SimpleGrouper,
     SimpleSyncGroup,
@@ -68,13 +67,19 @@ two_poller_check_can_finish = threading.Event()
 
 
 class ExplodingBarrier(Barrier):
-    def check(self):
+    def check_waiting_participants(self, waiting_participants):
         raise RuntimeError("boom")
+
+    def choose_who_to_release(self, waiting_participants):
+        return []
 
 
 class RecordingBarrier(Barrier):
-    def check(self):
+    def check_waiting_participants(self, waiting_participants):
         processed_barriers.append(self.id)
+
+    def choose_who_to_release(self, waiting_participants):
+        return []
 
 
 class ReleaseAllBarrier(Barrier):
@@ -105,12 +110,6 @@ class ConfigurableBarrier(Barrier):
         if len(waiting_participants) < self.required:
             return []
         return waiting_participants
-
-
-class OverridingReleaseBarrier(Barrier):
-    def check(self):
-        for participant in self.get_waiting_participants(for_update=True):
-            self.release(participant)
 
 
 class RecordingTimeoutGroupBarrier(GroupBarrier):
@@ -363,11 +362,11 @@ def test_same_group_barrier_id_uses_distinct_instances_per_group(
     second_instance = second_group[0].active_barriers[barrier.id].barrier_instance
     assert first_instance.id != second_instance.id
     assert first_instance.group_id != second_instance.group_id
-    assert barrier.get_waiting_participants(barrier_instance_id=first_instance.id) == [
-        first_group[0]
+    assert first_instance.participant_links == [
+        first_group[0].active_barriers[barrier.id]
     ]
-    assert barrier.get_waiting_participants(barrier_instance_id=second_instance.id) == [
-        second_group[0]
+    assert second_instance.participant_links == [
+        second_group[0].active_barriers[barrier.id]
     ]
 
 
@@ -456,13 +455,10 @@ def test_group_allocator(in_experiment_directory, db_session):
     grouper = SimpleGrouper(group_type="main", initial_group_size=3)
     participants = [new_participant(exp) for _ in range(6)]
 
-    assert len(grouper.get_waiting_participants()) == 0
-
     grouper.receive_participant(participants[0])
     db.session.commit()
 
-    assert len(grouper.get_waiting_participants()) == 1
-    assert BarrierRecord.query.get("main_grouper") is not None
+    assert BarrierDefinition.query.get("main_grouper") is not None
     assert "main_grouper" in participants[0].active_barriers
     assert "main_grouper" not in participants[1].active_barriers
     assert not grouper.can_participant_exit(participants[0])
@@ -473,7 +469,6 @@ def test_group_allocator(in_experiment_directory, db_session):
     grouper.receive_participant(participants[1])
     db.session.commit()
 
-    assert len(grouper.get_waiting_participants()) == 2
     assert not grouper.can_participant_exit(participants[0])
 
     for participant in participants:
@@ -485,7 +480,6 @@ def test_group_allocator(in_experiment_directory, db_session):
     db.session.commit()
 
     assert grouper.can_participant_exit(participants[0])
-    assert len(grouper.get_waiting_participants()) == 0
 
     for participant in participants[:3]:
         group = participant.sync_group
@@ -1364,13 +1358,6 @@ def test_group_hold_reports_how_many_are_not_ready_yet(
     assert pending_arrival_notice_for(third) == "2/3 of your group are ready."
 
 
-def test_waiting_participants_nowait_requires_for_update():
-    with pytest.raises(ValueError, match="nowait"):
-        Barrier.get_waiting_participants_from_barrier_id(
-            "x", for_update=False, nowait=True
-        )
-
-
 def _group_n_active(group_id):
     with db.engine.connect() as conn:
         return conn.execute(
@@ -1574,44 +1561,6 @@ def test_timeline_hold_wake_is_discarded_on_rollback(
     db_session.commit()
 
     assert publications == []
-
-
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
-)
-def test_overridden_barrier_check_still_publishes_hold_wake(
-    in_experiment_directory, db_session, monkeypatch
-):
-    exp = get_experiment()
-    participant = new_participant(exp)
-    participant.status = "working"
-    participant.page_uuid = "override-hold"
-    barrier = OverridingReleaseBarrier(id_="override")
-    barrier.receive_participant(participant)
-    hold = TimelineHoldRecord(
-        participant=participant,
-        page_uuid=participant.page_uuid,
-        hold_id="barrier:override",
-        started_at=timenow(),
-        expected_wait=1.5,
-        max_wait_time=20,
-        fix_time_credit=False,
-    )
-    participant.active_barriers[barrier.id].timeline_hold = hold
-    db_session.add(hold)
-    db_session.commit()
-    wake_token = hold.wake_token
-
-    publications = []
-    monkeypatch.setattr(
-        db.redis_conn,
-        "publish",
-        lambda channel_name, data: publications.append(json.loads(data)),
-    )
-
-    check_barriers()
-
-    assert publications[0]["targets"][0]["wake_token"] == wake_token
 
 
 @pytest.mark.parametrize(
@@ -2048,5 +1997,4 @@ def test_group_barrier_max_wait_kick_releases_barrier_link(
 
     assert participant.active_sync_groups.get("main") is None
     assert "max_wait_kick" not in participant.active_barriers
-    assert barrier.get_waiting_participants() == []
     assert not participant.failed
