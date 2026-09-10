@@ -110,6 +110,13 @@ linkcheck_ignore = [
     r"https://shiny\.gold-msi\.org/gmsi_toplevel/?$",
 ]
 
+# CI runners occasionally see a healthy host stall past linkcheck_timeout.
+# Sphinx only retries checks whose status is "broken", so timeouts have to be
+# reported as broken for linkcheck_retries to apply to them. This costs no
+# strictness: linkcheck already exits non-zero for timeouts either way.
+linkcheck_report_timeouts_as_broken = True
+linkcheck_retries = 3
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 

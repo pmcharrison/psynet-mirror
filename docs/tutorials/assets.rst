@@ -312,7 +312,7 @@ that is responsible for exporting the database contents once an experiment is fi
 By default (``--assets collected``), PsyNet exports managed assets deposited
 during the experiment — for example recordings. Cached stimuli, external URLs,
 and on-demand assets are omitted. Use ``--assets none`` to skip asset files.
-See :ref:`data` for the export layout.
+See :doc:`/deploy/data` for the export layout.
 
 .. warning::
     Large experiments can still take a while to export when many collected

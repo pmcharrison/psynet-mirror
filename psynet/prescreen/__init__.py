@@ -1827,6 +1827,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
     The audio forced choice test makes sure that the participant can correctly classify a sound.
     In each trial, the participant hears one sound and has to pick one answer from a list.
     Some use-cases where this test can be of use:
+
     - You only have a few stimuli with ground truth annotation and want the participant to annotate the rest. You can
       use the test to make sure that the participant is capable to classify the stimuli correctly.
     - You implemented an experiment that assumes participants are able to classify sounds (e.g., which bird sings the

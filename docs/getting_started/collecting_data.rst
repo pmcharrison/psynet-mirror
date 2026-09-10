@@ -329,7 +329,7 @@ the experiment directory that the deployment came from: PsyNet checks this and
 refuses to export if the labels do not match.
 
 If the export fails, your previous export is left untouched, so it is always
-safe to retry. See :ref:`data` for asset options.
+safe to retry. See :doc:`/deploy/data` for asset options.
 
 Once you're done, you can take down the experiment:
 
