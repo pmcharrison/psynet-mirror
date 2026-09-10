@@ -358,6 +358,7 @@ def test_response_render_error_after_commit_does_not_return_busy(monkeypatch):
         classmethod(lambda cls, error: True),
     )
     handled = {}
+    rolled_back = []
 
     class FakeExperiment:
         HandledError = type("HandledError", (Exception,), {})
@@ -367,8 +368,13 @@ def test_response_render_error_after_commit_does_not_return_busy(monkeypatch):
 
     class Query:
         def get(self, participant_id):
+            assert rolled_back
             return SimpleNamespace(current_trial=None, id=participant_id)
 
+    monkeypatch.setattr(
+        "psynet.experiment.db.session.rollback",
+        lambda: rolled_back.append(True),
+    )
     monkeypatch.setattr(
         "psynet.experiment.Participant.query",
         Query(),
@@ -384,6 +390,7 @@ def test_response_render_error_after_commit_does_not_return_busy(monkeypatch):
     )
     assert result == ("error-page", 500)
     assert "error" in handled
+    assert rolled_back == [True]
 
 
 @pytest.mark.parametrize(
