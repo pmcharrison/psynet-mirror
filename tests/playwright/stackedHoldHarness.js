@@ -335,7 +335,13 @@ async function attachClearedHoldResume(
   await wrapTimelineHoldResumeProbe(session.page);
   await assertActionOrPrompt(session.page, prompt, timeout);
   const probe = await readTimelineHoldReleaseProbe(session.page);
-  const logged = (session.resumeLog || []).find((entry) => entry.reason);
+  const sinceMs = session.resumeSinceMs;
+  const logged = [...(session.resumeLog || [])]
+    .reverse()
+    .find(
+      (entry) =>
+        entry.reason && (sinceMs == null || entry.atMs >= sinceMs)
+    );
   session.resumePromise = Promise.resolve({
     resumedAtMs: probe.holdEndedAtMs || logged?.atMs || Date.now()
   });

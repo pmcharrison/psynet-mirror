@@ -75,8 +75,17 @@ async function probeTimelineHoldClientBehavior(page) {
       throw new Error("timeline hold is not active");
     }
     const originalSchedule = psynet.scheduleTimelineHoldCheck;
+    const originalTimeout = psynet.scheduleTimelineHoldTimeout;
     clearTimeout(controller.safetyTimer);
+    clearTimeout(controller.timeoutTimer);
+    controller.safetyTimer = null;
+    controller.timeoutTimer = null;
+    if (controller.connection) {
+      controller.connection.close();
+      controller.connection = null;
+    }
     psynet.scheduleTimelineHoldCheck = function () {};
+    psynet.scheduleTimelineHoldTimeout = function () {};
 
     let arrivalClosed = 0;
     const fakeArrival = () => ({
@@ -184,8 +193,10 @@ async function probeTimelineHoldClientBehavior(page) {
       };
     } finally {
       psynet.scheduleTimelineHoldCheck = originalSchedule;
+      psynet.scheduleTimelineHoldTimeout = originalTimeout;
       if (psynet.timelineHold) {
         psynet.scheduleTimelineHoldCheck(psynet.timelineHold);
+        psynet.scheduleTimelineHoldTimeout(psynet.timelineHold);
       }
     }
   });
