@@ -741,7 +741,7 @@ class GroupBarrier(Barrier):
             )
             if is_waiting:
                 hold_html = None
-                if self._uses_timeline_hold and self.waiting_logic is not None:
+                if self._uses_timeline_hold:
                     hold_html = self.waiting_logic.overlay_html(member)
                 _queue_arrival_update(member.id, hold_message=hold_html)
             elif text:

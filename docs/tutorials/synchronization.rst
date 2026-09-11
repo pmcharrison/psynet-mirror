@@ -137,12 +137,12 @@ PsyNet persists the release behavior of each active waiting pool as a
 versioned declarative specification. Custom attributes used by the release
 hooks must therefore contain JSON-compatible values, supported callables,
 classes, or persisted PsyNet ORM records. Waiting pages
-(``waiting_logic``) stay on the live timeline object. Registry barriers
-reconstruct with ``waiting_logic is None`` and restore hold-page policy
-(``_uses_timeline_hold``). Scalar fields such as ``content`` and
-``max_wait_time`` are restored, so ``on_release`` and ``on_arrival_message``
-may read them from ``barrier``. Overlay copy may still vary between
-participants in one pool; it is not part of behavior identity.
+(``waiting_logic``) and hold-page construction stay on the live timeline
+object and are not restored into callbacks. Scalar fields such as
+``content`` and ``max_wait_time`` are restored, so ``on_release`` and
+``on_arrival_message`` may read them from ``barrier``. Overlay copy may
+still vary between participants in one pool; it is not part of behavior
+identity.
 
 By default, group members still on an earlier page see a pill on the
 progress bar (``Your partner is ready.``, or

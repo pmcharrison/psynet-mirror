@@ -10,6 +10,19 @@ from psynet.barrier_spec import (
 )
 from psynet.sync import Barrier, GroupBarrier, GroupCloser, SimpleGrouper
 
+_PAGE_ATTRS = (
+    "waiting_logic",
+    "_uses_timeline_hold",
+    "waiting_logic_expected_repetitions",
+)
+
+
+def _assert_page_fields_omitted(spec, restored):
+    assert "page_policy" not in spec
+    for name in _PAGE_ATTRS:
+        assert name not in spec.get("state", {})
+        assert not hasattr(restored, name)
+
 
 class ThresholdBarrier(Barrier):
     def __init__(self, id_, threshold):
@@ -37,14 +50,11 @@ def test_custom_barrier_round_trip_uses_plain_json():
     assert spec["state"] == {"id": "threshold", "threshold": 2}
     assert spec["version"] == 1
     assert spec["presentation"]["content"] is None
-    assert spec["page_policy"]["_uses_timeline_hold"] is True
-    assert "waiting_logic" not in spec["state"]
+    _assert_page_fields_omitted(spec, restored)
     assert isinstance(restored, ThresholdBarrier)
     assert restored.id == "threshold"
     assert restored.threshold == 2
     assert restored.content is None
-    assert restored.waiting_logic is None
-    assert restored._uses_timeline_hold is True
 
 
 def test_callback_round_trip():
@@ -68,10 +78,12 @@ def test_callback_round_trip():
     ],
 )
 def test_built_in_barrier_round_trip(original):
-    restored = barrier_from_spec_json(barrier_spec_json(original))
+    serialized = barrier_spec_json(original)
+    restored = barrier_from_spec_json(serialized)
 
     assert type(restored) is type(original)
     assert restored.id == original.id
+    _assert_page_fields_omitted(json.loads(serialized), restored)
     assert behavior_hash(restored) == behavior_hash(original)
 
 
@@ -139,13 +151,13 @@ def test_group_barrier_restores_scalar_presentation_not_waiting_pages():
     )
 
     restored = barrier_from_spec_json(barrier_spec_json(original))
+    spec = json.loads(barrier_spec_json(original))
 
     assert restored.content == "Waiting for your partner"
     assert restored.max_wait_time == 30
     assert restored.max_wait_action == "kick"
     assert restored.notify_arrivals is False
-    assert restored.waiting_logic is None
-    assert restored._uses_timeline_hold is True
+    _assert_page_fields_omitted(spec, restored)
     assert behavior_hash(restored) == behavior_hash(
         GroupBarrier(
             "pair_hold",
