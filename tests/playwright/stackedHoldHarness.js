@@ -25,6 +25,7 @@ const ENTRY_REQUEST_MAX_MS = 2500;
 const START_PAGE_MAX_MS = 6000;
 const BLOCKING_REQUEST_MS = 4000;
 const PARTNER_HOLD_RELEASE_MAX_MS = 2500;
+const WAITER_AFTER_TIMELINE_MAX_MS = 1000;
 const WAITER_RELEASE_SPREAD_MAX_MS = 1500;
 const SETTLE_HOLD_MS = 3500;
 const ACTION_PROMPT = "Choose your action";
@@ -75,8 +76,11 @@ function responsesSince(records, startedAtMs) {
 }
 
 function holdReleaseSummary({
+  lastArriverConsentToTimelineMs,
   afterConsentMs,
   afterTimelineMs,
+  holdResumePostMs,
+  extraTimelineGets,
   probe,
   resumeRequests,
   holdFrames = [],
@@ -89,10 +93,15 @@ function holdReleaseSummary({
   const wake = probe.wakeReason
     ? `wake ${probe.wakeReason}`
     : "no hold wake event";
+  const holdResumePost =
+    holdResumePostMs == null ? "missing" : `${Math.round(holdResumePostMs)}ms`;
   return (
-    `${label}: release ${afterConsentMs}ms after last consent, ` +
-    `${afterTimelineMs}ms after last timeline (${wake}; ` +
-    `resumes ${reasons}; ` +
+    `${label}: last arriver consent→timeline ${Math.round(
+      lastArriverConsentToTimelineMs
+    )}ms; waiter ${Math.round(afterTimelineMs)}ms after last timeline ` +
+    `(${Math.round(afterConsentMs)}ms after last consent; ` +
+    `hold-resume POST ${holdResumePost}; extra GET /timeline ${extraTimelineGets}; ` +
+    `${wake}; resumes ${reasons}; ` +
     `hold resumes ${probe.nextPageHoldResumes?.length || 0}; ` +
     `waiting token ${waitingWakeToken || "missing"}; ` +
     `published ${publishedWakeTokens(holdFrames).join(",") || "none"}; ` +
@@ -353,18 +362,28 @@ async function assertWaiterReleasedWithLastArriver(
   const resumeRequests = responsesSince(records, sinceMs);
   const afterConsentMs = resume.resumedAtMs - lastEntry.start.consentClickedAtMs;
   const afterTimelineMs = resume.resumedAtMs - lastEntry.start.timelineAtMs;
+  const lastArriverConsentToTimelineMs =
+    lastEntry.start.consentToTimelineMs ??
+    lastEntry.start.timelineAtMs - lastEntry.start.consentClickedAtMs;
   const laterTimeline = requestsSince(
     records,
     lastEntry.start.timelineAtMs,
     "timeline_document"
   );
+  const holdResumePosts = resumeRequests.filter(
+    (record) => record.kind === "response" && record.status === 200
+  );
+  const holdResumePostMs = holdResumePosts[0]?.durationMs ?? null;
   const reasonsAfterLast = [
     ...resumeReasonsSince(probe, lastEntry.start.consentClickedAtMs),
     ...(session.resumeLog || []).filter((entry) => entry.atMs >= sinceMs)
   ].map((entry) => entry.reason);
   const summary = holdReleaseSummary({
+    lastArriverConsentToTimelineMs,
     afterConsentMs,
     afterTimelineMs,
+    holdResumePostMs,
+    extraTimelineGets: laterTimeline.length,
     probe: {
       ...probe,
       resumeReasons: reasonsAfterLast.map((reason) => ({ reason, atMs: sinceMs }))
@@ -385,7 +404,7 @@ async function assertWaiterReleasedWithLastArriver(
   expect(
     afterTimelineMs,
     `${session.label} still held after the last arriver painted (${summary})`
-  ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+  ).toBeLessThan(WAITER_AFTER_TIMELINE_MAX_MS);
   expect(
     afterConsentMs,
     `${session.label} still held after the last arriver started (${summary})`
@@ -401,13 +420,11 @@ async function assertWaiterReleasedWithLastArriver(
   expect(
     laterTimeline.length,
     `${session.label} extra /timeline reloads after the last arriver painted (${summary})`
-  ).toBeLessThanOrEqual(1);
-  if (laterTimeline.length) {
-    expect(
-      resumeRequests.filter((record) => record.status === 200).length,
-      `${session.label} reloaded /timeline without a hold-resume POST /response (${summary})`
-    ).toBeGreaterThan(0);
-  }
+  ).toBe(0);
+  expect(
+    holdResumePosts.length,
+    `${session.label} missing hold-resume POST /response (${summary})`
+  ).toBeGreaterThan(0);
   expect(
     reasonsAfterLast,
     `${session.label} used a safety poll after the last arriver started (${summary})`
@@ -421,8 +438,7 @@ async function assertWaiterReleasedWithLastArriver(
     `${session.label} did not resume from a server wake (${summary})`
   ).toBe(true);
   expect(
-    resumeRequests.filter((record) => record.kind === "response" && record.status === 200)
-      .length,
+    holdResumePosts.length,
     `${session.label} extra hold-resume requests: ${summary}`
   ).toBeLessThanOrEqual(2);
   console.log(summary);
@@ -507,6 +523,7 @@ module.exports = {
   SETTLE_HOLD_MS,
   START_PAGE_MAX_MS,
   STEP_TIMEOUT_MS,
+  WAITER_AFTER_TIMELINE_MAX_MS,
   WAITER_RELEASE_SPREAD_MAX_MS,
   armChoiceHold,
   assertActionPage,

@@ -340,9 +340,11 @@ condition. ``check_interval`` remains the bounded fallback for missed messages
 and arbitrary conditions without a framework event.
 
 When the last hold on a page ends, the browser closes the hold-channel
-WebSocket. The next hold reconnects. A hold-resume check that comes back
-rejected (for example a stale ``page_uuid`` after the server has already
-advanced) reloads ``/timeline`` instead of leaving the overlay in place.
+WebSocket. The next hold reconnects. Hold-resume POSTs set
+``timeline_hold_resume`` so that if a partner already advanced this waiter
+(rotating ``page_uuid``), the server still returns the current page for an
+in-place update. A genuine reject, or a missing timeline fragment, still
+reloads ``/timeline`` instead of leaving the overlay in place.
 
 Holds emit ``timelineHoldStarted`` and ``timelineHoldEnded`` browser events.
 Their ``detail.holdId`` identifies the wait. Authors that deliberately want a
@@ -363,7 +365,10 @@ Timeline-hold resume checks use the durable hold record directly. They do not
 create :class:`~psynet.timeline.Response` rows or call the internal hold page's
 ``process_response()``, validation, or ``on_complete()`` hooks. Analyze waiting
 through ``TimelineHoldRecord`` and participant wait-time fields rather than by
-counting response rows.
+counting response rows. If the last arriver already advanced the waiter, the
+hold-resume POST still carries the hold page's uuid. The server recognizes that
+uuid on :class:`~psynet.timeline_hold.TimelineHoldRecord` and returns the
+current page without advancing again.
 
 Bots
 ~~~~

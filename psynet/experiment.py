@@ -3249,7 +3249,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page_uuid,
         client_ip_address,
         answer=NoArgumentProvided,
+        *,
+        timeline_hold_resume=False,
     ):
+        """Advance the participant after one ``/response`` write.
+
+        Parameters
+        ----------
+        timeline_hold_resume : bool
+            If True, a ``page_uuid`` that still matches this participant's
+            hold record is a catch-up after a partner already advanced the
+            waiter, not a multi-tab sync failure.
+        """
         _p = get_translator(context=True)
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
@@ -3290,6 +3301,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
+                if timeline_hold_resume:
+                    page = self._page_for_stale_hold_resume(participant, page_uuid)
+                    if page is not None:
+                        return ResponseResult(
+                            payload=self._approved_payload(participant, page),
+                            page=page,
+                        )
                 return ResponseResult(
                     payload={
                         "submission": "rejected",
@@ -3367,6 +3385,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     self, err, participant
                 ),
             )
+
+    def _page_for_stale_hold_resume(self, participant, submitted_page_uuid):
+        """Return the current page when a hold-resume still carries a released uuid.
+
+        The last arriver can already have advanced this waiter, rotating
+        ``participant.page_uuid``. The hold-resume POST still sends the hold
+        page's uuid. If that uuid belongs to this participant's hold record,
+        approve the current page instead of treating it as a multi-tab mismatch.
+        """
+        from .timeline_hold import TimelineHoldRecord
+
+        record = TimelineHoldRecord.query.filter_by(
+            participant_id=participant.id,
+            page_uuid=submitted_page_uuid,
+        ).one_or_none()
+        if record is None:
+            return None
+        if record.resumed_at is None:
+            record.settle(participant)
+        page = self.timeline.get_current_elt(self, participant)
+        return self._advance_past_ready_holds(participant, page)
 
     def _advance_past_ready_holds(self, participant, page):
         """Skip holds that are already clear after this request's writes.
@@ -5863,6 +5902,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         include_timeline_fragment = get_arg_from_dict(
             json_data, "include_timeline_fragment", use_default=True, default=True
         )
+        timeline_hold_resume = bool(
+            get_arg_from_dict(
+                json_data, "timeline_hold_resume", use_default=True, default=False
+            )
+        )
         client_ip_address = cls.get_client_ip_address()
 
         try:
@@ -5874,6 +5918,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 page_uuid,
                 client_ip_address,
                 answer,
+                timeline_hold_resume=timeline_hold_resume,
             )
         except Exception as error:
             busy = cls._busy_response_after_transient(

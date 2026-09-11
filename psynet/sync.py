@@ -517,7 +517,9 @@ class Barrier(EltCollection):
 
         Partners otherwise stay at this hold until their next request, so the
         last arriver would immediately sit on the next barrier (often with the
-        same wait copy) until those clients catch up.
+        same wait copy) until those clients catch up. The waiter's later
+        hold-resume POST still carries the hold page's uuid; ``process_response``
+        treats that as an in-place catch-up rather than a sync failure.
         """
         from .experiment import get_experiment
 

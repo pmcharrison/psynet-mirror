@@ -3325,9 +3325,9 @@
         psynet.log.warn(
           "A timeline hold resume check was rejected: " + response.message,
         );
-        // The write may already have committed (stale fragment after hold
-        // release). Reload the authoritative timeline instead of polling the
-        // overlay with a rejected page_uuid.
+        // Genuine rejects (multi-tab mismatch, missing hold record) still
+        // reload the authoritative timeline instead of polling the overlay
+        // with a rejected page_uuid.
         psynet.stopTimelineHold();
         psynet.loadNextTimelinePageWithReload();
       } else {
@@ -3417,7 +3417,7 @@
       }
     };
 
-    let prepareJsonSubmission = function (rawAnswer, metadata) {
+    let prepareJsonSubmission = function (rawAnswer, metadata, options = {}) {
       var currentTime = new Date();
 
       var allMetadata = {
@@ -3442,6 +3442,7 @@
         metadata: allMetadata,
         include_timeline_fragment: !psynet.page.attributes
           ?.requires_full_page_reload,
+        timeline_hold_resume: Boolean(options.timelineHoldResume),
       });
     };
 
@@ -3464,7 +3465,7 @@
       }
       $(" .response, .submit ").prop("disabled", true);
 
-      const json = prepareJsonSubmission(rawAnswer, metadata);
+      const json = prepareJsonSubmission(rawAnswer, metadata, options);
 
       var formData = new FormData();
       formData.append("json", json);

@@ -1541,6 +1541,23 @@ def _json_timeline(exp, participant):
         return Experiment._route_timeline(exp, participant, mode="json")
 
 
+def _process_response(exp, participant, page_uuid, *, timeline_hold_resume=False):
+    """Run ``process_response`` for ``participant`` in a request context."""
+    with Flask(__name__).test_request_context(
+        "/response",
+        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    ):
+        return exp.process_response(
+            participant.id,
+            None,
+            {},
+            {},
+            page_uuid,
+            "127.0.0.1",
+            timeline_hold_resume=timeline_hold_resume,
+        )
+
+
 def _working_participants(exp, count):
     """Create ``count`` working participants for stacked-hold arrival tests."""
     participants = [new_participant(exp) for _ in range(count)]
@@ -1748,6 +1765,56 @@ def test_last_of_three_skips_stacked_holds_and_releases_waiters(
             assert not getattr(page, "is_timeline_hold", False)
             assert page.label == "choose_action"
         assert len(set(groups)) == 1
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_stale_hold_resume_approves_the_current_page_after_last_arrival(
+    in_experiment_directory, db_session
+):
+    """A hold-resume with the old uuid is a catch-up, not a multi-tab reject."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack_resume_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type)
+    try:
+        first, last = _working_participants(exp, 2)
+        assert _json_timeline(exp, first).get_json()["attributes"]["type"] == (
+            "_BarrierHoldPage"
+        )
+        first = Participant.query.get(first.id)
+        hold_uuid = first.page_uuid
+        assert TimelineHoldRecord.query.filter_by(
+            participant_id=first.id, page_uuid=hold_uuid
+        ).one()
+
+        last_response = _json_timeline(exp, last)
+        assert last_response.status_code == 200
+        assert last_response.get_json()["attributes"]["type"] == "ModularPage"
+        db.session.expire_all()
+        first = Participant.query.get(first.id)
+        assert first.page_uuid != hold_uuid
+        assert not getattr(
+            exp.timeline.get_current_elt(exp, first), "is_timeline_hold", False
+        )
+
+        rejected = _process_response(exp, first, hold_uuid)
+        assert rejected.payload["submission"] == "rejected"
+
+        unknown = _process_response(
+            exp, first, str(uuid.uuid4()), timeline_hold_resume=True
+        )
+        assert unknown.payload["submission"] == "rejected"
+
+        approved = _process_response(exp, first, hold_uuid, timeline_hold_resume=True)
+        assert approved.payload["submission"] == "approved"
+        assert approved.page.label == "choose_action"
+        assert approved.payload["page"]["attributes"]["type"] == "ModularPage"
+        assert approved.payload["page"]["attributes"]["page_uuid"] == first.page_uuid
+        assert "timeline_hold" not in approved.payload["page"]["attributes"]
     finally:
         exp.timeline = original_timeline
 
