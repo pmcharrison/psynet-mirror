@@ -5738,12 +5738,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         If no checks were queued, a ready hold still needs a participant row
         lock before ``_advance_past_ready_holds`` mutates wait credit or the
-        timeline cursor. An unreleased barrier hold must not re-run the group
-        check while this waiter holds ``FOR UPDATE``.
+        timeline cursor. An unreleased barrier hold may recover a dropped
+        last-arrival check, but it must not take ``FOR UPDATE`` before that
+        check so a concurrent last arriver can still lock waiters with
+        ``NOWAIT``.
         """
         from types import SimpleNamespace
 
-        from .sync import _take_pending_barrier_checks
+        from .sync import _hold_instance_id_for_page, _take_pending_barrier_checks
 
         checks = _take_pending_barrier_checks()
         if not checks and getattr(page, "is_timeline_hold", False):
@@ -5772,6 +5774,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 page = cls._prepare_resolved_timeline_page(
                     experiment, participant, page
                 )
+            else:
+                instance_id = _hold_instance_id_for_page(participant, page)
+                if instance_id:
+                    checks = [instance_id]
         if not checks:
             return participant, page
         result = SimpleNamespace(page=page, payload={})

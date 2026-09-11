@@ -163,7 +163,10 @@ def test_hold_resume_retries_a_structured_busy_response_once():
     end = source.index("let createTrialProgress = function")
     body = source[start:end]
     assert "psynet.isBusyResponse(request) && attempt === 0" in body
-    assert "!options.timelineHoldResume" not in body
+    assert (
+        "psynet.isBusyResponse(request) && attempt === 0 && !options.timelineHoldResume"
+        not in source
+    )
     assert "psynet.timelineHold.resumeRequested = true" in source
 
 

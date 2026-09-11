@@ -70,7 +70,9 @@ Timeline requests separate state mutation from rendering:
    after that commit. If ``GET /timeline`` finds a ready hold and no queued
    checks, it relocks that participant, skips the hold, and runs
    ``pre_render()`` on the page that will be shown. An unreleased barrier hold
-   does not re-run the group check.
+   may recover a dropped last-arrival check without taking ``FOR UPDATE``
+   first, so a concurrent last arriver can still lock waiters with
+   ``NOWAIT``.
 4. HTML, JSON, or an inplace fragment is rendered in a fresh PostgreSQL
    read-only transaction with SQLAlchemy autoflush disabled.
 5. PsyNet verifies that rendering created no new, dirty, or deleted ORM

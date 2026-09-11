@@ -320,34 +320,43 @@ def test_finalize_pending_skips_relock_when_the_page_is_not_a_hold(monkeypatch):
     assert returned_participant.id == 1
 
 
-def test_finalize_pending_skips_relock_when_the_hold_is_not_ready(monkeypatch):
-    """A waiter already on an unreleased hold must not lock or re-check."""
+def test_finalize_pending_unreleased_hold_rechecks_without_relock(monkeypatch):
+    """Dropped last-arrival checks may rerun, but not while this waiter holds FOR UPDATE."""
     hold = SimpleNamespace(
         is_timeline_hold=True,
         prepare_resume_if_ready=lambda *_args: False,
         barrier_id="main",
+        pre_render=lambda: None,
+        early_exit_available=lambda *_args: False,
     )
+    participant = SimpleNamespace(id=1)
     experiment = Experiment.__new__(Experiment)
     experiment._participant_request_query = MagicMock()
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
     monkeypatch.setattr(
         "psynet.sync._hold_instance_id_for_page", lambda *_args: "instance-1"
     )
+    captured = {}
 
-    def boom(*_args, **_kwargs):
-        raise AssertionError("sitting waiters must not run last-arrival finalize")
+    def fake_finalize(cls, _experiment, participant_id, checks, result):
+        captured["checks"] = checks
+        captured["participant_id"] = participant_id
+        result.page = hold
+        return participant
 
-    monkeypatch.setattr(Experiment, "_finalize_barrier_arrivals", boom)
+    monkeypatch.setattr(
+        Experiment, "_finalize_barrier_arrivals", classmethod(fake_finalize)
+    )
 
     returned_participant, returned_page = (
-        Experiment._finalize_pending_timeline_barriers(
-            experiment, SimpleNamespace(id=1), hold
-        )
+        Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
     )
 
     experiment._participant_request_query.assert_not_called()
+    assert captured["checks"] == ["instance-1"]
+    assert captured["participant_id"] == 1
     assert returned_page is hold
-    assert returned_participant.id == 1
+    assert returned_participant is participant
 
 
 def test_finalize_pending_prepares_the_page_after_skipping_a_ready_hold(monkeypatch):

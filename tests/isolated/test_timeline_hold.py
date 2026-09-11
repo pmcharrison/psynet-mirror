@@ -234,8 +234,15 @@ def test_hold_overlay_html_matches_markup_and_plain_text():
         if getattr(elt, "is_timeline_hold", False)
     )
 
-    assert plain.overlay_html() == str(escape("<strong>Waiting</strong>"))
-    assert trusted.overlay_html() == "<strong>Waiting</strong>"
+    assert plain.overlay_html() == (
+        '<span class="psynet-timeline-hold-title">'
+        f"{escape('<strong>Waiting</strong>')}"
+        "</span>"
+    )
+    assert (
+        trusted.overlay_html()
+        == '<span class="psynet-timeline-hold-title"><strong>Waiting</strong></span>'
+    )
 
 
 def test_safe_hold_wake_does_not_propagate_notification_errors(monkeypatch, caplog):
