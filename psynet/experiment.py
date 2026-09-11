@@ -5732,14 +5732,36 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def _finalize_pending_timeline_barriers(cls, experiment, participant, page):
-        """Run queued arrival checks before ``/timeline`` renders a hold."""
+        """Run queued arrival checks before ``/timeline`` renders a hold.
+
+        If no checks were queued, a ready non-barrier hold still needs a
+        participant row lock before ``_advance_past_ready_holds`` mutates
+        wait credit or the timeline cursor.
+        """
         from types import SimpleNamespace
 
         from .sync import _hold_instance_id_for_page, _take_pending_barrier_checks
 
         checks = _take_pending_barrier_checks()
-        if not checks:
-            page = experiment._advance_past_ready_holds(participant, page)
+        if not checks and getattr(page, "is_timeline_hold", False):
+            _set_transaction_lock_timeout(
+                get_config().get("timeline_lock_timeout_seconds")
+            )
+            locked = (
+                experiment._participant_request_query()
+                .with_for_update(of=Participant)
+                .populate_existing()
+                .get(participant.id)
+            )
+            if locked is None:
+                raise RuntimeError(
+                    f"Participant {participant.id} disappeared before timeline hold fallback."
+                )
+            participant = locked
+            page = experiment._advance_past_ready_holds(
+                participant,
+                experiment.timeline.get_current_elt(experiment, participant),
+            )
             checks = _take_pending_barrier_checks()
             instance_id = _hold_instance_id_for_page(participant, page)
             if instance_id:

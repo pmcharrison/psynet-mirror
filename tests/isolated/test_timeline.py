@@ -23,6 +23,7 @@ from psynet.exit import (
 )
 from psynet.experiment import Experiment
 from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
+from psynet.participant import Participant
 from psynet.timeline import (
     AsyncCodeBlock,
     CodeBlock,
@@ -258,6 +259,56 @@ def test_advance_past_ready_holds_skips_a_cleared_hold():
     hold.account_wait.assert_called_once_with(participant, settle=True)
     participant.inc_progress.assert_called_once_with(1.5)
     experiment.timeline.advance_page.assert_called_once_with(experiment, participant)
+
+
+def test_finalize_pending_hold_without_checks_relocks_the_participant(monkeypatch):
+    """A ready hold on GET /timeline must not advance without FOR UPDATE."""
+    participant = SimpleNamespace(id=42)
+    hold = SimpleNamespace(is_timeline_hold=True)
+    query = MagicMock()
+    query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
+    experiment = Experiment.__new__(Experiment)
+    experiment._participant_request_query = MagicMock(return_value=query)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.return_value = hold
+    experiment._advance_past_ready_holds = MagicMock(return_value=hold)
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+    monkeypatch.setattr("psynet.sync._hold_instance_id_for_page", lambda *_args: None)
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout",
+        lambda *_args: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
+    )
+
+    returned_participant, returned_page = (
+        Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
+    )
+
+    query.with_for_update.assert_called_once_with(of=Participant)
+    experiment._advance_past_ready_holds.assert_called_once_with(participant, hold)
+    assert returned_participant is participant
+    assert returned_page is hold
+
+
+def test_finalize_pending_skips_relock_when_the_page_is_not_a_hold(monkeypatch):
+    """A GET /timeline page that is not a hold must not take the fallback lock."""
+    page = SimpleNamespace(is_timeline_hold=False)
+    experiment = Experiment.__new__(Experiment)
+    experiment._participant_request_query = MagicMock()
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+
+    returned_participant, returned_page = (
+        Experiment._finalize_pending_timeline_barriers(
+            experiment, SimpleNamespace(id=1), page
+        )
+    )
+
+    experiment._participant_request_query.assert_not_called()
+    assert returned_page is page
+    assert returned_participant.id == 1
 
 
 def test_template_fragment_input_wraps_main_body_content():
