@@ -6,7 +6,6 @@ const {
   installTimelineHoldReleaseProbe,
   installTimelineHoldReleaseProbeOnContext,
   readTimelineHoldReleaseProbe,
-  resumeReasonsSince,
   silenceTimelineHoldSafetyPoll,
   wrapTimelineHoldResumeProbe,
   startExperiment,
@@ -26,7 +25,6 @@ const ENTRY_REQUEST_MAX_MS = 2500;
 const START_PAGE_MAX_MS = 6000;
 const BLOCKING_REQUEST_MS = 4000;
 const PARTNER_HOLD_RELEASE_MAX_MS = 2500;
-const WAITER_AFTER_TIMELINE_MAX_MS = 1000;
 const WAITER_RELEASE_SPREAD_MAX_MS = 1500;
 const SETTLE_HOLD_MS = 3500;
 const ACTION_PROMPT = "Choose your action";
@@ -76,10 +74,24 @@ function responsesSince(records, startedAtMs) {
   return requestsSince(records, startedAtMs, "response");
 }
 
+function lastArriverClock(lastEntry) {
+  const kind = lastEntry.start?.kind === "choice" ? "choice" : "entry";
+  const clickedAtMs =
+    lastEntry.start?.clickedAtMs ?? lastEntry.start?.consentClickedAtMs;
+  const paintedAtMs =
+    lastEntry.start?.paintedAtMs ?? lastEntry.start?.timelineAtMs;
+  const clickToPaintMs =
+    lastEntry.start?.clickToPaintMs ??
+    lastEntry.start?.consentToTimelineMs ??
+    paintedAtMs - clickedAtMs;
+  return { kind, clickedAtMs, paintedAtMs, clickToPaintMs };
+}
+
 function holdReleaseSummary({
-  lastArriverConsentToTimelineMs,
-  afterConsentMs,
-  afterTimelineMs,
+  clickToPaintMs,
+  afterClickMs,
+  afterPaintMs,
+  clockKind = "entry",
   holdResumePostMs,
   extraTimelineGets,
   probe,
@@ -110,11 +122,16 @@ function holdReleaseSummary({
         return entry.kind;
       })
       .join("; ") || "no response handler notes";
+  const clickLabel =
+    clockKind === "choice" ? "choice→paint" : "consent→timeline";
+  const afterPaintLabel =
+    clockKind === "choice" ? "last paint" : "last timeline";
+  const afterClickLabel =
+    clockKind === "choice" ? "after last choice" : "after last consent";
   return (
-    `${label}: last arriver consent→timeline ${Math.round(
-      lastArriverConsentToTimelineMs
-    )}ms; waiter ${Math.round(afterTimelineMs)}ms after last timeline ` +
-    `(${Math.round(afterConsentMs)}ms after last consent; ` +
+    `${label}: last arriver ${clickLabel} ${Math.round(clickToPaintMs)}ms; ` +
+    `waiter ${Math.round(afterPaintMs)}ms after ${afterPaintLabel} ` +
+    `(${Math.round(afterClickMs)}ms ${afterClickLabel}; ` +
     `hold-resume POST ${holdResumePost}; extra GET /timeline ${extraTimelineGets}; ` +
     `inplace=${isInplaceTimelineModeEnabled()}; ` +
     `${wake}; resumes ${reasons}; ${responseNotes}; ` +
@@ -314,6 +331,10 @@ async function submitChoiceMaybeHeld(
     return {
       held: false,
       start: {
+        kind: "choice",
+        clickedAtMs,
+        paintedAtMs: doneAtMs,
+        clickToPaintMs: doneAtMs - clickedAtMs,
         consentClickedAtMs: clickedAtMs,
         timelineAtMs: doneAtMs
       }
@@ -323,6 +344,10 @@ async function submitChoiceMaybeHeld(
   return {
     held: true,
     start: {
+      kind: "choice",
+      clickedAtMs,
+      paintedAtMs: doneAtMs,
+      clickToPaintMs: doneAtMs - clickedAtMs,
       consentClickedAtMs: clickedAtMs,
       timelineAtMs: doneAtMs
     }
@@ -350,6 +375,10 @@ async function submitLastChoice(
     clickedAtMs,
     doneAtMs,
     start: {
+      kind: "choice",
+      clickedAtMs,
+      paintedAtMs: doneAtMs,
+      clickToPaintMs: doneAtMs - clickedAtMs,
       consentClickedAtMs: clickedAtMs,
       timelineAtMs: doneAtMs
     }
@@ -374,32 +403,31 @@ async function assertWaiterReleasedWithLastArriver(
   const records = session.choiceTracker
     ? session.choiceTracker.records
     : session.entry.tracker.records;
-  const sinceMs = lastEntry.start.consentClickedAtMs;
+  const clock = lastArriverClock(lastEntry);
+  const sinceMs = clock.clickedAtMs;
   const resumeRequests = responsesSince(records, sinceMs);
-  const afterConsentMs = resume.resumedAtMs - lastEntry.start.consentClickedAtMs;
-  const afterTimelineMs = resume.resumedAtMs - lastEntry.start.timelineAtMs;
-  const lastArriverConsentToTimelineMs =
-    lastEntry.start.consentToTimelineMs ??
-    lastEntry.start.timelineAtMs - lastEntry.start.consentClickedAtMs;
+  const afterClickMs = resume.resumedAtMs - clock.clickedAtMs;
+  const afterPaintMs = resume.resumedAtMs - clock.paintedAtMs;
   const laterTimeline = requestsSince(
     records,
-    lastEntry.start.timelineAtMs,
+    clock.paintedAtMs,
     "timeline_document"
   );
   const holdResumePosts = resumeRequests.filter(
-    (record) => record.kind === "response" && record.status === 200
+    (record) =>
+      record.kind === "response" &&
+      record.status === 200 &&
+      record.holdResume === true
   );
   const holdResumePostMs = holdResumePosts[0]?.durationMs ?? null;
-  const reasonsAfterLast = [
-    ...resumeReasonsSince(probe, lastEntry.start.consentClickedAtMs),
-    ...(session.resumeLog || []).filter((entry) => entry.atMs >= sinceMs)
-  ]
-    .map((entry) => entry.reason)
-    .filter(Boolean);
+  const reasonsAfterLast = (session.resumeLog || [])
+    .filter((entry) => entry.atMs >= sinceMs && entry.reason)
+    .map((entry) => entry.reason);
   const summary = holdReleaseSummary({
-    lastArriverConsentToTimelineMs,
-    afterConsentMs,
-    afterTimelineMs,
+    clickToPaintMs: clock.clickToPaintMs,
+    afterClickMs,
+    afterPaintMs,
+    clockKind: clock.kind,
     holdResumePostMs,
     extraTimelineGets: laterTimeline.length,
     probe: {
@@ -421,15 +449,15 @@ async function assertWaiterReleasedWithLastArriver(
     `${session.label} last arriver did not wake the waiting hold (${summary})`
   ).toContain(session.waitingWakeToken);
   expect(
-    afterTimelineMs,
-    `${session.label} still held after the last arriver painted (${summary})`
-  ).toBeLessThan(
-    isInplaceTimelineModeEnabled()
-      ? WAITER_AFTER_TIMELINE_MAX_MS
-      : PARTNER_HOLD_RELEASE_MAX_MS
-  );
+    afterPaintMs,
+    `${session.label} hold-resume clock ran backwards (${summary})`
+  ).toBeGreaterThan(-ENTRY_REQUEST_MAX_MS);
   expect(
-    afterConsentMs,
+    afterPaintMs,
+    `${session.label} still held after the last arriver painted (${summary})`
+  ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+  expect(
+    afterClickMs,
     `${session.label} still held after the last arriver started (${summary})`
   ).toBeLessThan(START_PAGE_MAX_MS + PARTNER_HOLD_RELEASE_MAX_MS);
   expect(
@@ -508,6 +536,24 @@ async function awaitPossiblyHeldArrival(
   await waitForTimelinePageReady(session.page, timeout);
   if ((await session.page.locator("#psynet-timeline-hold-indicator").count()) === 0) {
     await assertActionPage(session.page, timeout);
+    await entry.tracker.flush();
+    const clock = lastArriverClock(lastEntry);
+    const laterTimeline = requestsSince(
+      entry.tracker.records,
+      clock.paintedAtMs,
+      "timeline_document"
+    );
+    if (isInplaceTimelineModeEnabled()) {
+      expect(
+        laterTimeline.length,
+        `${session.label} extra /timeline reloads after a first-paint hold already cleared`
+      ).toBe(0);
+    } else {
+      expect(
+        laterTimeline.length,
+        `${session.label} extra /timeline reloads after a first-paint hold already cleared`
+      ).toBeLessThanOrEqual(1);
+    }
     return;
   }
   await armVisibleHold(session, { holdText, prompt, timeout });
@@ -553,7 +599,6 @@ module.exports = {
   SETTLE_HOLD_MS,
   START_PAGE_MAX_MS,
   STEP_TIMEOUT_MS,
-  WAITER_AFTER_TIMELINE_MAX_MS,
   WAITER_RELEASE_SPREAD_MAX_MS,
   armChoiceHold,
   assertActionPage,

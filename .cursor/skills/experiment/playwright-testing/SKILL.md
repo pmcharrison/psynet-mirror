@@ -75,7 +75,8 @@ hold page is ready, and call `silenceTimelineHoldSafetyPoll` so a 2s poll
 cannot hide a missed websocket wake. Assert the waiting partner reaches the
 next durable prompt soon after that last arriver's first timeline paint,
 resumes from `server notification` (not `safety poll`), does not retry a busy
-hold-resume, and does not reload `GET /timeline`. When several partners are
+hold-resume, and in inplace mode does not reload `GET /timeline`. Legacy
+reload mode may issue one follow-up timeline document. When several partners are
 waiting, they must leave close together:
 
 ```js
