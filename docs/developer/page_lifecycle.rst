@@ -117,9 +117,10 @@ are no longer part of this pipeline. Put database preparation in
 
 Participant-facing write phases use a bounded PostgreSQL ``lock_timeout`` so
 unexpected contention fails safely instead of occupying a web worker
-indefinitely. ``GET /timeline`` (HTML or JSON) and ``POST /response`` return
-HTTP 503 with a ``busy`` payload so the browser and automated drivers can
-retry. Hold-resume submissions retry a busy 503 once, then reschedule the
+indefinitely. ``GET /timeline?mode=json`` and ``POST /response`` return
+HTTP 503 with a JSON ``busy`` payload so the browser and automated drivers can
+retry. Browser HTML ``GET /timeline`` returns an HTML 503 page that refreshes
+automatically. Hold-resume submissions retry a busy 503 once, then reschedule the
 hold safety poll instead of immediately retrying, so the browser cannot
 livelock on contention. Whole timeline requests are not retried
 automatically on the server because author code blocks may contain

@@ -317,6 +317,52 @@ def test_html_timeline_lock_timeout_returns_busy_503(monkeypatch):
     assert body.get_json()["status"] == "busy"
 
 
+def test_html_timeline_lock_timeout_returns_html_busy_page(monkeypatch):
+    import sqlalchemy
+    from flask import Flask
+    from psycopg2.errors import LockNotAvailable
+
+    from psynet.experiment import Experiment
+
+    err = sqlalchemy.exc.OperationalError("stmt", {}, LockNotAvailable())
+    monkeypatch.setattr(
+        Experiment,
+        "_is_transient_transaction_error",
+        classmethod(lambda cls, error: True),
+    )
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout", lambda *_args: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
+    )
+
+    def raise_lock(*_args, **_kwargs):
+        raise err
+
+    monkeypatch.setattr(
+        Experiment, "_get_request_participant_from_unique_id", raise_lock
+    )
+    app = Flask(__name__)
+    with app.test_request_context(
+        "/timeline?unique_id=worker-1",
+        headers={"Accept": "text/html"},
+    ):
+        response = Experiment.route_timeline()
+
+    if isinstance(response, tuple):
+        body, status = response
+        html = body.get_data(as_text=True)
+    else:
+        body, status = response, response.status_code
+        html = body.get_data(as_text=True)
+    assert status == 503
+    assert body.get_json() is None
+    assert "temporarily busy" in html
+    assert 'http-equiv="refresh"' in html
+
+
 def test_response_prepare_error_returns_busy_for_transient_lock(monkeypatch):
 
     import sqlalchemy

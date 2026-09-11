@@ -287,6 +287,8 @@ def test_finalize_pending_hold_without_checks_relocks_the_participant(monkeypatc
         "psynet.experiment.get_config",
         lambda: SimpleNamespace(get=lambda _key: 5),
     )
+    monkeypatch.setattr("psynet.experiment.db.session.commit", lambda: None)
+    query.get.return_value = participant
 
     def boom(*_args, **_kwargs):
         raise AssertionError("unreleased holds must not re-run barrier checks")
@@ -343,10 +345,15 @@ def test_finalize_pending_ready_hold_does_not_prepare_before_relock(monkeypatch)
         "psynet.experiment.get_config",
         lambda: SimpleNamespace(get=lambda _key: 5),
     )
+    hold.pre_render = lambda: order.append("prepare")
+    monkeypatch.setattr(
+        "psynet.experiment.db.session.commit", lambda: order.append("commit")
+    )
+    query.get.return_value = participant
 
     Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
 
-    assert order == ["ready", "lock", "advance"]
+    assert order == ["ready", "lock", "advance", "commit", "prepare"]
     query.with_for_update.assert_called_once_with(of=Participant)
 
 
@@ -425,10 +432,11 @@ def test_finalize_pending_prepares_the_page_after_skipping_a_ready_hold(monkeypa
     )
     query = MagicMock()
     query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
+    query.get.return_value = participant
     experiment = Experiment.__new__(Experiment)
     experiment._participant_request_query = MagicMock(return_value=query)
     experiment.timeline = MagicMock()
-    experiment.timeline.get_current_elt.return_value = hold
+    experiment.timeline.get_current_elt.side_effect = [hold, hold, nxt]
     experiment._advance_past_ready_holds = MagicMock(return_value=nxt)
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
     monkeypatch.setattr(
@@ -439,12 +447,18 @@ def test_finalize_pending_prepares_the_page_after_skipping_a_ready_hold(monkeypa
         "psynet.experiment.get_config",
         lambda: SimpleNamespace(get=lambda _key: 5),
     )
+    order = []
+    nxt.pre_render = MagicMock(side_effect=lambda: order.append("prepare"))
+    monkeypatch.setattr(
+        "psynet.experiment.db.session.commit", lambda: order.append("commit")
+    )
 
     returned_participant, returned_page = (
         Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
     )
 
     nxt.pre_render.assert_called_once()
+    assert order == ["commit", "prepare"]
     assert returned_page is nxt
     assert returned_participant is participant
 
@@ -524,6 +538,7 @@ def test_finalize_pending_ready_hold_commits_before_arrival_checks(monkeypatch):
     def fake_finalize(cls, _experiment, participant_id, checks, result):
         captured["checks"] = list(checks)
         captured["commits_before"] = list(commits)
+        captured["pre_render_before"] = nxt.pre_render.call_count
         result.page = nxt
         return participant
 
@@ -536,6 +551,8 @@ def test_finalize_pending_ready_hold_commits_before_arrival_checks(monkeypatch):
     query.with_for_update.assert_called_once_with(of=Participant)
     assert captured["checks"] == ["instance-1"]
     assert captured["commits_before"] == ["commit"]
+    assert captured["pre_render_before"] == 0
+    nxt.pre_render.assert_called_once()
 
 
 def test_process_response_unready_hold_does_not_recheck_readiness(monkeypatch):

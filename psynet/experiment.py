@@ -53,9 +53,20 @@ from dallinger.recruiters import (
 from dallinger.utils import classproperty
 from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
-from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask import (
+    flash,
+    has_request_context,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask import g as flask_app_globals
 from flask_login import login_required
+from markupsafe import escape
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import lazyload
 
@@ -3438,20 +3449,57 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def busy_response(cls):
-        """Return a retryable busy payload for transient database contention."""
+        """Return HTTP 503 so clients retry instead of treating this as success.
+
+        JSON is the default: bots retry on ``status`` / ``submission``
+        ``busy``, and POSTs plus ``mode=json`` stay machine-readable. Browser
+        HTML GET requests get a short refresh page instead of raw JSON.
+        """
         _ = get_translator()
+        message = _("The experiment is temporarily busy. Please try again.")
+        if cls._busy_response_should_be_html():
+            return cls._html_busy_response(message)
         return (
             jsonify(
                 {
                     "status": "busy",
                     "submission": "busy",
-                    "message": _(
-                        "The experiment is temporarily busy. Please try again."
-                    ),
+                    "message": message,
                 }
             ),
             503,
         )
+
+    @classmethod
+    def _busy_response_should_be_html(cls):
+        """Return whether this request should get an HTML busy page."""
+        if not has_request_context():
+            return False
+        if request.method != "GET":
+            return False
+        if request.args.get("mode") == "json":
+            return False
+        return (
+            request.accept_mimetypes.best_match(["application/json", "text/html"])
+            == "text/html"
+        )
+
+    @classmethod
+    def _html_busy_response(cls, message):
+        """Return an HTML 503 page that refreshes itself."""
+        safe_message = escape(message)
+        html = (
+            "<!DOCTYPE html><html><head>"
+            '<meta charset="utf-8">'
+            '<meta http-equiv="refresh" content="2">'
+            f"<title>{safe_message}</title>"
+            "</head><body><p>"
+            f"{safe_message} This page will refresh automatically."
+            "</p></body></html>"
+        )
+        response = make_response(html, 503)
+        response.mimetype = "text/html"
+        return response
 
     def prepare_voluntary_exit_plan(self, participant) -> exit_domain.ExitPlan:
         """Store one stable Leave plan for the participant's current page."""
@@ -5743,9 +5791,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         check so a concurrent last arriver can still lock waiters with
         ``NOWAIT``. After expire-on-commit, re-read the live cursor so a
         partner who already advanced this waiter does not leave GET holding a
-        stale wait page. A ready skip that queues stacked checks commits
-        before those checks so this waiter does not keep ``FOR UPDATE`` during
-        last-arrival locking.
+        stale wait page. A ready skip always commits before the next page is
+        prepared or stacked last-arrival checks run, so this waiter does not
+        keep ``FOR UPDATE`` through ``pre_render()`` or last-arrival locking.
         """
         from types import SimpleNamespace
 
@@ -5782,27 +5830,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         f"Participant {participant.id} disappeared before timeline hold fallback."
                     )
                 participant = locked
+                participant_id = participant.id
                 page = experiment._advance_past_ready_holds(
                     participant,
                     experiment.timeline.get_current_elt(experiment, participant),
                 )
                 checks = _take_pending_barrier_checks()
-                page = cls._prepare_resolved_timeline_page(
-                    experiment, participant, page
+                db.session.commit()
+                participant = experiment._participant_request_query().get(
+                    participant_id
                 )
-                if checks:
-                    db.session.commit()
-                    participant = experiment._participant_request_query().get(
-                        participant.id
+                if participant is None:
+                    raise RuntimeError(
+                        f"Participant {participant_id} disappeared after timeline hold skip."
                     )
-                    if participant is None:
-                        raise RuntimeError(
-                            f"Participant {participant.id} disappeared after timeline hold skip."
-                        )
-                    page = experiment.timeline.get_current_elt(experiment, participant)
+                page = experiment.timeline.get_current_elt(experiment, participant)
+                if not checks:
                     page = cls._prepare_resolved_timeline_page(
                         experiment, participant, page
                     )
+                    return participant, page
             else:
                 instance_id = _hold_instance_id_for_page(participant, page)
                 if instance_id:
