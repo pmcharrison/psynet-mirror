@@ -63,14 +63,7 @@ request path: public participant getters may be used after their session is
 detached and should retain their established eager-loading behavior.
 
 Barrier last-arrival checks are the opposite problem: one request locks many
-waiters. Isolated tests in
-``tests/isolated/test_barrier_arrival_queries.py`` bound that window. Locks,
-advisory claims, and spec reconstruction must stay constant as group size
-grows. Per-row UPDATEs (and today's lazy collection loads) are allowed to
-scale with waiter count; a new statement kind that grows with *N* should fail
-those tests. Do not put these budgets on Playwright or the full ``/response``
-stack. Use the profiler as a statement-count gate, not a duration gate. See
-:ref:`sqlalchemy_profiling`.
+waiters. See :ref:`barrier-arrival-sql-budgets`.
 
 Filter before ORM hydration
 ---------------------------
@@ -248,3 +241,68 @@ Checklist for future investigations
    manipulation.
 #. Record why an attractive approach was rejected and what evidence would
    justify revisiting it.
+
+.. _barrier-arrival-sql-budgets:
+
+Barrier last-arrival SQL budgets
+================================
+
+Isolated tests in ``tests/isolated/test_barrier_arrival_queries.py`` pin
+statement counts for the post-commit coordination path
+(``_run_pending_barrier_checks`` and ``_finalize_barrier_arrivals``). The
+numbers are a snapshot of the current ORM path, not a ceiling to preserve.
+Fewer statements, fewer commits, or fewer per-waiter lazy loads are
+improvements: update the expected numbers in that test and in this section.
+
+Use the profiler as a statement-count gate, not a duration gate. Do not put
+these budgets on Playwright or the full ``/timeline`` / ``/response`` stack.
+See :ref:`sqlalchemy_profiling`.
+
+The counts below were predicted from the code and then checked against a
+profiler dump. Locks, advisory claims, spec reconstruction, and finalize
+commit count must stay constant as group size *N* grows. Per-row UPDATEs
+(and today's lazy collection loads) scale with *N*; a new *kind* of statement
+that grows with *N* should fail the tests.
+
+Check window (one GroupBarrier, group already formed)
+-----------------------------------------------------
+
+Fixed coordination (11 statements, independent of *N*): instance PK,
+SAVEPOINT, ``pg_try_advisory_xact_lock``, deferred ``spec`` load, one waiter
+``FOR UPDATE NOWAIT`` join, ``module_state`` select-in, ``sync_group`` PK,
+group-membership load, group UPDATE, instance UPDATE, RELEASE SAVEPOINT.
+
+Per waiter (7 statements): three UPDATEs (link release, hold
+``released_at``, participant wait credit) and four lazy SELECTs
+(``sync_group_links``, ``active_barriers``, hold-by-PK, and a second hold
+lookup in ``_enqueue_timeline_hold_wake`` that repeats a record already on
+the link).
+
+Grand total: ``11 + 7N``. Nested ``begin_nested()`` records one profiler
+commit (the savepoint release that flushes the updates).
+
+Finalize window (same check, then relock the last arriver)
+----------------------------------------------------------
+
+The check, plus two ``lock_timeout`` SETs, one participant ``FOR UPDATE``
+without ``NOWAIT``, and two expired-relationship reloads after the check
+commit. Grand total: ``16 + 7N``. Profiler commits: 3 (1 nested update + 2
+outer ``session.commit()`` calls that still issue PostgreSQL ``COMMIT``).
+
+Arrival notice (recipient already loaded, *N* - 1 waiters)
+----------------------------------------------------------
+
+``5 + 3(N - 1)`` statements. Spec SELECT stays 1 because reconstructs are
+cached for that call.
+
+Stacked last-arrival finalize (grouper + two GroupBarriers)
+-----------------------------------------------------------
+
+Three check iterations, independent of group size: 9 profiler commits
+(3 nested + 2 outer per iteration), 3 waiter ``NOWAIT`` locks, 3 participant
+relocks. Creating the next two instances adds 2 blocking
+``pg_advisory_xact_lock`` calls (O(stack), not O(*N*)). Spec SELECT is 5
+rather than 3 because a just-created instance expires before its check runs.
+Query *count* still grows with *N* because each released waiter is advanced
+onto the next hold. The stacked test allows at most 50 extra statements per
+extra member as a loose cap on that advancement SQL, not as a target.

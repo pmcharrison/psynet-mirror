@@ -1,51 +1,13 @@
 """SQL budgets for last-arrival barrier checks and stacked finalize.
 
-These tests use the SQLAlchemy profiler as a statement-count gate, not a
-wall-clock one. The interesting window is the post-commit coordination path
-(``_run_pending_barrier_checks`` / ``_finalize_barrier_arrivals``), not the
-full ``/timeline`` or ``/response`` stack.
-
-The predicted counts below were derived from the code, then checked against a
-profiler dump. Unexpected extras are called out next to the assertion they
-affect.
-
-Check window (one GroupBarrier, group already formed, *N* waiters)
-------------------------------------------------------------------
-Fixed coordination (must not grow with *N*):
-
-* 1 instance PK load, 1 SAVEPOINT, 1 ``pg_try_advisory_xact_lock``,
-  1 deferred ``spec`` load, 1 waiter ``FOR UPDATE NOWAIT`` join,
-  1 ``module_state`` select-in, 1 ``sync_group`` PK, 1 group-membership
-  load, 1 group UPDATE, 1 instance UPDATE, 1 RELEASE SAVEPOINT.
-
-  Total: 11.
-
-Per waiter (SQLAlchemy default: one statement per row, plus lazy loads):
-
-* UPDATEs: link release, hold ``released_at``, participant wait credit (3).
-* SELECTs: ``sync_group_links``, ``active_barriers``, hold-by-PK, and the
-  redundant hold lookup in ``_enqueue_timeline_hold_wake`` (4).
-
-  Total: 7*N.
-
-Grand total: ``11 + 7*N``. Nested ``begin_nested()`` records 1 profiler
-commit (the savepoint release that flushes the updates).
-
-Finalize window (same check, then relock the last arriver)
-----------------------------------------------------------
-The check, plus 2 ``lock_timeout`` SETs, 1 participant ``FOR UPDATE``
-(without ``NOWAIT``), and 2 expired-relationship reloads after the check
-commit. Grand total: ``16 + 7*N``. Profiler commits: 3 (1 nested update +
-2 outer no-op ``session.commit()`` calls that still issue PostgreSQL
-``COMMIT``).
-
-Stacked last-arrival finalize (grouper + two GroupBarriers)
------------------------------------------------------------
-Three check iterations, independent of group size: 3 nested commits + 2
-outer commits per iteration = 9 profiler commits; 3 waiter ``NOWAIT``
-locks + 3 participant relocks. Query *count* grows with *N* because each
-released waiter is advanced onto the next hold (inserts/updates). Spec
-SELECTs and creation-time advisory locks are O(stack), not O(*N*).
+These tests pin statement counts on the post-commit coordination path, not
+the full ``/timeline`` or ``/response`` stack. The numbers are a snapshot of
+the current ORM path. The analysis, including which counts must stay
+independent of group size, lives in
+``docs/developer/sqlalchemy_performance.rst`` (Barrier last-arrival SQL
+budgets). Fewer statements are an improvement: update the expected counts
+here and in that section rather than treating a lower count as a failure to
+preserve.
 """
 
 from __future__ import annotations
@@ -83,12 +45,15 @@ pytestmark = [
     pytest.mark.usefixtures("in_experiment_directory"),
 ]
 
-# Check-window formula: 11 fixed statements + 7 per waiter. See module docstring.
+# Precise snapshot of the current ORM path (check = 11 + 7N, finalize = 16 + 7N).
+# Statement-by-statement analysis:
+# docs/developer/sqlalchemy_performance.rst ("Barrier last-arrival SQL budgets").
+# Lower counts are an improvement: update these constants and that section.
 _CHECK_FIXED_QUERIES = 11
 _CHECK_QUERIES_PER_WAITER = 7
 _FINALIZE_OVERHEAD_QUERIES = 5
-_STACKED_BARRIER_COUNT = 3
-_STACKED_QUERIES_PER_EXTRA_MEMBER = 50
+_STACKED_BARRIER_COUNT = 3  # grouper + two GroupBarriers
+_STACKED_QUERIES_PER_EXTRA_MEMBER = 50  # loose cap, not a target
 
 
 def _statement_count(profiler, pattern):
@@ -115,19 +80,13 @@ def _budget(profiler):
         "queries": profiler.total_count,
         "commits": profiler.commit_total_count,
         "nested_commits": _commit_count(profiler, "_run_pending_barrier_checks"),
-        "finalize_commits": _commit_count(
-            profiler, "_run_finalized_barrier_arrivals"
-        ),
+        "finalize_commits": _commit_count(profiler, "_run_finalized_barrier_arrivals"),
         "for_update": for_update,
         "nowait": nowait,
         "relock_for_update": for_update - nowait,
         "advisory_try": _statement_count(profiler, r"pg_try_advisory_xact_lock"),
-        "advisory_wait": _statement_count(
-            profiler, r"SELECT pg_advisory_xact_lock\("
-        ),
-        "spec_select": _statement_count(
-            profiler, r"SELECT barrier_instance\.spec "
-        ),
+        "advisory_wait": _statement_count(profiler, r"SELECT pg_advisory_xact_lock\("),
+        "spec_select": _statement_count(profiler, r"SELECT barrier_instance\.spec "),
         "savepoint": _statement_count(profiler, r"^SAVEPOINT "),
         "release_savepoint": _statement_count(profiler, r"^RELEASE SAVEPOINT "),
         "lock_timeout": _statement_count(profiler, r"set_config\('lock_timeout'"),
@@ -174,7 +133,10 @@ def _assert_budget(profiler, expected, *, label):
     }
     if mismatches:
         raise AssertionError(
-            f"{label}: unexpected SQL budget {mismatches}\n"
+            f"{label}: unexpected SQL budget {mismatches}. "
+            "If the new counts are an improvement, update the expected "
+            "numbers here and docs/developer/sqlalchemy_performance.rst "
+            "(Barrier last-arrival SQL budgets).\n"
             f"{profiler.format_summary(top_n=80, sort_by='count')}\n"
             f"{profiler.format_commit_summary()}"
         )
@@ -265,8 +227,8 @@ def _stub_finalize_timeline(experiment):
     experiment.timeline = SimpleNamespace(
         get_current_elt=lambda _experiment, _participant: page
     )
-    experiment._advance_past_ready_holds = (
-        lambda participant, current_page: current_page
+    experiment._advance_past_ready_holds = lambda participant, current_page: (
+        current_page
     )
     return page
 
@@ -293,6 +255,11 @@ def _json_timeline(exp, participant):
 
 
 def _check_expected(n):
+    """Return the check-window snapshot for *n* waiters.
+
+    See docs/developer/sqlalchemy_performance.rst (Barrier last-arrival SQL
+    budgets). Update both places if an improvement lowers these counts.
+    """
     return {
         "queries": _CHECK_FIXED_QUERIES + _CHECK_QUERIES_PER_WAITER * n,
         "commits": 1,
@@ -318,6 +285,11 @@ def _check_expected(n):
 
 
 def _finalize_expected(n):
+    """Return the finalize-window snapshot: check plus five overhead statements.
+
+    See docs/developer/sqlalchemy_performance.rst (Barrier last-arrival SQL
+    budgets). Update both places if an improvement lowers these counts.
+    """
     expected = _check_expected(n)
     expected.update(
         {
@@ -360,8 +332,7 @@ def test_check_instance_sql_matches_waiter_formula(db_session):
     ):
         assert observed[2][key] == observed[8][key] == 1
     assert (
-        observed[8]["queries"] - observed[2]["queries"]
-        == _CHECK_QUERIES_PER_WAITER * 6
+        observed[8]["queries"] - observed[2]["queries"] == _CHECK_QUERIES_PER_WAITER * 6
     )
 
 
@@ -398,8 +369,7 @@ def test_finalize_commits_check_then_relock_independent_of_group_size(db_session
     ):
         assert observed[2][key] == observed[8][key]
     assert (
-        observed[8]["queries"] - observed[2]["queries"]
-        == _CHECK_QUERIES_PER_WAITER * 6
+        observed[8]["queries"] - observed[2]["queries"] == _CHECK_QUERIES_PER_WAITER * 6
     )
 
 
@@ -424,7 +394,8 @@ def test_pending_arrival_notice_reconstructs_each_instance_once(db_session):
     with sqlalchemy_profile(db.engine) as profiler:
         notice = pending_arrival_notice_for(last)
     assert notice
-    # 5 setup loads + 3 per other member (participant, active_barriers, module_state).
+    # 5 + 3(N-1): see docs/developer/sqlalchemy_performance.rst
+    # (Barrier last-arrival SQL budgets). Update both if this gets cheaper.
     _assert_budget(
         profiler,
         {
@@ -487,14 +458,11 @@ def test_stacked_finalize_commit_and_lock_budget_does_not_grow_with_group_size(
                         "nowait": _STACKED_BARRIER_COUNT,
                         "relock_for_update": _STACKED_BARRIER_COUNT,
                         "advisory_try": _STACKED_BARRIER_COUNT,
-                        # Creating the two GroupBarrier instances takes the
-                        # blocking creation lock. Predicted 3 try-locks for
-                        # checks; the extra 2 wait-locks are O(stack), not O(N).
+                        # O(stack) extras vs a naive "3 checks" model. Analysis:
+                        # docs/developer/sqlalchemy_performance.rst
+                        # (Barrier last-arrival SQL budgets). Update both if
+                        # instance creation or spec reloads get cheaper.
                         "advisory_wait": 2,
-                        # 3 checks reconstruct; 2 extra SELECTs appear when
-                        # advancing onto the next hold expires the just-created
-                        # instance before its check runs. INSERTs also mention
-                        # spec but are excluded by spec_select.
                         "spec_select": 5,
                         "savepoint": _STACKED_BARRIER_COUNT,
                         "release_savepoint": _STACKED_BARRIER_COUNT,
@@ -525,4 +493,6 @@ def test_stacked_finalize_commit_and_lock_budget_does_not_grow_with_group_size(
         assert observed[2][key] == observed[4][key]
     query_delta = observed[4]["queries"] - observed[2]["queries"]
     assert query_delta > 0
+    # Loose cap on waiter-advancement SQL; a smaller delta is an improvement.
+    # See docs/developer/sqlalchemy_performance.rst (Barrier last-arrival SQL budgets).
     assert query_delta <= _STACKED_QUERIES_PER_EXTRA_MEMBER * 2
