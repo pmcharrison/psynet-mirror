@@ -1592,6 +1592,71 @@ def test_timeline_finalizes_queued_arrivals_before_render(
     assert _barrier_link_released(last.id, barrier.id) is True
 
 
+def _explode_on_release(
+    group, participants, participant=None, barrier=None, experiment=None
+):
+    raise RuntimeError("on_release boom")
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_last_arrival_on_release_error_leaves_the_group_waiting(
+    in_experiment_directory, db_session
+):
+    """A last-arrival hook failure must not fail the arriver or release waiters."""
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(
+        id_="release_error",
+        group_type="main",
+        on_release=_explode_on_release,
+    )
+    page = _stub_finalize_timeline(exp)
+    checks = _queued_last_arrival_checks(exp, barrier, first, last)
+    result = SimpleNamespace(page=page, payload={})
+
+    Experiment._finalize_barrier_arrivals(
+        exp,
+        participant_id=last.id,
+        checks=checks,
+        result=result,
+    )
+    db.session.commit()
+
+    db.session.refresh(first)
+    db.session.refresh(last)
+    assert first.failed is False
+    assert last.failed is False
+    assert _barrier_link_released(first.id, barrier.id) is False
+    assert _barrier_link_released(last.id, barrier.id) is False
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_participant_link_barrier_lists_waiting_participants(
+    in_experiment_directory, db_session
+):
+    """Custom waiting pages can list waiters from the visit link, as demos do."""
+    exp = get_experiment()
+    first = new_participant(exp)
+    second = new_participant(exp)
+    first.status = "working"
+    second.status = "working"
+    db.session.commit()
+    grouper = SimpleGrouper(group_type="waitlist", initial_group_size=3)
+    _arrive_at_group_barrier(exp, grouper, first)
+    db.session.commit()
+
+    link = first.active_barriers.get("waitlist_grouper")
+    assert link is not None
+    assert link.get_waiting_participants() == [first]
+    assert grouper.get_waiting_participants(first) == [first]
+    assert grouper.get_waiting_participants() == [first]
+    assert grouper.get_waiting_participants(second) == []
+
+
 def test_check_claimed_barrier_instance_treats_finished_work_as_success():
     """A completed or missing instance is not a lost in-flight claim."""
     assert _check_claimed_barrier_instance(None) is True

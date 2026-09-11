@@ -528,6 +528,43 @@ class Barrier(EltCollection):
         barrier_is_active = self.id in participant.active_barriers
         return not barrier_is_active
 
+    def get_waiting_participants(self, participant=None, *, for_update: bool = False):
+        """Return people currently waiting at this barrier visit.
+
+        Pass ``participant`` to scope the list to that person's instance.
+        Ungrouped barriers (groupers, ``WaitForN``) fall back to the one
+        active pool for this barrier ID. This listing does not take extra
+        row locks unless ``for_update`` is true.
+
+        Parameters
+        ----------
+        participant
+            A waiter whose ``active_barriers`` link identifies the visit.
+        for_update
+            Lock the waiter rows until the current transaction ends.
+
+        Returns
+        -------
+        list of Participant
+            Active, unreleased waiters at this visit.
+        """
+        if participant is not None:
+            link = participant.active_barriers.get(self.id)
+            if link is None:
+                return []
+            instance_id = link.barrier_instance_id
+        else:
+            instance = BarrierInstance._active_instance(self.id, None)
+            instance_id = None if instance is None else instance.id
+        if instance_id is None:
+            return []
+        return _get_waiting_participants(
+            self.id,
+            instance_id,
+            for_update=for_update,
+            nowait=False,
+        )
+
     def check_waiting_participants(self, waiting_participants: List[Participant]):
         """Run any side-effecting checks before deciding who to release.
 
@@ -1660,6 +1697,15 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
             )
         return barrier
 
+    def get_waiting_participants(self, for_update: bool = False):
+        """Return people waiting at this visit, without taking extra locks."""
+        return _get_waiting_participants(
+            self.barrier_id,
+            self.barrier_instance_id,
+            for_update=for_update,
+            nowait=False,
+        )
+
     def release(self):
         timestamp = timenow()
         self.departure_time = timestamp
@@ -1775,11 +1821,16 @@ def _run_pending_barrier_checks(instance_ids):
                 claimed = _check_claimed_barrier_instance(instance)
                 all_claimed = all_claimed and claimed
         except Exception as err:
-            if not is_transient_transaction_error(err):
-                raise
             all_claimed = False
-            logger.debug(
-                "Barrier '%s' instance %s deferred because a waiter is locked.",
+            if is_transient_transaction_error(err):
+                logger.debug(
+                    "Barrier '%s' instance %s deferred because a waiter is locked.",
+                    instance.barrier_id if instance is not None else None,
+                    instance_id,
+                )
+                continue
+            logger.exception(
+                "Barrier '%s' instance %s failed during a last-arrival check.",
                 instance.barrier_id if instance is not None else None,
                 instance_id,
             )
