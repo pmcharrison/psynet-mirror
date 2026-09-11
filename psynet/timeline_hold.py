@@ -312,6 +312,20 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
                 participant.inc_time_credit(target_credit - previous_credit)
             self.credited_wait_seconds = target_credit
 
+    @classmethod
+    def for_stale_hold_resume(cls, participant, submitted_page_uuid, current_page):
+        """Return the submitted hold when it is still a catch-up from a wait page.
+
+        One indexed lookup. If the participant is already on a later hold, the
+        submitted uuid is a leftover overlay from an earlier round.
+        """
+        if getattr(current_page, "is_timeline_hold", False):
+            return None
+        return cls.query.filter_by(
+            participant_id=participant.id,
+            page_uuid=submitted_page_uuid,
+        ).one_or_none()
+
     @property
     def deadline(self):
         """Return the authoritative timeout deadline, if configured."""

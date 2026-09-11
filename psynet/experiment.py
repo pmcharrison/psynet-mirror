@@ -3259,7 +3259,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         timeline_hold_resume : bool
             If True, a ``page_uuid`` that still matches this participant's
             hold record is a catch-up after a partner already advanced the
-            waiter, not a multi-tab sync failure.
+            waiter, not a multi-tab sync failure. Ignored when the participant
+            is already on a later hold.
         """
         _p = get_translator(context=True)
         logger.info(
@@ -3302,7 +3303,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
                 if timeline_hold_resume:
-                    page = self._page_for_stale_hold_resume(participant, page_uuid)
+                    page = self._page_for_stale_hold_resume(
+                        participant, page_uuid, event
+                    )
                     if page is not None:
                         return ResponseResult(
                             payload=self._approved_payload(participant, page),
@@ -3386,26 +3389,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
             )
 
-    def _page_for_stale_hold_resume(self, participant, submitted_page_uuid):
+    def _page_for_stale_hold_resume(
+        self, participant, submitted_page_uuid, current_page
+    ):
         """Return the current page when a hold-resume still carries a released uuid.
 
         The last arriver can already have advanced this waiter, rotating
         ``participant.page_uuid``. The hold-resume POST still sends the hold
-        page's uuid. If that uuid belongs to this participant's hold record,
-        approve the current page instead of treating it as a multi-tab mismatch.
+        page's uuid. If that uuid belongs to this participant and they are
+        not already on a later hold, approve the current page instead of
+        treating it as a multi-tab mismatch.
         """
         from .timeline_hold import TimelineHoldRecord
 
-        record = TimelineHoldRecord.query.filter_by(
-            participant_id=participant.id,
-            page_uuid=submitted_page_uuid,
-        ).one_or_none()
+        record = TimelineHoldRecord.for_stale_hold_resume(
+            participant, submitted_page_uuid, current_page
+        )
         if record is None:
             return None
         if record.resumed_at is None:
             record.settle(participant)
-        page = self.timeline.get_current_elt(self, participant)
-        return self._advance_past_ready_holds(participant, page)
+        return self._advance_past_ready_holds(participant, current_page)
 
     def _advance_past_ready_holds(self, participant, page):
         """Skip holds that are already clear after this request's writes.

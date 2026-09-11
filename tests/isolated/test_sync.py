@@ -1809,12 +1809,23 @@ def test_stale_hold_resume_approves_the_current_page_after_last_arrival(
         )
         assert unknown.payload["submission"] == "rejected"
 
+        progress_before = first.progress
+        current_page = exp.timeline.get_current_elt(exp, first)
         approved = _process_response(exp, first, hold_uuid, timeline_hold_resume=True)
         assert approved.payload["submission"] == "approved"
         assert approved.page.label == "choose_action"
         assert approved.payload["page"]["attributes"]["type"] == "ModularPage"
         assert approved.payload["page"]["attributes"]["page_uuid"] == first.page_uuid
         assert "timeline_hold" not in approved.payload["page"]["attributes"]
+        assert first.progress == progress_before
+
+        leftover = exp._page_for_stale_hold_resume(
+            first, hold_uuid, SimpleNamespace(is_timeline_hold=True)
+        )
+        assert leftover is None
+        assert (
+            exp._page_for_stale_hold_resume(first, hold_uuid, current_page) is not None
+        )
     finally:
         exp.timeline = original_timeline
 

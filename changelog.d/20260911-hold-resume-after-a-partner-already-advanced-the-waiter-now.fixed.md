@@ -1,1 +1,1 @@
-Hold-resume after a partner already advanced the waiter now updates the current page in place instead of reloading the timeline.
+Hold-resume after a partner already advanced the waiter now updates the current page in place instead of reloading the timeline. A leftover overlay from an earlier hold is rejected if the participant is already on a later hold.

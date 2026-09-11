@@ -367,8 +367,11 @@ create :class:`~psynet.timeline.Response` rows or call the internal hold page's
 through ``TimelineHoldRecord`` and participant wait-time fields rather than by
 counting response rows. If the last arriver already advanced the waiter, the
 hold-resume POST still carries the hold page's uuid. The server recognizes that
-uuid on :class:`~psynet.timeline_hold.TimelineHoldRecord` and returns the
-current page without advancing again.
+uuid when it still matches this participant's hold record and they are
+not already on a later hold. The server then returns the
+current page without advancing again. A leftover overlay from an earlier
+round that fires while the participant is already on another hold is
+rejected as a sync mismatch.
 
 Bots
 ~~~~
