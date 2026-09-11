@@ -195,8 +195,9 @@ async function probeTimelineHoldClientBehavior(page) {
       psynet.scheduleTimelineHoldCheck = originalSchedule;
       psynet.scheduleTimelineHoldTimeout = originalTimeout;
       if (psynet.timelineHold) {
-        psynet.scheduleTimelineHoldCheck(psynet.timelineHold);
-        psynet.scheduleTimelineHoldTimeout(psynet.timelineHold);
+        const hold = { ...psynet.timelineHold.hold };
+        psynet.stopTimelineHold();
+        psynet.beginTimelineHold(hold);
       }
     }
   });
