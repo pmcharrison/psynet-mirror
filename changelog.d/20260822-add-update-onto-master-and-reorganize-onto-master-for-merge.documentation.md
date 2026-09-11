@@ -1,1 +1,1 @@
-Add /update-onto-master as the first step of /branch-review, and /reorganize-onto-master to rebuild the accepted tree as logical commits.
+Added Cursor commands that merge the GitLab merge-request target before `/branch-review`, then reorganize the accepted tree onto that target.

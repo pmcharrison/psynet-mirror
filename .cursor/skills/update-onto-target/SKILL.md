@@ -1,0 +1,76 @@
+---
+name: update-onto-target
+description: >-
+  Merge this branch's GitLab merge-request target into the feature
+  branch and resolve every conflict. Use for /update-onto-target,
+  /update-onto-master, syncing with the MR target, or as the first
+  step of PsyNet /branch-review.
+---
+
+# Update Onto Target
+
+Merge the current remote copy of this branch's merge-request **target**
+into the feature branch and resolve every conflict. This is a write, not
+a review, and it does **not** rewrite history.
+
+The target is the branch the MR will merge into, not always `master`.
+The open MR is the source of truth. The tree after this command is what
+will land. `/branch-review` runs this skill first, then reviews that
+tree. Soft-reset is `/reorganize-onto-master` and comes last: it does
+not merge, so running it without this step drops the target's new work.
+
+## Resolve the target
+
+Stay on the feature branch. Read `target_branch` from the open MR for
+this source branch, for example:
+
+```bash
+branch="$(git rev-parse --abbrev-ref HEAD)"
+glab api "projects/PsyNetDev%2FPsyNet/merge_requests?source_branch=${branch}&state=opened"
+```
+
+`glab mr view --output json` is fine if it returns JSON; in some setups
+it does not. If there is no open MR, stop and ask which target to use.
+Do not assume `master`.
+
+## Prerequisites
+
+1. Confirm you are on a feature branch, not the target:
+   `git rev-parse --abbrev-ref HEAD`
+2. Refresh the remote and local target without checking it out:
+
+   ```bash
+   git fetch origin "$target:$target"
+   ```
+
+   That updates `origin/<target>` and fast-forwards local `<target>`.
+   Stay on the feature branch. If the fetch fails because local
+   `<target>` has diverged, run `git fetch origin "$target"` only,
+   leave the local target branch alone, merge `origin/<target>` into
+   this branch, and tell the user the local target was not moved.
+3. Stop if there are uncommitted changes to tracked files. Untracked
+   files may stay in the worktree.
+
+If `git merge-base --is-ancestor origin/<target> HEAD` already
+succeeds, say so and stop. The branch already contains the current
+target. If it still has a merge commit or a messy commit list, the
+next step after review is `/reorganize-onto-master`, not another merge.
+
+## Merge the target
+
+```bash
+git merge "origin/$target"
+```
+
+Resolve every conflict. Do not abort because files conflict. The result
+must be the intended combination of this branch and the target. Complete
+the merge commit. If a conflict is a product decision you cannot make,
+stop and ask the user; do not leave the merge half-finished.
+
+Push the merge with a regular `git push`. Never force-push the target
+branch.
+
+If this skill was invoked on its own, typical next step is
+`/branch-review` (which will no-op the merge if the target is already
+an ancestor). After that review, run `/reorganize-onto-master` to
+rebuild the tree as logical commits.

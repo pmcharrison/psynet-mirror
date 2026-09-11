@@ -1,50 +1,59 @@
 ---
 name: reorganize-onto-master
-description: Reorganize a feature branch that already contains current master into logical commits with git reset --soft origin/master, then force-with-lease push. Use when the user asks to reorganize commits, group the branch into logical units, drop a merge commit, run /reorganize-onto-master, or after /branch-review of a just-merged tree.
+description: >-
+  Rebuild a PsyNet feature branch as logical commits on the open GitLab
+  merge-request target with git reset --soft, then force-with-lease
+  push. Use after /branch-review, or for /reorganize-onto-master or
+  /reorganize-onto-target. Does not fetch a newer target.
 ---
 
 # Reorganize Onto Master
 
-Rebuild the current feature branch as a few logical commits on
-`origin/master`. Use this **after** `/update-onto-master` and
-`/branch-review`, once the merged tree is accepted.
+Rebuild the current feature branch as a few logical commits on the
+open merge request's **target** (often `master`, not always). Use this
+**after** `/update-onto-target` and `/branch-review`, once the merged
+tree is accepted.
 
 The point is the commit grouping, not merely a straight-line history.
-`git reset --soft origin/master` keeps the reviewed tree and moves
-`HEAD` to `origin/master` so you can recommit that tree in sensible
-units. It does **not** fetch or merge. If `origin/master` is not
-already an ancestor of `HEAD`, stop and tell the user to run
-`/update-onto-master` first. Soft-resetting a stale tree drops
-master's new files.
+`git reset --soft origin/<target>` keeps the reviewed tree and moves
+`HEAD` to that target so you can recommit in sensible units.
+
+This skill does **not** merge. It also must **not** fetch a newer
+target and then soft-reset onto it: that would drop work that was never
+reviewed. If `origin/<target>` is not already an ancestor of `HEAD`,
+stop and tell the user to run `/update-onto-target` first.
+
+## Resolve the target
+
+Same source of truth as update-onto-target: the open MR's
+`target_branch`. See `.cursor/skills/update-onto-target/SKILL.md`
+(Resolve the target). Do not assume `master`.
 
 ## Prerequisites
 
-1. Confirm you are on a feature branch, not `master`:
+1. Confirm you are on a feature branch, not the target:
    `git rev-parse --abbrev-ref HEAD`
-2. Refresh remote and local `master` without checking it out:
-   `git fetch origin master:master`. If that fails because local
-   `master` has diverged, `git fetch origin master` only and leave
-   local `master` alone.
-3. Stop if there are uncommitted changes to tracked files.
-4. Confirm `git merge-base --is-ancestor origin/master HEAD`.
-   If that fails, run `/update-onto-master` first.
+2. Stop if there are uncommitted changes to tracked files.
+3. Confirm `git merge-base --is-ancestor origin/<target> HEAD`.
+   If that fails, run `/update-onto-target` first. Do not
+   `git fetch` the target here.
 
-## 1) Soft-reset onto master
+## 1) Soft-reset onto the target
 
 ```bash
 git branch "<branch>-before-rewrite" HEAD
-git reset --soft origin/master
+git reset --soft "origin/$target"
 ```
 
 The index and worktree stay at the reviewed merge result. `HEAD` is
-now `origin/master`.
+now `origin/<target>`.
 
 ## 2) Recreate logical commits
 
 Unstage if you need more than one commit (`git reset`), then `git add`
 feature files in groups. Each commit should be one concern (for
-example metadata, a dependency pin, CI, docs). Do not recommit
-master's own changes — they are already the parent.
+example metadata, a dependency pin, CI, docs). Do not recommit the
+target's own changes — they are already the parent.
 
 One commit is fine when the change is a single unit. Prefer a few
 clear commits over replaying the original incremental history.
@@ -55,5 +64,5 @@ clear commits over replaying the original incremental history.
 git push --force-with-lease origin HEAD
 ```
 
-Never force-push `master`. Leave the `<branch>-before-rewrite` backup
-until the user is happy.
+Never force-push the target branch. Leave the
+`<branch>-before-rewrite` backup until the user is happy.

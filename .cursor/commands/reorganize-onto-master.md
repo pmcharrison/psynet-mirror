@@ -2,7 +2,7 @@
 
 Use the project skill at `.cursor/skills/reorganize-onto-master/SKILL.md`.
 
-After `/update-onto-master` and `/branch-review`, rebuild the accepted
-tree as logical commits on current `master` with
-`git reset --soft origin/master`, then force-with-lease push. Do not
-merge here.
+After `/update-onto-target` and `/branch-review`, rebuild the accepted
+tree as logical commits on the merge-request target with
+`git reset --soft origin/<target>`, then force-with-lease push. Do
+not merge here and do not fetch a newer target.
