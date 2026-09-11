@@ -1729,14 +1729,17 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
 
 
 def _waiting_barrier_instance_ids():
-    """Snapshot eligible barrier visits for one poller sweep."""
+    """Snapshot barrier visits that still have working waiters.
+
+    Include inactive rows. A last-arrival snapshot can mark the visit
+    finished while a concurrent arriver's link committed after that SELECT.
+    """
     with Session(bind=db.engine) as session:
         return [
             instance_id
             for (instance_id,) in (
                 session.query(BarrierInstance.id)
                 .filter(
-                    BarrierInstance.active,
                     session.query(ParticipantLinkBarrier.id)
                     .join(Participant)
                     .filter(
@@ -1831,7 +1834,9 @@ def _check_claimed_barrier_instance(instance):
             instance, BarrierInstance
         ) or not _barrier_instance_has_waiters(instance):
             return True
-        instance.active = True
+        other = BarrierInstance._active_instance(instance.barrier_id, instance.group_id)
+        if other is None:
+            instance.active = True
     if not _claim_barrier_instance(instance.id):
         return False
     barrier = instance.get_barrier()
@@ -1876,7 +1881,7 @@ def _process_barrier_instance(instance_id, *, retry=False):
                 get_config().get("timeline_lock_timeout_seconds")
             )
             instance = BarrierInstance.query.get(instance_id)
-            if instance is None or not instance.active:
+            if instance is None:
                 return False
             barrier_id = instance.barrier_id
             _check_claimed_barrier_instance(instance)

@@ -1692,6 +1692,31 @@ def test_inactive_grouped_instance_with_waiters_is_still_checked(
     assert _barrier_link_released(first.id, barrier.id) is False
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_barriers_recovers_inactive_grouped_instance_with_waiters(
+    in_experiment_directory, db_session
+):
+    """The 0.5s poller must still see an inactive visit that has working waiters."""
+    exp = get_experiment()
+    first, _last = _pair_sync_group(exp, db_session)[0]
+    first_id = first.id
+    barrier = GroupBarrier(id_="poller_reactivate", group_type="main")
+    _arrive_at_group_barrier(exp, barrier, first)
+    db.session.commit()
+    instance = BarrierInstance.query.filter_by(barrier_id=barrier.id).one()
+    instance.active = False
+    db.session.commit()
+    instance_id = instance.id
+    barrier_id = barrier.id
+    check_barriers()
+    db.session.expire_all()
+    instance = BarrierInstance.query.get(instance_id)
+    assert instance.active is True
+    assert _barrier_link_released(first_id, barrier_id) is False
+
+
 def _stacked_partner_timeline(
     group_type, group_size=2, hold_content="Waiting for your partner"
 ):

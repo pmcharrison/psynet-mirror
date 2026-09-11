@@ -290,6 +290,9 @@ def test_timeout_wins_over_simultaneous_release():
     hold = ResumeTestHold(can_resume=True, timed_out=True)
     participant = SimpleNamespace(pending_redirect=None, failed=False)
 
+    assert hold.is_ready_to_resume(object(), participant)
+    assert not hold.prepared
+    assert not hold.timeout_applied
     assert hold.prepare_resume_if_ready(object(), participant)
     assert hold.prepared
     assert hold.timeout_applied

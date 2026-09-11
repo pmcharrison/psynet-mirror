@@ -5761,8 +5761,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     )
                     return participant, page
         if not checks and getattr(page, "is_timeline_hold", False):
-            prepare = getattr(page, "prepare_resume_if_ready", None)
-            ready = callable(prepare) and bool(prepare(experiment, participant))
+            is_ready = getattr(page, "is_ready_to_resume", None)
+            if callable(is_ready):
+                ready = bool(is_ready(experiment, participant))
+            else:
+                prepare = getattr(page, "prepare_resume_if_ready", None)
+                ready = callable(prepare) and bool(prepare(experiment, participant))
             if ready:
                 _set_transaction_lock_timeout(
                     get_config().get("timeline_lock_timeout_seconds")

@@ -266,6 +266,7 @@ def test_finalize_pending_hold_without_checks_relocks_the_participant(monkeypatc
     participant = SimpleNamespace(id=42)
     hold = SimpleNamespace(
         is_timeline_hold=True,
+        is_ready_to_resume=lambda *_args: True,
         prepare_resume_if_ready=lambda *_args: True,
         pre_render=lambda: None,
         early_exit_available=lambda *_args: False,
@@ -302,6 +303,53 @@ def test_finalize_pending_hold_without_checks_relocks_the_participant(monkeypatc
     assert returned_page is hold
 
 
+def test_finalize_pending_ready_hold_does_not_prepare_before_relock(monkeypatch):
+    """Timeout side effects must not run until GET /timeline holds FOR UPDATE."""
+    order = []
+    hold = SimpleNamespace(
+        is_timeline_hold=True,
+        is_ready_to_resume=lambda *_args: order.append("ready") or True,
+        prepare_resume_if_ready=lambda *_args: (
+            order.append("prepare")
+            or (_ for _ in ()).throw(
+                AssertionError("prepare_resume_if_ready must wait for FOR UPDATE")
+            )
+        ),
+        pre_render=lambda: None,
+        early_exit_available=lambda *_args: False,
+    )
+    participant = SimpleNamespace(id=42)
+    query = MagicMock()
+
+    def _for_update(**_kwargs):
+        order.append("lock")
+        return query.with_for_update.return_value
+
+    query.with_for_update.side_effect = _for_update
+    query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
+    experiment = Experiment.__new__(Experiment)
+    experiment._participant_request_query = MagicMock(return_value=query)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.return_value = hold
+    experiment._advance_past_ready_holds = MagicMock(
+        side_effect=lambda *_args: order.append("advance") or hold
+    )
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout",
+        lambda *_args: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
+    )
+
+    Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
+
+    assert order == ["ready", "lock", "advance"]
+    query.with_for_update.assert_called_once_with(of=Participant)
+
+
 def test_finalize_pending_skips_relock_when_the_page_is_not_a_hold(monkeypatch):
     """A GET /timeline page that is not a hold must not take the fallback lock."""
     page = SimpleNamespace(is_timeline_hold=False)
@@ -324,6 +372,7 @@ def test_finalize_pending_unreleased_hold_rechecks_without_relock(monkeypatch):
     """Dropped last-arrival checks may rerun, but not while this waiter holds FOR UPDATE."""
     hold = SimpleNamespace(
         is_timeline_hold=True,
+        is_ready_to_resume=lambda *_args: False,
         prepare_resume_if_ready=lambda *_args: False,
         barrier_id="main",
         pre_render=lambda: None,
@@ -371,6 +420,7 @@ def test_finalize_pending_prepares_the_page_after_skipping_a_ready_hold(monkeypa
     )
     hold = SimpleNamespace(
         is_timeline_hold=True,
+        is_ready_to_resume=lambda *_args: True,
         prepare_resume_if_ready=lambda *_args: True,
     )
     query = MagicMock()
@@ -445,6 +495,7 @@ def test_finalize_pending_ready_hold_commits_before_arrival_checks(monkeypatch):
     )
     hold = SimpleNamespace(
         is_timeline_hold=True,
+        is_ready_to_resume=lambda *_args: True,
         prepare_resume_if_ready=lambda *_args: True,
     )
     participant = SimpleNamespace(id=42)
