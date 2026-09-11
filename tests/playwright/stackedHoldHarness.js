@@ -24,7 +24,10 @@ const STEP_TIMEOUT_MS = 120000;
 const ENTRY_REQUEST_MAX_MS = 2500;
 const START_PAGE_MAX_MS = 6000;
 const BLOCKING_REQUEST_MS = 4000;
-const PARTNER_HOLD_RELEASE_MAX_MS = 2500;
+// Current waiters leave in ~0.2–0.8s after last paint. Keep this under the 2s
+// safety poll so a missed wake cannot hide inside the budget. An older quartet
+// sample hit 1.4s, so 1.8s is the slack above that without returning to 2.5s.
+const PARTNER_HOLD_RELEASE_MAX_MS = 1800;
 const WAITER_RELEASE_SPREAD_MAX_MS = 1500;
 const SETTLE_HOLD_MS = 3500;
 const ACTION_PROMPT = "Choose your action";

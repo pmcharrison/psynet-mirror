@@ -87,8 +87,8 @@ const firstResumePromise = waitForHeldParticipantToResume(firstPage, {
 });
 const lastEntry = await enterTimelineAfterGateway(lastPage);
 const firstResume = await firstResumePromise;
-expect(firstResume.resumedAtMs - lastEntry.start.timelineAtMs).toBeLessThan(2500);
-expect(firstResume.resumedAtMs - lastEntry.start.consentClickedAtMs).toBeLessThan(8500);
+expect(firstResume.resumedAtMs - lastEntry.start.timelineAtMs).toBeLessThan(1800);
+expect(firstResume.resumedAtMs - lastEntry.start.consentClickedAtMs).toBeLessThan(7800);
 ```
 
 Concurrent late arrivals must wrap and arm at first paint, inside the same
