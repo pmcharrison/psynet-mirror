@@ -517,6 +517,54 @@ test("timeline hold client overlay and busy retry stay on a live hold", { tag: "
       submitEnables: 0
     });
 
+    const transportFailureHoldEffects = await experimentPage.evaluate(
+      async () => {
+        const originalAlert = psynet.alert;
+        const originalErrorPage = window.psynetErrorPage;
+        const originalReload = psynet.loadNextTimelinePageWithReload;
+        const originalSchedule = psynet.scheduleTimelineHoldCheck;
+        const effects = {
+          alerts: 0,
+          reloads: 0,
+          errorPages: 0,
+          scheduleCalls: 0,
+          timeoutMs: psynet.timelineHoldResumeTimeoutMs
+        };
+        psynet.alert = () => {
+          effects.alerts += 1;
+        };
+        window.psynetErrorPage = {
+          go() {
+            effects.errorPages += 1;
+          }
+        };
+        psynet.loadNextTimelinePageWithReload = () => {
+          effects.reloads += 1;
+        };
+        psynet.scheduleTimelineHoldCheck = () => {
+          effects.scheduleCalls += 1;
+        };
+        const request = { status: 500, response: "Internal Server Error" };
+        await psynet.handleHoldResumeTransportFailure(request);
+        const resumeRequested = Boolean(psynet.timelineHold?.resumeRequested);
+        const holdStillActive = Boolean(psynet.timelineHold);
+        psynet.alert = originalAlert;
+        window.psynetErrorPage = originalErrorPage;
+        psynet.loadNextTimelinePageWithReload = originalReload;
+        psynet.scheduleTimelineHoldCheck = originalSchedule;
+        return { resumeRequested, holdStillActive, ...effects };
+      }
+    );
+    expect(transportFailureHoldEffects).toEqual({
+      resumeRequested: false,
+      holdStillActive: true,
+      timeoutMs: 30000,
+      scheduleCalls: 1,
+      alerts: 0,
+      reloads: 0,
+      errorPages: 0
+    });
+
     const busyLivelock = await experimentPage.evaluate(async () => {
       const controller = psynet.timelineHold;
       const originalNextPage = psynet.nextPage;

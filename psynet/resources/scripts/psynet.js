@@ -1024,6 +1024,8 @@
       );
     };
 
+    psynet.timelineHoldResumeTimeoutMs = 30000;
+
     psynet.resumeTimelineHold = async function (reason) {
       let controller = psynet.timelineHold;
       if (!controller || controller.stopped) {
@@ -3357,6 +3359,22 @@
       }
     };
 
+    psynet.handleHoldResumeTransportFailure = async function (request) {
+      let status = request && request.status;
+      psynet.log.warn(
+        "A timeline hold resume check failed (" +
+          (status || "network") +
+          "); keeping the preserved page.",
+      );
+      if (psynet.timelineHold) {
+        // Match busy 503: reschedule the safety poll and do not set
+        // resumeRequested, or the in-flight resume's finally would wake
+        // again immediately.
+        psynet.scheduleTimelineHoldCheck(psynet.timelineHold);
+      }
+      return false;
+    };
+
     psynet.handleBusyResponse = async function (request, options = {}) {
       let body = {};
       try {
@@ -3515,12 +3533,19 @@
                   request,
                   options,
                 );
+              } else if (options.timelineHoldResume) {
+                passedValidation =
+                  await psynet.handleHoldResumeTransportFailure(request);
               } else {
                 psynet.log.debug("Something went wrong.");
                 onErrorResponse(request);
               }
             } catch (error) {
-              if (psynetTemplateData.flags.inplaceTimelineTransitions) {
+              if (options.timelineHoldResume && request.status !== 200) {
+                psynet.log.warn(error.stack || String(error));
+                passedValidation =
+                  await psynet.handleHoldResumeTransportFailure(request);
+              } else if (psynetTemplateData.flags.inplaceTimelineTransitions) {
                 await psynet.handleTimelineTransitionFailure(error);
               } else {
                 psynet.log.error(error.stack || String(error));
@@ -3531,6 +3556,9 @@
             }
           };
           request.open("POST", "/response");
+          if (options.timelineHoldResume) {
+            request.timeout = psynet.timelineHoldResumeTimeoutMs;
+          }
           request.send(formData);
         };
         send();
