@@ -70,8 +70,9 @@ groups and a ``GroupBarrier`` release the group without waiting for the poller,
 while waiter locks remain outside the main write transaction. Lock contention
 is left for the 0.5 s poller so a locked partner cannot abort the submit.
 
-Callable attributes on barriers (e.g., ``on_release``) are serialized via
-``serialize_callable`` so each ``BarrierInstance`` retains stable behavior.
+Callable attributes on barriers (e.g., ``on_release``) persist through
+:mod:`psynet.barrier_spec` so each ``BarrierInstance`` keeps stable release
+behavior without pickling waiting pages.
 """
 
 import random
@@ -740,7 +741,7 @@ class GroupBarrier(Barrier):
             )
             if is_waiting:
                 hold_html = None
-                if self._uses_timeline_hold:
+                if self._uses_timeline_hold and self.waiting_logic is not None:
                     hold_html = self.waiting_logic.overlay_html(member)
                 _queue_arrival_update(member.id, hold_message=hold_html)
             elif text:
@@ -1584,6 +1585,7 @@ def pending_arrival_notice_for(participant):
     if participant is None or getattr(participant, "failed", False):
         return None
     groups = getattr(participant, "active_sync_groups", None) or {}
+    reconstructed = {}
     notice = None
     for group in groups.values():
         for member in group.active_participants:
@@ -1592,7 +1594,10 @@ def pending_arrival_notice_for(participant):
             for link in list(member.active_barriers.values()):
                 if link.released:
                     continue
-                barrier = link.get_barrier()
+                barrier = reconstructed.get(link.barrier_instance_id)
+                if barrier is None:
+                    barrier = link.get_barrier()
+                    reconstructed[link.barrier_instance_id] = barrier
                 if not isinstance(barrier, GroupBarrier) or not barrier.notify_arrivals:
                     continue
                 if barrier._participant_is_waiting(participant):

@@ -1394,6 +1394,7 @@ def test_process_response_does_not_wait_when_participant_row_is_locked(
                     {},
                     page_uuid,
                     "127.0.0.1",
+                    timeline_hold_resume=True,
                 )
             elapsed = time.perf_counter() - started_at
         finally:

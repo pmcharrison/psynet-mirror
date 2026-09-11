@@ -37,12 +37,14 @@ def test_custom_barrier_round_trip_uses_plain_json():
     assert spec["state"] == {"id": "threshold", "threshold": 2}
     assert spec["version"] == 1
     assert spec["presentation"]["content"] is None
+    assert spec["page_policy"]["_uses_timeline_hold"] is True
     assert "waiting_logic" not in spec["state"]
     assert isinstance(restored, ThresholdBarrier)
     assert restored.id == "threshold"
     assert restored.threshold == 2
     assert restored.content is None
-    assert not hasattr(restored, "waiting_logic")
+    assert restored.waiting_logic is None
+    assert restored._uses_timeline_hold is True
 
 
 def test_callback_round_trip():
@@ -124,6 +126,9 @@ def test_group_barrier_restores_on_arrival_message_callable():
     assert behavior_hash(restored) == behavior_hash(
         GroupBarrier("pair_hold", group_type="pair", notify_arrivals=False)
     )
+
+
+def test_group_barrier_restores_scalar_presentation_not_waiting_pages():
     original = GroupBarrier(
         "pair_hold",
         group_type="pair",
@@ -139,7 +144,8 @@ def test_group_barrier_restores_on_arrival_message_callable():
     assert restored.max_wait_time == 30
     assert restored.max_wait_action == "kick"
     assert restored.notify_arrivals is False
-    assert not hasattr(restored, "waiting_logic")
+    assert restored.waiting_logic is None
+    assert restored._uses_timeline_hold is True
     assert behavior_hash(restored) == behavior_hash(
         GroupBarrier(
             "pair_hold",

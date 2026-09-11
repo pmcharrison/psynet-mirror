@@ -3,9 +3,11 @@
 Barrier instances must survive across web workers, but persisting an entire
 ``Barrier`` object also captures waiting pages and incidental ORM state.
 This module stores the importable barrier class, release-hook state, scalar
-presentation (``content``, timeouts), and arrival-notice settings. Waiting
-pages (``waiting_logic``) stay on the live timeline object. Callback identity
-is kept separate from the ORM receiver selected for one visit, so behavior
+presentation (``content``, timeouts), hold-page policy
+(``_uses_timeline_hold``, ``waiting_logic_expected_repetitions``), and
+arrival-notice settings. Waiting pages (``waiting_logic``) stay on the live
+timeline object and reconstruct as ``None``. Callback identity is kept
+separate from the ORM receiver selected for one visit, so behavior
 comparisons are stable while invocation remains correctly bound.
 """
 
@@ -25,9 +27,10 @@ from psynet.serialize import (
 
 SPEC_VERSION = 1
 
-_PAGE_FIELDS = {
+_PAGE_FIELDS = {"waiting_logic"}
+
+_PAGE_POLICY_FIELDS = {
     "_uses_timeline_hold",
-    "waiting_logic",
     "waiting_logic_expected_repetitions",
 }
 
@@ -41,7 +44,9 @@ _PRESENTATION_FIELDS = {
 
 _NOTIFICATION_FIELDS = {"notify_arrivals", "on_arrival_message"}
 
-_EXCLUDED_FROM_STATE = _PAGE_FIELDS | _PRESENTATION_FIELDS | _NOTIFICATION_FIELDS
+_EXCLUDED_FROM_STATE = (
+    _PAGE_FIELDS | _PAGE_POLICY_FIELDS | _PRESENTATION_FIELDS | _NOTIFICATION_FIELDS
+)
 
 
 class BarrierSpecError(ValueError):
@@ -66,6 +71,9 @@ def barrier_spec(barrier):
     notifications = _encode_field_group(barrier, _NOTIFICATION_FIELDS)
     if notifications:
         spec["notifications"] = notifications
+    page_policy = _encode_field_group(barrier, _PAGE_POLICY_FIELDS)
+    if page_policy:
+        spec["page_policy"] = page_policy
     return spec
 
 
@@ -88,7 +96,12 @@ def barrier_spec_json(barrier):
 
 
 def barrier_from_spec_json(serialized):
-    """Reconstruct a registry barrier from canonical JSON."""
+    """Reconstruct a registry barrier from canonical JSON.
+
+    The result is a callback/release object: scalar presentation and hold-page
+    policy are restored, but ``waiting_logic`` is always ``None``. Overlay HTML
+    stays on the live timeline barrier.
+    """
     try:
         spec = json.loads(serialized)
     except (TypeError, json.JSONDecodeError) as err:
@@ -119,6 +132,11 @@ def barrier_from_spec_json(serialized):
         setattr(barrier, key, _decode_value(value))
     for key, value in spec.get("notifications", {}).items():
         setattr(barrier, key, _decode_value(value))
+    for key, value in spec.get("page_policy", {}).items():
+        setattr(barrier, key, _decode_value(value))
+    barrier.waiting_logic = None
+    if not hasattr(barrier, "_uses_timeline_hold"):
+        barrier._uses_timeline_hold = False
     return barrier
 
 
@@ -249,6 +267,7 @@ def _behavior_identity(spec):
     identity = normalize(spec)
     identity.pop("presentation", None)
     identity.pop("notifications", None)
+    identity.pop("page_policy", None)
     return identity
 
 
