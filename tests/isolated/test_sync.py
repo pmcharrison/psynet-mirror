@@ -1353,6 +1353,7 @@ def test_finalize_loser_does_not_wait_on_winner_waiter_locks(
     _pause_group_barrier_checks(monkeypatch, barrier.id, started, finish, enabled)
     page = _DummyFinalizePage()
     hold_page = SimpleNamespace(is_timeline_hold=True)
+    hold_page.__json__ = lambda _participant: {"label": "hold"}
     exp.timeline = SimpleNamespace(get_current_elt=lambda _e, _p: hold_page)
     exp._advance_past_ready_holds = lambda participant, current_page: page
     checks = _queued_last_arrival_checks(exp, barrier, first, last)
@@ -1376,7 +1377,8 @@ def test_finalize_loser_does_not_wait_on_winner_waiter_locks(
     assert not winner.is_alive()
     assert winner_errors == []
     assert loser_errors == []
-    assert loser_result.page is loser_hold
+    assert loser_result.page is hold_page
+    assert loser_result.payload["page"] == {"label": "hold"}
     assert winner_result.page is page
     assert _barrier_link_released(first.id, barrier.id) is True
     assert _barrier_link_released(last.id, barrier.id) is True
@@ -1831,20 +1833,27 @@ def test_ungrouped_instance_clears_active_so_later_behavior_can_reuse_the_id(
     for participant in first_wave + second_wave:
         participant.status = "working"
     db.session.commit()
-    first_grouper = SimpleGrouper(group_type="main", initial_group_size=3)
+    first_grouper = SimpleGrouper(group_type="regroup_sizes", initial_group_size=3)
     for participant in first_wave:
         _arrive_at_group_barrier(exp, first_grouper, participant)
         _commit_barrier_arrivals()
-    instance = BarrierInstance.query.filter_by(barrier_id="main_grouper").one()
+    instance = BarrierInstance.query.filter_by(barrier_id="regroup_sizes_grouper").one()
     assert instance.active is False
-    for participant in first_wave:
-        assert participant.sync_group is not None
-        participant.sync_group.close()
+    db.session.expire_all()
+    group = Participant.query.get(first_wave[0].id).sync_group
+    assert group is not None
+    assert {
+        Participant.query.get(participant.id).sync_group.id
+        for participant in first_wave
+    } == {group.id}
+    group.close()
     db.session.commit()
-    second_grouper = SimpleGrouper(group_type="main", initial_group_size=2)
+    second_grouper = SimpleGrouper(group_type="regroup_sizes", initial_group_size=2)
     _arrive_at_group_barrier(exp, second_grouper, second_wave[0])
     _commit_barrier_arrivals()
-    instances = BarrierInstance.query.filter_by(barrier_id="main_grouper").all()
+    instances = BarrierInstance.query.filter_by(
+        barrier_id="regroup_sizes_grouper"
+    ).all()
     assert len(instances) == 2
     active = [row for row in instances if row.active]
     assert len(active) == 1
