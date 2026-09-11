@@ -3369,7 +3369,9 @@
       if (options.timelineHoldResume) {
         psynet.log.warn("A timeline hold resume check was busy: " + message);
         if (psynet.timelineHold) {
-          psynet.timelineHold.resumeRequested = true;
+          // A second busy 503 must not set resumeRequested. The in-flight
+          // resume's finally would immediately wake again and livelock.
+          psynet.scheduleTimelineHoldCheck(psynet.timelineHold);
         }
         return false;
       }

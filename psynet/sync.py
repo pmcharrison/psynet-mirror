@@ -533,13 +533,16 @@ class Barrier(EltCollection):
 
         Pass ``participant`` to scope the list to that person's instance.
         Ungrouped barriers (groupers, ``WaitForN``) fall back to the one
-        active pool for this barrier ID. This listing does not take extra
-        row locks unless ``for_update`` is true.
+        active pool for this barrier ID. Grouped barriers have no ungrouped
+        pool, so omitting ``participant`` returns an empty list. This listing
+        does not take extra row locks unless ``for_update`` is true.
 
         Parameters
         ----------
         participant
             A waiter whose ``active_barriers`` link identifies the visit.
+            Must be a participant, not a boolean; ``for_update`` is
+            keyword-only.
         for_update
             Lock the waiter rows until the current transaction ends.
 
@@ -548,6 +551,11 @@ class Barrier(EltCollection):
         list of Participant
             Active, unreleased waiters at this visit.
         """
+        if isinstance(participant, bool):
+            raise TypeError(
+                "get_waiting_participants() takes a Participant as the first "
+                "argument; pass for_update as a keyword."
+            )
         if participant is not None:
             link = participant.active_barriers.get(self.id)
             if link is None:
@@ -615,11 +623,7 @@ class Barrier(EltCollection):
             self._advance_released_hold_waiters(participants_to_release)
         instance = BarrierInstance.query.get(barrier_instance_id)
         if instance is not None and instance.group_id is not None:
-            instance.active = any(
-                not participant.active_barriers[self.id].released
-                for participant in waiting_participants
-                if self.id in participant.active_barriers
-            )
+            instance.active = _barrier_instance_has_waiters(instance)
         return waiting_participants
 
     def _advance_released_hold_waiters(self, participants):
@@ -1790,6 +1794,22 @@ def pending_arrival_notice_for(participant):
     return notice
 
 
+def _barrier_instance_has_waiters(instance):
+    """Return whether a visit still has an unreleased working participant."""
+    return (
+        db.session.query(ParticipantLinkBarrier.id)
+        .join(Participant)
+        .filter(
+            ParticipantLinkBarrier.barrier_instance_id == instance.id,
+            ~ParticipantLinkBarrier.released,
+            ~Participant.failed,
+            Participant.status == "working",
+        )
+        .first()
+        is not None
+    )
+
+
 def _check_claimed_barrier_instance(instance):
     """Claim and evaluate one instance, or report that the work is already done.
 
@@ -1800,8 +1820,14 @@ def _check_claimed_barrier_instance(instance):
         finished. ``False`` only when another request currently owns the
         advisory claim, so waiters may still be locked.
     """
-    if instance is None or not instance.active:
+    if instance is None:
         return True
+    if not instance.active:
+        if not isinstance(
+            instance, BarrierInstance
+        ) or not _barrier_instance_has_waiters(instance):
+            return True
+        instance.active = True
     if not _claim_barrier_instance(instance.id):
         return False
     barrier = instance.get_barrier()

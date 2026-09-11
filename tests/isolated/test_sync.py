@@ -1655,6 +1655,8 @@ def test_participant_link_barrier_lists_waiting_participants(
     assert grouper.get_waiting_participants(first) == [first]
     assert grouper.get_waiting_participants() == [first]
     assert grouper.get_waiting_participants(second) == []
+    with pytest.raises(TypeError, match="for_update"):
+        grouper.get_waiting_participants(True)
 
 
 def test_check_claimed_barrier_instance_treats_finished_work_as_success():
@@ -1664,6 +1666,30 @@ def test_check_claimed_barrier_instance_treats_finished_work_as_success():
         _check_claimed_barrier_instance(SimpleNamespace(active=False, id="done"))
         is True
     )
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_inactive_grouped_instance_with_waiters_is_still_checked(
+    in_experiment_directory, db_session
+):
+    """An inactive grouped visit must run again if working waiters remain."""
+    exp = get_experiment()
+    first, _last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="reactivate", group_type="main")
+    _arrive_at_group_barrier(exp, barrier, first)
+    db.session.commit()
+    instance = BarrierInstance.query.filter_by(barrier_id=barrier.id).one()
+    instance.active = False
+    db.session.commit()
+    instance = BarrierInstance.query.get(instance.id)
+    assert instance.active is False
+    assert _check_claimed_barrier_instance(instance) is True
+    db.session.commit()
+    instance = BarrierInstance.query.get(instance.id)
+    assert instance.active is True
+    assert _barrier_link_released(first.id, barrier.id) is False
 
 
 def _stacked_partner_timeline(
@@ -1984,6 +2010,52 @@ def test_stale_hold_resume_approves_the_current_page_after_last_arrival(
         assert (
             exp._page_for_stale_hold_resume(first, hold_uuid, current_page) is not None
         )
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_waiter_get_timeline_survives_stale_hold_after_partner_advance(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """GET /timeline must paint the live page if a partner already advanced the waiter."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    group_type = f"stack_get_{uuid.uuid4().hex[:8]}"
+    exp.timeline = _stacked_partner_timeline(group_type)
+    try:
+        first, last = _working_participants(exp, 2)
+        assert _json_timeline(exp, first).get_json()["attributes"]["type"] == (
+            "_BarrierHoldPage"
+        )
+        first = Participant.query.get(first.id)
+        hold_page = exp.timeline.get_current_elt(exp, first)
+        hold_uuid = first.page_uuid
+        assert getattr(hold_page, "is_timeline_hold", False)
+
+        last_response = _json_timeline(exp, last)
+        assert last_response.status_code == 200
+        db.session.expire_all()
+        first = Participant.query.get(first.id)
+        assert first.page_uuid != hold_uuid
+        assert hold_page.prepare_resume_if_ready(exp, first) is False
+
+        original_get = Experiment.get_current_page
+
+        @classmethod
+        def stale_get(cls, experiment, participant):
+            if participant.id == first.id:
+                hold_page.pre_render()
+                return hold_page
+            return original_get.__func__(cls, experiment, participant)
+
+        monkeypatch.setattr(Experiment, "get_current_page", stale_get)
+        response = _json_timeline(exp, first)
+        assert response.status_code == 200
+        assert response.get_json()["attributes"]["type"] == "ModularPage"
+        assert response.get_json()["attributes"]["page_uuid"] == first.page_uuid
     finally:
         exp.timeline = original_timeline
 

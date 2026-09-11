@@ -331,6 +331,8 @@ def test_finalize_pending_unreleased_hold_rechecks_without_relock(monkeypatch):
     )
     participant = SimpleNamespace(id=1)
     experiment = Experiment.__new__(Experiment)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.return_value = hold
     experiment._participant_request_query = MagicMock()
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
     monkeypatch.setattr(
@@ -395,6 +397,94 @@ def test_finalize_pending_prepares_the_page_after_skipping_a_ready_hold(monkeypa
     nxt.pre_render.assert_called_once()
     assert returned_page is nxt
     assert returned_participant is participant
+
+
+def test_finalize_pending_stale_hold_uses_the_live_cursor(monkeypatch):
+    """GET /timeline must not resume a hold after a partner already advanced it."""
+    nxt = SimpleNamespace(
+        is_timeline_hold=False,
+        pre_render=MagicMock(),
+        early_exit_available=lambda *_args: False,
+    )
+    hold = SimpleNamespace(
+        is_timeline_hold=True,
+        prepare_resume_if_ready=lambda *_args: (_ for _ in ()).throw(
+            AssertionError("stale hold must not be rechecked")
+        ),
+    )
+    participant = SimpleNamespace(id=1)
+    experiment = Experiment.__new__(Experiment)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.return_value = nxt
+    experiment._participant_request_query = MagicMock()
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+
+    returned_participant, returned_page = (
+        Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
+    )
+
+    experiment._participant_request_query.assert_not_called()
+    nxt.pre_render.assert_called_once()
+    assert returned_page is nxt
+    assert returned_participant is participant
+
+
+def test_finalize_pending_ready_hold_commits_before_arrival_checks(monkeypatch):
+    """Skipping a ready hold must drop FOR UPDATE before stacked last-arrival checks."""
+    take_calls = []
+
+    def take():
+        take_calls.append(1)
+        return [] if len(take_calls) == 1 else ["instance-1"]
+
+    commits = []
+    nxt = SimpleNamespace(
+        is_timeline_hold=False,
+        pre_render=MagicMock(),
+        early_exit_available=lambda *_args: False,
+    )
+    hold = SimpleNamespace(
+        is_timeline_hold=True,
+        prepare_resume_if_ready=lambda *_args: True,
+    )
+    participant = SimpleNamespace(id=42)
+    query = MagicMock()
+    query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
+    query.get.return_value = participant
+    experiment = Experiment.__new__(Experiment)
+    experiment._participant_request_query = MagicMock(return_value=query)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.side_effect = [hold, hold, nxt]
+    experiment._advance_past_ready_holds = MagicMock(return_value=nxt)
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", take)
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout",
+        lambda *_args: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.db.session.commit", lambda: commits.append("commit")
+    )
+    captured = {}
+
+    def fake_finalize(cls, _experiment, participant_id, checks, result):
+        captured["checks"] = list(checks)
+        captured["commits_before"] = list(commits)
+        result.page = nxt
+        return participant
+
+    monkeypatch.setattr(
+        Experiment, "_finalize_barrier_arrivals", classmethod(fake_finalize)
+    )
+
+    Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
+
+    query.with_for_update.assert_called_once_with(of=Participant)
+    assert captured["checks"] == ["instance-1"]
+    assert captured["commits_before"] == ["commit"]
 
 
 def test_process_response_unready_hold_does_not_recheck_readiness(monkeypatch):

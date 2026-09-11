@@ -1085,6 +1085,11 @@ function timelineHoldReleaseProbeScript() {
         probe.holdEndedAtMs = Date.now();
       }
     });
+    window.addEventListener("timelineHoldStarted", () => {
+      probe.wakeReceivedAtMs = null;
+      probe.holdEndedAtMs = null;
+      probe.wakeReason = null;
+    });
   }
 
   const wrapNamed = (object, name, record) => {

@@ -5741,13 +5741,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         timeline cursor. An unreleased barrier hold may recover a dropped
         last-arrival check, but it must not take ``FOR UPDATE`` before that
         check so a concurrent last arriver can still lock waiters with
-        ``NOWAIT``.
+        ``NOWAIT``. After expire-on-commit, re-read the live cursor so a
+        partner who already advanced this waiter does not leave GET holding a
+        stale wait page. A ready skip that queues stacked checks commits
+        before those checks so this waiter does not keep ``FOR UPDATE`` during
+        last-arrival locking.
         """
         from types import SimpleNamespace
 
         from .sync import _hold_instance_id_for_page, _take_pending_barrier_checks
 
         checks = _take_pending_barrier_checks()
+        if getattr(page, "is_timeline_hold", False):
+            page = experiment.timeline.get_current_elt(experiment, participant)
+            if not getattr(page, "is_timeline_hold", False):
+                if not checks:
+                    page = cls._prepare_resolved_timeline_page(
+                        experiment, participant, page
+                    )
+                    return participant, page
         if not checks and getattr(page, "is_timeline_hold", False):
             prepare = getattr(page, "prepare_resume_if_ready", None)
             ready = callable(prepare) and bool(prepare(experiment, participant))
@@ -5774,6 +5786,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 page = cls._prepare_resolved_timeline_page(
                     experiment, participant, page
                 )
+                if checks:
+                    db.session.commit()
+                    participant = experiment._participant_request_query().get(
+                        participant.id
+                    )
+                    if participant is None:
+                        raise RuntimeError(
+                            f"Participant {participant.id} disappeared after timeline hold skip."
+                        )
+                    page = experiment.timeline.get_current_elt(experiment, participant)
+                    page = cls._prepare_resolved_timeline_page(
+                        experiment, participant, page
+                    )
             else:
                 instance_id = _hold_instance_id_for_page(participant, page)
                 if instance_id:

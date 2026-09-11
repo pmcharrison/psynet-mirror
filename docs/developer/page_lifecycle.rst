@@ -69,10 +69,14 @@ Timeline requests separate state mutation from rendering:
    preparation writes, releasing locks. Remaining queued hold wakes publish
    after that commit. If ``GET /timeline`` finds a ready hold and no queued
    checks, it relocks that participant, skips the hold, and runs
-   ``pre_render()`` on the page that will be shown. An unreleased barrier hold
-   may recover a dropped last-arrival check without taking ``FOR UPDATE``
-   first, so a concurrent last arriver can still lock waiters with
-   ``NOWAIT``.
+   ``pre_render()`` on the page that will be shown. After that write-phase
+   commit, GET re-reads the live timeline cursor so a partner who already
+   advanced this waiter does not resume a stale hold page. If skipping a
+   ready hold queues stacked last-arrival checks, GET commits first so it
+   does not keep ``FOR UPDATE`` while those checks lock waiters. An
+   unreleased barrier hold may recover a dropped last-arrival check without
+   taking ``FOR UPDATE`` first, so a concurrent last arriver can still lock
+   waiters with ``NOWAIT``.
 4. HTML, JSON, or an inplace fragment is rendered in a fresh PostgreSQL
    read-only transaction with SQLAlchemy autoflush disabled.
 5. PsyNet verifies that rendering created no new, dirty, or deleted ORM
@@ -115,8 +119,11 @@ Participant-facing write phases use a bounded PostgreSQL ``lock_timeout`` so
 unexpected contention fails safely instead of occupying a web worker
 indefinitely. ``GET /timeline`` (HTML or JSON) and ``POST /response`` return
 HTTP 503 with a ``busy`` payload so the browser and automated drivers can
-retry. Whole timeline requests are not retried automatically on the server
-because author code blocks may contain non-idempotent external side effects. Barrier definitions and per-group visit
+retry. Hold-resume submissions retry a busy 503 once, then reschedule the
+hold safety poll instead of immediately retrying, so the browser cannot
+livelock on contention. Whole timeline requests are not retried
+automatically on the server because author code blocks may contain
+non-idempotent external side effects. Barrier definitions and per-group visit
 instances are created in the arrival request's transaction. Each instance
 stores a versioned JSON specification of its release behavior rather than an
 opaque Python-object snapshot. The poller claims an instance with an advisory

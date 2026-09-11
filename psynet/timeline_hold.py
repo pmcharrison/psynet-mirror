@@ -452,15 +452,20 @@ class _TimelineHoldPage(Page):
         """Run subclass-specific linking after creating the hold record."""
 
     def get_hold_record(self, participant):
-        """Return the record belonging to the participant's current hold page."""
+        """Return the record belonging to the participant's current hold page.
+
+        Returns ``None`` when the cursor has already left this hold, so a
+        stale GET ``/timeline`` page object cannot crash on ``.one()``.
+        """
         cached = getattr(participant, "_timeline_hold_record", None)
         if cached is not None and cached.page_uuid == participant.page_uuid:
             return cached
         record = TimelineHoldRecord.query.filter_by(
             participant_id=participant.id,
             page_uuid=participant.page_uuid,
-        ).one()
-        participant._timeline_hold_record = record
+        ).one_or_none()
+        if record is not None:
+            participant._timeline_hold_record = record
         return record
 
     def participant_can_resume(self, experiment, participant):
@@ -469,7 +474,10 @@ class _TimelineHoldPage(Page):
 
     def participant_timed_out(self, participant):
         """Return whether the authoritative hold deadline has passed."""
-        deadline = self.get_hold_record(participant).deadline
+        record = self.get_hold_record(participant)
+        if record is None:
+            return False
+        deadline = record.deadline
         return deadline is not None and timenow() >= deadline
 
     def prepare_resume_if_ready(self, experiment, participant):
@@ -477,6 +485,9 @@ class _TimelineHoldPage(Page):
         if participant.pending_redirect is not None or participant.failed:
             self.prepare_to_resume(participant)
             return True
+        if getattr(participant, "page_uuid", None) is not None:
+            if self.get_hold_record(participant) is None:
+                return False
         if self.participant_timed_out(participant):
             self.prepare_to_resume(participant)
             self.apply_timeout(participant)
@@ -508,6 +519,8 @@ class _TimelineHoldPage(Page):
     def account_wait(self, participant, settle=False):
         """Update actual wait diagnostics and compensation."""
         record = self.get_hold_record(participant)
+        if record is None:
+            return
         if settle:
             record.settle(participant)
         else:
