@@ -1,0 +1,528 @@
+"""SQL budgets for last-arrival barrier checks and stacked finalize.
+
+These tests use the SQLAlchemy profiler as a statement-count gate, not a
+wall-clock one. The interesting window is the post-commit coordination path
+(``_run_pending_barrier_checks`` / ``_finalize_barrier_arrivals``), not the
+full ``/timeline`` or ``/response`` stack.
+
+The predicted counts below were derived from the code, then checked against a
+profiler dump. Unexpected extras are called out next to the assertion they
+affect.
+
+Check window (one GroupBarrier, group already formed, *N* waiters)
+------------------------------------------------------------------
+Fixed coordination (must not grow with *N*):
+
+* 1 instance PK load, 1 SAVEPOINT, 1 ``pg_try_advisory_xact_lock``,
+  1 deferred ``spec`` load, 1 waiter ``FOR UPDATE NOWAIT`` join,
+  1 ``module_state`` select-in, 1 ``sync_group`` PK, 1 group-membership
+  load, 1 group UPDATE, 1 instance UPDATE, 1 RELEASE SAVEPOINT.
+
+  Total: 11.
+
+Per waiter (SQLAlchemy default: one statement per row, plus lazy loads):
+
+* UPDATEs: link release, hold ``released_at``, participant wait credit (3).
+* SELECTs: ``sync_group_links``, ``active_barriers``, hold-by-PK, and the
+  redundant hold lookup in ``_enqueue_timeline_hold_wake`` (4).
+
+  Total: 7*N.
+
+Grand total: ``11 + 7*N``. Nested ``begin_nested()`` records 1 profiler
+commit (the savepoint release that flushes the updates).
+
+Finalize window (same check, then relock the last arriver)
+----------------------------------------------------------
+The check, plus 2 ``lock_timeout`` SETs, 1 participant ``FOR UPDATE``
+(without ``NOWAIT``), and 2 expired-relationship reloads after the check
+commit. Grand total: ``16 + 7*N``. Profiler commits: 3 (1 nested update +
+2 outer no-op ``session.commit()`` calls that still issue PostgreSQL
+``COMMIT``).
+
+Stacked last-arrival finalize (grouper + two GroupBarriers)
+-----------------------------------------------------------
+Three check iterations, independent of group size: 3 nested commits + 2
+outer commits per iteration = 9 profiler commits; 3 waiter ``NOWAIT``
+locks + 3 participant relocks. Query *count* grows with *N* because each
+released waiter is advanced onto the next hold (inserts/updates). Spec
+SELECTs and creation-time advisory locks are O(stack), not O(*N*).
+"""
+
+from __future__ import annotations
+
+import re
+import uuid
+from contextlib import contextmanager
+from types import SimpleNamespace
+
+import pytest
+from dallinger import db
+from flask import Flask
+
+from psynet.experiment import Experiment, get_experiment
+from psynet.modular_page import ModularPage
+from psynet.participant import Participant
+from psynet.pytest_psynet import path_to_test_experiment
+from psynet.sqlalchemy_profiling import sqlalchemy_profile
+from psynet.sync import (
+    GroupBarrier,
+    SimpleGrouper,
+    SimpleSyncGroup,
+    _run_pending_barrier_checks,
+    _take_pending_barrier_checks,
+    pending_arrival_notice_for,
+)
+from psynet.timeline import Timeline
+
+pytestmark = [
+    pytest.mark.parametrize(
+        "experiment_directory",
+        [path_to_test_experiment("consents")],
+        indirect=True,
+    ),
+    pytest.mark.usefixtures("in_experiment_directory"),
+]
+
+# Check-window formula: 11 fixed statements + 7 per waiter. See module docstring.
+_CHECK_FIXED_QUERIES = 11
+_CHECK_QUERIES_PER_WAITER = 7
+_FINALIZE_OVERHEAD_QUERIES = 5
+_STACKED_BARRIER_COUNT = 3
+_STACKED_QUERIES_PER_EXTRA_MEMBER = 50
+
+
+def _statement_count(profiler, pattern):
+    compiled = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+    return sum(
+        stat.count
+        for stat in profiler.get_stats(top_n=None)
+        if compiled.search(stat.statement)
+    )
+
+
+def _commit_count(profiler, needle):
+    return sum(
+        stat.count
+        for stat in profiler.get_commit_stats(top_n=None)
+        if needle in stat.callsite
+    )
+
+
+def _budget(profiler):
+    for_update = _statement_count(profiler, r"\bfor update\b")
+    nowait = _statement_count(profiler, r"\bfor update\b.*\bnowait\b")
+    return {
+        "queries": profiler.total_count,
+        "commits": profiler.commit_total_count,
+        "nested_commits": _commit_count(profiler, "_run_pending_barrier_checks"),
+        "finalize_commits": _commit_count(
+            profiler, "_run_finalized_barrier_arrivals"
+        ),
+        "for_update": for_update,
+        "nowait": nowait,
+        "relock_for_update": for_update - nowait,
+        "advisory_try": _statement_count(profiler, r"pg_try_advisory_xact_lock"),
+        "advisory_wait": _statement_count(
+            profiler, r"SELECT pg_advisory_xact_lock\("
+        ),
+        "spec_select": _statement_count(
+            profiler, r"SELECT barrier_instance\.spec "
+        ),
+        "savepoint": _statement_count(profiler, r"^SAVEPOINT "),
+        "release_savepoint": _statement_count(profiler, r"^RELEASE SAVEPOINT "),
+        "lock_timeout": _statement_count(profiler, r"set_config\('lock_timeout'"),
+        "waiter_join": _statement_count(
+            profiler,
+            r"from participant_link_barrier join participant .*\bfor update\b.*\bnowait\b",
+        ),
+        "update_link": _statement_count(
+            profiler, r"UPDATE participant_link_barrier SET"
+        ),
+        "update_hold_release": _statement_count(
+            profiler, r"UPDATE timeline_hold SET released_at"
+        ),
+        "update_participant_wait": _statement_count(
+            profiler, r"UPDATE participant SET time_credit"
+        ),
+        "sync_links_by_participant": _statement_count(
+            profiler,
+            r"FROM participant_link_sync_group WHERE .*participant_link_sync_group\.participant_id",
+        ),
+        "active_barriers_by_participant": _statement_count(
+            profiler,
+            r"FROM participant_link_barrier WHERE .*participant_link_barrier\.participant_id"
+            r".*released = false",
+        ),
+        "hold_by_pk": _statement_count(
+            profiler, r"FROM timeline_hold WHERE timeline_hold\.id = "
+        ),
+        "hold_wake_lookup": _statement_count(
+            profiler, r"timeline_hold\.resumed_at IS NULL"
+        ),
+        "participant_pk": _statement_count(
+            profiler, r"FROM participant LEFT OUTER JOIN trial"
+        ),
+    }
+
+
+def _assert_budget(profiler, expected, *, label):
+    actual = _budget(profiler)
+    mismatches = {
+        key: (actual[key], wanted)
+        for key, wanted in expected.items()
+        if actual[key] != wanted
+    }
+    if mismatches:
+        raise AssertionError(
+            f"{label}: unexpected SQL budget {mismatches}\n"
+            f"{profiler.format_summary(top_n=80, sort_by='count')}\n"
+            f"{profiler.format_commit_summary()}"
+        )
+
+
+def _new_participant(experiment):
+    participant = Participant(
+        experiment=experiment,
+        recruiter_id="hotair",
+        worker_id=str(uuid.uuid4()),
+        hit_id="XYZ",
+        assignment_id=str(uuid.uuid4()),
+        mode="debug",
+    )
+    db.session.add(participant)
+    return participant
+
+
+def _sync_group_of(exp, db_session, n, group_type):
+    participants = [_new_participant(exp) for _ in range(n)]
+    for participant in participants:
+        participant.status = "working"
+    group = SimpleSyncGroup(
+        group_type=group_type,
+        initial_group_size=n,
+        max_group_size=n,
+        min_group_size=n,
+        n_active_participants=n,
+        accepts_top_ups=False,
+    )
+    db_session.add(group)
+    for participant in participants:
+        group.add_participant(participant)
+    group.leader = participants[0]
+    db_session.commit()
+    return participants, group
+
+
+def _arrive_at_group_barrier(exp, barrier, participant):
+    barrier.receive_participant(participant)
+    if barrier._uses_timeline_hold:
+        barrier.waiting_logic.consume(exp, participant)
+
+
+def _commit_barrier_arrivals():
+    db.session.commit()
+    checks = _take_pending_barrier_checks()
+    if checks:
+        _run_pending_barrier_checks(checks)
+        db.session.commit()
+
+
+def _queued_last_arrival_checks(exp, barrier, waiters, last):
+    for waiter in waiters:
+        _arrive_at_group_barrier(exp, barrier, waiter)
+        _commit_barrier_arrivals()
+    _arrive_at_group_barrier(exp, barrier, last)
+    db.session.commit()
+    return _take_pending_barrier_checks()
+
+
+def _reset_experiment(experiment):
+    """Drop instance timeline stubs left on the cached ``get_experiment()`` object."""
+    experiment.timeline = type(experiment).timeline
+    experiment.__dict__.pop("_advance_past_ready_holds", None)
+
+
+@contextmanager
+def _restored_experiment(experiment):
+    original_timeline = experiment.timeline
+    original_advance = experiment.__dict__.get("_advance_past_ready_holds")
+    try:
+        yield
+    finally:
+        experiment.timeline = original_timeline
+        if original_advance is None:
+            experiment.__dict__.pop("_advance_past_ready_holds", None)
+        else:
+            experiment._advance_past_ready_holds = original_advance
+
+
+def _stub_finalize_timeline(experiment):
+    page = SimpleNamespace(
+        is_timeline_hold=False,
+        pre_render=lambda: None,
+        __json__=lambda participant: {"participant_id": participant.id},
+    )
+    experiment.timeline = SimpleNamespace(
+        get_current_elt=lambda _experiment, _participant: page
+    )
+    experiment._advance_past_ready_holds = (
+        lambda participant, current_page: current_page
+    )
+    return page
+
+
+def _stacked_partner_timeline(group_type, group_size):
+    return Timeline(
+        SimpleGrouper(
+            group_type=group_type,
+            initial_group_size=group_size,
+            content="Waiting for your partner",
+        ),
+        GroupBarrier(id_=f"{group_type}_init", group_type=group_type),
+        GroupBarrier(id_=f"{group_type}_prepare", group_type=group_type),
+        ModularPage("choose_action", "Choose your action", time_estimate=1),
+    )
+
+
+def _json_timeline(exp, participant):
+    with Flask(__name__).test_request_context(
+        f"/timeline?unique_id={participant.unique_id}",
+        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    ):
+        return Experiment._route_timeline(exp, participant, mode="json")
+
+
+def _check_expected(n):
+    return {
+        "queries": _CHECK_FIXED_QUERIES + _CHECK_QUERIES_PER_WAITER * n,
+        "commits": 1,
+        "nested_commits": 1,
+        "for_update": 1,
+        "nowait": 1,
+        "relock_for_update": 0,
+        "advisory_try": 1,
+        "advisory_wait": 0,
+        "spec_select": 1,
+        "savepoint": 1,
+        "release_savepoint": 1,
+        "lock_timeout": 0,
+        "waiter_join": 1,
+        "update_link": n,
+        "update_hold_release": n,
+        "update_participant_wait": n,
+        "sync_links_by_participant": n,
+        "active_barriers_by_participant": n,
+        "hold_by_pk": n,
+        "hold_wake_lookup": n,
+    }
+
+
+def _finalize_expected(n):
+    expected = _check_expected(n)
+    expected.update(
+        {
+            "queries": expected["queries"] + _FINALIZE_OVERHEAD_QUERIES,
+            "commits": 3,
+            "finalize_commits": 2,
+            "for_update": 2,
+            "relock_for_update": 1,
+            "lock_timeout": 2,
+        }
+    )
+    return expected
+
+
+def test_check_instance_sql_matches_waiter_formula(db_session):
+    """Last-arrival checks stay O(1) in locks/spec and O(N) in per-row writes."""
+    exp = get_experiment()
+    _reset_experiment(exp)
+    observed = {}
+    for n in (2, 8):
+        participants, _group = _sync_group_of(exp, db_session, n, group_type=f"q{n}")
+        waiters, last = participants[:-1], participants[-1]
+        barrier = GroupBarrier(
+            id_=f"gate_{n}_{uuid.uuid4().hex[:8]}", group_type=f"q{n}"
+        )
+        checks = _queued_last_arrival_checks(exp, barrier, waiters, last)
+        db.session.expire_all()
+        with sqlalchemy_profile(db.engine) as profiler:
+            assert _run_pending_barrier_checks(checks) is True
+        _assert_budget(profiler, _check_expected(n), label=f"check n={n}")
+        observed[n] = _budget(profiler)
+
+    for key in (
+        "nowait",
+        "advisory_try",
+        "spec_select",
+        "waiter_join",
+        "savepoint",
+        "commits",
+    ):
+        assert observed[2][key] == observed[8][key] == 1
+    assert (
+        observed[8]["queries"] - observed[2]["queries"]
+        == _CHECK_QUERIES_PER_WAITER * 6
+    )
+
+
+def test_finalize_commits_check_then_relock_independent_of_group_size(db_session):
+    """One check uses two outer commits; waiter NOWAIT stays off the relock."""
+    exp = get_experiment()
+    _reset_experiment(exp)
+    observed = {}
+    for n in (2, 8):
+        participants, _group = _sync_group_of(exp, db_session, n, group_type=f"f{n}")
+        waiters, last = participants[:-1], participants[-1]
+        barrier = GroupBarrier(
+            id_=f"fin_{n}_{uuid.uuid4().hex[:8]}", group_type=f"f{n}"
+        )
+        checks = _queued_last_arrival_checks(exp, barrier, waiters, last)
+        result = SimpleNamespace(page=None, payload={})
+        db.session.expire_all()
+        with _restored_experiment(exp):
+            page = _stub_finalize_timeline(exp)
+            with sqlalchemy_profile(db.engine) as profiler:
+                Experiment._finalize_barrier_arrivals(exp, last.id, checks, result)
+        _assert_budget(profiler, _finalize_expected(n), label=f"finalize n={n}")
+        assert result.page is page
+        observed[n] = _budget(profiler)
+
+    for key in (
+        "commits",
+        "nested_commits",
+        "finalize_commits",
+        "nowait",
+        "relock_for_update",
+        "spec_select",
+        "lock_timeout",
+    ):
+        assert observed[2][key] == observed[8][key]
+    assert (
+        observed[8]["queries"] - observed[2]["queries"]
+        == _CHECK_QUERIES_PER_WAITER * 6
+    )
+
+
+def test_pending_arrival_notice_reconstructs_each_instance_once(db_session):
+    """Partner-ready notices must not reconstruct the same instance per waiter."""
+    exp = get_experiment()
+    _reset_experiment(exp)
+    n = 8
+    participants, _group = _sync_group_of(exp, db_session, n, group_type="notice")
+    waiters, last = participants[:-1], participants[-1]
+    barrier = GroupBarrier(
+        id_=f"notice_{uuid.uuid4().hex[:8]}",
+        group_type="notice",
+        notify_arrivals=True,
+    )
+    for waiter in waiters:
+        _arrive_at_group_barrier(exp, barrier, waiter)
+        _commit_barrier_arrivals()
+    db.session.commit()
+    db.session.expire_all()
+    last = Participant.query.get(last.id)
+    with sqlalchemy_profile(db.engine) as profiler:
+        notice = pending_arrival_notice_for(last)
+    assert notice
+    # 5 setup loads + 3 per other member (participant, active_barriers, module_state).
+    _assert_budget(
+        profiler,
+        {
+            "queries": 5 + 3 * (n - 1),
+            "commits": 0,
+            "for_update": 0,
+            "spec_select": 1,
+            "active_barriers_by_participant": n - 1,
+            "participant_pk": n - 1,
+        },
+        label="pending_arrival_notice n=8",
+    )
+
+
+def test_stacked_finalize_commit_and_lock_budget_does_not_grow_with_group_size(
+    db_session, monkeypatch
+):
+    """Grouper plus two GroupBarriers: 9 profiler commits, 3 NOWAIT locks."""
+    exp = get_experiment()
+    _reset_experiment(exp)
+    original_finalize = Experiment._finalize_barrier_arrivals
+    captured = {}
+
+    @classmethod
+    def wrapped_finalize(cls, *args, **kwargs):
+        with sqlalchemy_profile(db.engine) as profiler:
+            out = original_finalize(*args, **kwargs)
+            captured["profiler"] = profiler
+            return out
+
+    observed = {}
+    with _restored_experiment(exp):
+        try:
+            for group_size in (2, 4):
+                captured.clear()
+                group_type = f"stack{group_size}_{uuid.uuid4().hex[:8]}"
+                exp.timeline = _stacked_partner_timeline(group_type, group_size)
+                participants = [_new_participant(exp) for _ in range(group_size)]
+                for participant in participants:
+                    participant.status = "working"
+                db.session.commit()
+                for waiter in participants[:-1]:
+                    assert _json_timeline(exp, waiter).status_code == 200
+                monkeypatch.setattr(
+                    Experiment, "_finalize_barrier_arrivals", wrapped_finalize
+                )
+                last_response = _json_timeline(exp, participants[-1])
+                monkeypatch.setattr(
+                    Experiment, "_finalize_barrier_arrivals", original_finalize
+                )
+                assert last_response.status_code == 200
+                assert last_response.get_json()["attributes"]["type"] == "ModularPage"
+                profiler = captured["profiler"]
+                _assert_budget(
+                    profiler,
+                    {
+                        "commits": 3 * _STACKED_BARRIER_COUNT,
+                        "nested_commits": _STACKED_BARRIER_COUNT,
+                        "finalize_commits": 2 * _STACKED_BARRIER_COUNT,
+                        "nowait": _STACKED_BARRIER_COUNT,
+                        "relock_for_update": _STACKED_BARRIER_COUNT,
+                        "advisory_try": _STACKED_BARRIER_COUNT,
+                        # Creating the two GroupBarrier instances takes the
+                        # blocking creation lock. Predicted 3 try-locks for
+                        # checks; the extra 2 wait-locks are O(stack), not O(N).
+                        "advisory_wait": 2,
+                        # 3 checks reconstruct; 2 extra SELECTs appear when
+                        # advancing onto the next hold expires the just-created
+                        # instance before its check runs. INSERTs also mention
+                        # spec but are excluded by spec_select.
+                        "spec_select": 5,
+                        "savepoint": _STACKED_BARRIER_COUNT,
+                        "release_savepoint": _STACKED_BARRIER_COUNT,
+                        "lock_timeout": 2 * _STACKED_BARRIER_COUNT,
+                        "waiter_join": _STACKED_BARRIER_COUNT,
+                    },
+                    label=f"stacked_finalize n={group_size}",
+                )
+                observed[group_size] = _budget(profiler)
+                last = Participant.query.get(participants[-1].id)
+                page = exp.timeline.get_current_elt(exp, last)
+                assert page.label == "choose_action"
+        finally:
+            monkeypatch.setattr(
+                Experiment, "_finalize_barrier_arrivals", original_finalize
+            )
+
+    for key in (
+        "commits",
+        "nowait",
+        "relock_for_update",
+        "advisory_try",
+        "advisory_wait",
+        "spec_select",
+        "lock_timeout",
+        "waiter_join",
+    ):
+        assert observed[2][key] == observed[4][key]
+    query_delta = observed[4]["queries"] - observed[2]["queries"]
+    assert query_delta > 0
+    assert query_delta <= _STACKED_QUERIES_PER_EXTRA_MEMBER * 2

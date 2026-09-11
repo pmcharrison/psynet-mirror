@@ -52,15 +52,25 @@ Load relationships for the request that needs them
 --------------------------------------------------
 
 ``Participant`` relationships such as module states and active barriers use
-select-in loading because that is efficient when loading many participants.
-Participant-facing routes normally load exactly one participant, and many
-pages do not use all these relationships.
+select-in loading because that is efficient for dashboards and other queries
+that load many participants. Participant-facing routes normally load exactly
+one participant, and many pages do not use all these relationships.
 
 A request-specific query can override those relationships to ordinary lazy
 loading. This avoids unconditional statements while preserving normal
 relationship access later in the request. Keep this override private to the
 request path: public participant getters may be used after their session is
 detached and should retain their established eager-loading behavior.
+
+Barrier last-arrival checks are the opposite problem: one request locks many
+waiters. Isolated tests in
+``tests/isolated/test_barrier_arrival_queries.py`` bound that window. Locks,
+advisory claims, and spec reconstruction must stay constant as group size
+grows. Per-row UPDATEs (and today's lazy collection loads) are allowed to
+scale with waiter count; a new statement kind that grows with *N* should fail
+those tests. Do not put these budgets on Playwright or the full ``/response``
+stack. Use the profiler as a statement-count gate, not a duration gate. See
+:ref:`sqlalchemy_profiling`.
 
 Filter before ORM hydration
 ---------------------------
