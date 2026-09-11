@@ -484,7 +484,7 @@ def test_stacked_finalize_commit_and_lock_budget_does_not_grow_with_group_size(
                         # (Barrier last-arrival SQL budgets). Update both if
                         # instance creation or spec reloads get cheaper.
                         "advisory_wait": 2,
-                        "spec_select": 5,
+                        "spec_select": _STACKED_BARRIER_COUNT,
                         "savepoint": _STACKED_BARRIER_COUNT,
                         "release_savepoint": _STACKED_BARRIER_COUNT,
                         "lock_timeout": 2 * _STACKED_BARRIER_COUNT,

@@ -312,8 +312,10 @@ Stacked last-arrival finalize (grouper + two GroupBarriers)
 Three check iterations, independent of group size: 9 profiler commits
 (3 nested + 2 outer per iteration), 3 waiter ``NOWAIT`` locks, 3 participant
 relocks. Creating the next two instances adds 2 blocking
-``pg_advisory_xact_lock`` calls (O(stack), not O(*N*)). Spec SELECT is 5
-rather than 3 because a just-created instance expires before its check runs.
+``pg_advisory_xact_lock`` calls (O(stack), not O(*N*)). Spec SELECT is 3
+(one deferred load per check). Instance insert uses ``ON CONFLICT DO NOTHING``
+instead of a SAVEPOINT, so a just-created instance does not expire extra
+spec reloads onto the stacked path.
 Query *count* still grows with *N* because each released waiter is advanced
 onto the next hold. The stacked test allows at most 35 extra statements per
 extra member as a loose cap on that advancement SQL, not as a target.
