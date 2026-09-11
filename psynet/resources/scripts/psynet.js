@@ -3694,6 +3694,7 @@
       });
     }
   };
+  psynet.updateProgressAndReward = updateProgressAndReward;
 
   if (psynetTemplateData.flags.dynamicallyUpdateProgressBarAndReward) {
     setInterval(updateProgressAndReward, 1000);
