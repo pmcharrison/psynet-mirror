@@ -4,6 +4,7 @@ const { test, expect } = require("./fixtures");
 const {
   assertNoBackendError,
   completeInitialGateway,
+  installTimelineHoldReleaseProbe,
   startResponseSubmitTracker,
   withExperiment
 } = require("./psynetHarness");
@@ -67,6 +68,7 @@ async function startBackgroundHold(page, { trackLucidUnload = false } = {}) {
 }
 
 async function probeTimelineHoldClientBehavior(page) {
+  await installTimelineHoldReleaseProbe(page);
   return page.evaluate(async () => {
     const controller = psynet.timelineHold;
     if (!controller) {
@@ -380,53 +382,53 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     });
 
     const busyLivelock = await experimentPage.evaluate(async () => {
-      const OriginalXHR = window.XMLHttpRequest;
+      const controller = psynet.timelineHold;
+      const originalNextPage = psynet.nextPage;
       const originalSchedule = psynet.scheduleTimelineHoldCheck;
-      const originalApproved = psynet.handleApprovedResponse;
-      let sendCount = 0;
-      window.XMLHttpRequest = function FakeXHR() {
-        const xhr = {
-          readyState: 0,
-          status: 0,
-          response: "",
-          onreadystatechange: null,
-          open() {},
-          send() {
-            sendCount += 1;
-            xhr.readyState = 4;
-            xhr.status = 503;
-            xhr.response = JSON.stringify({
-              status: "busy",
-              submission: "busy",
-              message: "The experiment is temporarily busy. Please try again."
-            });
-            if (xhr.onreadystatechange) {
-              xhr.onreadystatechange();
-            }
-          }
-        };
-        return xhr;
+      const originalResume = psynet.resumeTimelineHold;
+      const request = {
+        status: 503,
+        response: JSON.stringify({
+          status: "busy",
+          submission: "busy",
+          message: "The experiment is temporarily busy. Please try again."
+        })
       };
-      psynet.scheduleTimelineHoldCheck = () => {};
-      psynet.handleApprovedResponse = async () => true;
+      const effects = { queuedWakes: 0, scheduleCalls: 0 };
+      clearTimeout(controller.safetyTimer);
+      psynet.scheduleTimelineHoldCheck = () => {
+        effects.scheduleCalls += 1;
+      };
+      psynet.resumeTimelineHold = async function (reason) {
+        if (reason === "queued hold wake") {
+          effects.queuedWakes += 1;
+        }
+        return originalResume.apply(this, arguments);
+      };
+      psynet.nextPage = async function (_button, _answer, _metadata, _blobs, options) {
+        await psynet.handleBusyResponse(request, options);
+        return false;
+      };
       const pendingBefore = psynet.nextPagePending;
       psynet.nextPagePending = false;
       try {
-        await psynet.resumeTimelineHold("busy livelock");
+        await originalResume.call(psynet, "busy livelock");
         await new Promise((resolve) => setTimeout(resolve, 0));
         return {
-          sendCount,
+          queuedWakes: effects.queuedWakes,
+          scheduleCalls: effects.scheduleCalls,
           resumeRequested: Boolean(psynet.timelineHold?.resumeRequested)
         };
       } finally {
-        window.XMLHttpRequest = OriginalXHR;
+        psynet.nextPage = originalNextPage;
         psynet.scheduleTimelineHoldCheck = originalSchedule;
-        psynet.handleApprovedResponse = originalApproved;
+        psynet.resumeTimelineHold = originalResume;
         psynet.nextPagePending = pendingBefore;
       }
     });
     expect(busyLivelock).toEqual({
-      sendCount: 2,
+      queuedWakes: 0,
+      scheduleCalls: 2,
       resumeRequested: false
     });
 

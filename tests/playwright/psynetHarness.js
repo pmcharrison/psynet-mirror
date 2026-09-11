@@ -1086,9 +1086,13 @@ function timelineHoldReleaseProbeScript() {
       }
     });
     window.addEventListener("timelineHoldStarted", () => {
-      probe.wakeReceivedAtMs = null;
-      probe.holdEndedAtMs = null;
-      probe.wakeReason = null;
+      const current = window.__psynetHoldReleaseProbe;
+      if (!current) {
+        return;
+      }
+      current.wakeReceivedAtMs = null;
+      current.holdEndedAtMs = null;
+      current.wakeReason = null;
     });
   }
 

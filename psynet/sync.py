@@ -623,7 +623,11 @@ class Barrier(EltCollection):
             self._advance_released_hold_waiters(participants_to_release)
         instance = BarrierInstance.query.get(barrier_instance_id)
         if instance is not None and instance.group_id is not None:
-            instance.active = _barrier_instance_has_waiters(instance)
+            instance.active = any(
+                not participant.active_barriers[self.id].released
+                for participant in waiting_participants
+                if self.id in participant.active_barriers
+            )
         return waiting_participants
 
     def _advance_released_hold_waiters(self, participants):

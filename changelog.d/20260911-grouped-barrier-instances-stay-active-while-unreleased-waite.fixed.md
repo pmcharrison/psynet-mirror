@@ -1,1 +1,1 @@
-Grouped barrier visits stay active, and the poller still checks them, when unreleased working participants remain after a snapshot that looked empty.
+The barrier poller still evaluates a grouped visit that was marked inactive if unreleased working participants remain.
