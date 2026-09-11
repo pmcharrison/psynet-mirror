@@ -185,6 +185,11 @@ If the user runs `/branch-review`, address any actionable findings before
 finalizing the merge request. If the user declines or the review is not run,
 record that explicitly in the merge request description.
 
+Just before merging the MR into its target, run `/reorganize-onto-target`
+so the history that lands is a few logical commits. Follow
+`.cursor/skills/reorganize-onto-target/SKILL.md`. Do not run that rewrite
+as part of `/branch-review`.
+
 ## Merge request descriptions
 
 Use `.gitlab/merge_request_templates/Default.md` as the template.

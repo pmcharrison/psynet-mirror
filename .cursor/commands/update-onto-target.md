@@ -10,4 +10,4 @@ assume `master`.
 
 Do not soft-reset and do not review here. `/branch-review` runs this
 skill first, then reviews. `/reorganize-onto-target` is a separate
-command for rewriting commits.
+command used just before the MR is merged into its target.

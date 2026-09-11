@@ -3,16 +3,17 @@ name: reorganize-onto-target
 description: >-
   Rebuild a PsyNet feature branch as logical commits on the open GitLab
   merge-request target with git reset --soft, then force-with-lease
-  push. Use when the user asks to reorganize commits or run
-  /reorganize-onto-target. Does not fetch a newer target. Not part of
-  /branch-review.
+  push. Use just before merging the MR into its target, or when the
+  user runs /reorganize-onto-target. Not part of /branch-review.
 ---
 
 # Reorganize Onto Target
 
 Rebuild the current feature branch as a few logical commits on the
-open merge request's **target**. Use this when the user asks to
-reorganize, not as a follow-up that `/branch-review` always runs.
+open merge request's **target**. Run this **just before** the MR is
+merged into that target, so the history that lands is a few logical
+commits. Do not run it as part of `/branch-review`.
+
 The target must already be an ancestor of `HEAD`; if it is not, run
 `/update-onto-target` first.
 

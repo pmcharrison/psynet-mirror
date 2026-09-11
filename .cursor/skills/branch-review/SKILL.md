@@ -15,7 +15,8 @@ Start by following `.cursor/skills/update-onto-target/SKILL.md` so
 the reviewed tree is the real merge with the MR target. Then review.
 Always update the GitLab merge request title and description. Do not
 reorganize commits here. `/reorganize-onto-target` is a separate
-command; only run it when the user asks.
+command, used just before the MR is merged into its target, not after
+every review.
 
 `/update-onto-target` remains a standalone command for when you need
 the merge without a review.
