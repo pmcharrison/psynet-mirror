@@ -31,15 +31,18 @@ def test_custom_barrier_round_trip_uses_plain_json():
 
     serialized = barrier_spec_json(original)
     restored = barrier_from_spec_json(serialized)
+    spec = json.loads(serialized)
 
-    assert json.loads(serialized) == {
-        "class": "test_barrier_spec.ThresholdBarrier",
-        "state": {"id": "threshold", "threshold": 2},
-        "version": 1,
-    }
+    assert spec["class"] == "test_barrier_spec.ThresholdBarrier"
+    assert spec["state"] == {"id": "threshold", "threshold": 2}
+    assert spec["version"] == 1
+    assert spec["presentation"]["content"] is None
+    assert "waiting_logic" not in spec["state"]
     assert isinstance(restored, ThresholdBarrier)
     assert restored.id == "threshold"
     assert restored.threshold == 2
+    assert restored.content is None
+    assert not hasattr(restored, "waiting_logic")
 
 
 def test_callback_round_trip():
@@ -97,4 +100,40 @@ def test_unsupported_state_is_rejected():
     barrier.unsupported = object()
 
     with pytest.raises(BarrierSpecError, match="unsupported"):
+        barrier_spec_json(barrier)
+
+
+def test_group_barrier_restores_scalar_presentation_not_waiting_pages():
+    original = GroupBarrier(
+        "pair_hold",
+        group_type="pair",
+        content="Waiting for your partner",
+        max_wait_time=30,
+        max_wait_action="kick",
+        notify_arrivals=False,
+    )
+
+    restored = barrier_from_spec_json(barrier_spec_json(original))
+
+    assert restored.content == "Waiting for your partner"
+    assert restored.max_wait_time == 30
+    assert restored.max_wait_action == "kick"
+    assert restored.notify_arrivals is False
+    assert not hasattr(restored, "waiting_logic")
+    assert behavior_hash(restored) == behavior_hash(
+        GroupBarrier(
+            "pair_hold",
+            group_type="pair",
+            content="Waiting for someone else",
+            max_wait_time=90,
+            notify_arrivals=True,
+        )
+    )
+
+
+def test_non_json_numeric_state_is_rejected():
+    barrier = ThresholdBarrier("threshold", threshold=2)
+    barrier.score = float("nan")
+
+    with pytest.raises(BarrierSpecError, match="non-JSON numeric"):
         barrier_spec_json(barrier)

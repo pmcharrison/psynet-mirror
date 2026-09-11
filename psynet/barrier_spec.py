@@ -1,11 +1,12 @@
 """Declarative persistence for barrier release behavior.
 
 Barrier instances must survive across web workers, but persisting an entire
-``Barrier`` object also captures presentation objects and incidental ORM state.
-This module stores only the importable barrier class and the state used by its
-release hooks. Callback implementation identity is kept separate from the ORM
-receiver selected for one visit, so behavior comparisons are stable while
-invocation remains correctly bound.
+``Barrier`` object also captures waiting pages and incidental ORM state.
+This module stores the importable barrier class, release-hook state, scalar
+presentation (``content``, timeouts), and arrival-notice settings. Waiting
+pages (``waiting_logic``) stay on the live timeline object. Callback identity
+is kept separate from the ORM receiver selected for one visit, so behavior
+comparisons are stable while invocation remains correctly bound.
 """
 
 import hashlib
@@ -24,18 +25,23 @@ from psynet.serialize import (
 
 SPEC_VERSION = 1
 
-_PRESENTATION_FIELDS = {
+_PAGE_FIELDS = {
     "_uses_timeline_hold",
+    "waiting_logic",
+    "waiting_logic_expected_repetitions",
+}
+
+_PRESENTATION_FIELDS = {
     "content",
     "expected_wait",
     "fix_time_credit",
     "max_wait_action",
     "max_wait_time",
-    "waiting_logic",
-    "waiting_logic_expected_repetitions",
 }
 
 _NOTIFICATION_FIELDS = {"notify_arrivals", "on_arrival_message"}
+
+_EXCLUDED_FROM_STATE = _PAGE_FIELDS | _PRESENTATION_FIELDS | _NOTIFICATION_FIELDS
 
 
 class BarrierSpecError(ValueError):
@@ -47,21 +53,33 @@ def barrier_spec(barrier):
     state = {
         key: _encode_value(value, context=f"{barrier.__class__.__name__}.{key}")
         for key, value in vars(barrier).items()
-        if key not in _PRESENTATION_FIELDS and key not in _NOTIFICATION_FIELDS
+        if key not in _EXCLUDED_FROM_STATE
     }
     spec = {
         "version": SPEC_VERSION,
         "class": importable_name(barrier.__class__),
         "state": state,
     }
-    notifications = {
-        key: _encode_value(value, context=f"{barrier.__class__.__name__}.{key}")
-        for key, value in vars(barrier).items()
-        if key in _NOTIFICATION_FIELDS
-    }
+    presentation = _encode_field_group(barrier, _PRESENTATION_FIELDS)
+    if presentation:
+        spec["presentation"] = presentation
+    notifications = _encode_field_group(barrier, _NOTIFICATION_FIELDS)
     if notifications:
         spec["notifications"] = notifications
     return spec
+
+
+def _encode_field_group(barrier, field_names):
+    """Encode named attributes that exist on ``barrier``."""
+    encoded = {}
+    for key in field_names:
+        if key not in vars(barrier):
+            continue
+        encoded[key] = _encode_value(
+            getattr(barrier, key),
+            context=f"{barrier.__class__.__name__}.{key}",
+        )
+    return encoded
 
 
 def barrier_spec_json(barrier):
@@ -96,6 +114,8 @@ def barrier_from_spec_json(serialized):
         raise BarrierSpecError("Barrier spec state must be an object.")
     barrier = barrier_class.__new__(barrier_class)
     for key, value in state.items():
+        setattr(barrier, key, _decode_value(value))
+    for key, value in spec.get("presentation", {}).items():
         setattr(barrier, key, _decode_value(value))
     for key, value in spec.get("notifications", {}).items():
         setattr(barrier, key, _decode_value(value))
@@ -227,9 +247,15 @@ def _behavior_identity(spec):
         return {key: normalize(item) for key, item in value.items()}
 
     identity = normalize(spec)
+    identity.pop("presentation", None)
     identity.pop("notifications", None)
     return identity
 
 
 def _canonical_json(value):
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    try:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    except ValueError as err:
+        raise BarrierSpecError(
+            "Barrier spec contains a non-JSON numeric value."
+        ) from err
