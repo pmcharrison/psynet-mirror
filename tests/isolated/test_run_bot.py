@@ -100,3 +100,17 @@ class TestRunBot:
         page = bot.get_current_page()
         assert isinstance(page, ModularPage)
         assert page.label == "favourite_colour"
+
+
+def test_advance_past_wait_pages_refreshes_status_when_server_already_advanced():
+    """Last-arrival skip must refresh bot drivers, not leave cached hold copy."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from psynet.bot import advance_past_wait_pages
+
+    bot = MagicMock()
+    bot.get_current_page.return_value = SimpleNamespace(is_timeline_hold=False)
+    advance_past_wait_pages([bot])
+    bot.take_page.assert_not_called()
+    bot._fetch_status.assert_called_once()

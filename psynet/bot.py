@@ -203,6 +203,10 @@ def advance_past_wait_pages(bots: List["BotDriver"], max_iterations=10):
                 any_waiting = True
                 bot.take_page()
         if not any_waiting:
+            # Last-arrival already moved waiters on the server. Refresh each
+            # driver so current_page_label / current_page_text match the DB.
+            for bot in bots:
+                bot._fetch_status()
             break
         if iteration >= max_iterations:
             raise RuntimeError("Not all bots finished waiting in time.")
