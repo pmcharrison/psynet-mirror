@@ -173,13 +173,6 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
     - For `VideoPrompt`, verify `video#prompt` playback behavior.
     - Align assertions with how that step is implemented in experiment/template code.
 
-13. **Assert first timeline paint for last-arriver skip**:
-    - When the last group member must never see a wait, inspect the first `GET /timeline` HTML (`captureFirstTimelineAfterGateway` / `#psynet-template-data` page type and hold marker).
-    - Do not treat an eventual action prompt as proof; the poller can hide a first-paint hold.
-    - Budget entry requests (`POST /participant`, first `GET /timeline`, time on `Starting experiment...`) and fail on unexpected 503 busy or lock-timeout waits.
-    - When a partner is already waiting, also budget how long they stay on the hold after the last arriver consents and after that last arriver's first timeline paint (about 2.5s). Silence the hold safety poll first so a poll cannot hide a missed websocket wake. Fail on a ``safety poll`` resume, a busy ``POST /response``, or a published wake token that does not match the waiting hold. In inplace mode, fail on a follow-up ``GET /timeline`` reload; legacy reload mode may issue one. When several people are waiting, they must leave close together once the hold is satisfied. Cover groups larger than pairs and concurrent late arrivals so a missed wake cannot hide until a real experiment.
-    - Concurrent late arrivals must wrap and arm at first paint, inside the same ``Promise.all`` as consent. If the hold chip is already gone, still assert the first-paint wake token, a ``timeline_hold_resume`` POST, and (in inplace mode) no extra ``GET /timeline``. Those late waiters may resume from ``websocket connection`` as well as ``server notification``.
-
 ## Automatic code review
 
 Before finalizing a merge request, prompt the user to run an automatic code
