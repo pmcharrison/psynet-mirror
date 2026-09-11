@@ -14,8 +14,8 @@ open merge request's target.
 Start by following `.cursor/skills/update-onto-target/SKILL.md` so
 the reviewed tree is the real merge with the MR target. Then review.
 Always update the GitLab merge request title and description. Do not
-reorganize commits here; after an accepted review, tell the user to
-run `/reorganize-onto-target`.
+reorganize commits here. `/reorganize-onto-target` is a separate
+command; only run it when the user asks.
 
 `/update-onto-target` remains a standalone command for when you need
 the merge without a review.
@@ -118,7 +118,3 @@ branch diff. Do this even if the current title or description looks close.
   CI/test statements that no longer hold, and new commits not yet reflected.
 - Record that `/branch-review` was run in **Automatic code review**.
 - If no merge request exists, say so and skip this step.
-
-If the review is acceptable, tell the user to run
-`/reorganize-onto-target` next so the accepted tree is recommitted in
-logical units.

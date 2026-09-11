@@ -16,8 +16,8 @@ a review, and it does **not** rewrite history.
 The target is the branch the MR will merge into, not always `master`.
 The open MR is the source of truth. The tree after this command is what
 will land. `/branch-review` runs this skill first, then reviews that
-tree. Soft-reset is `/reorganize-onto-target` and comes last: it does
-not merge, so running it without this step drops the target's new work.
+tree. `/reorganize-onto-target` is a separate rewrite and does not
+merge, so running it without this step drops the target's new work.
 
 ## Resolve the target
 
@@ -53,8 +53,7 @@ Do not assume `master`.
 
 If `git merge-base --is-ancestor origin/<target> HEAD` already
 succeeds, say so and stop. The branch already contains the current
-target. If it still has a merge commit or a messy commit list, the
-next step after review is `/reorganize-onto-target`, not another merge.
+target.
 
 ## Merge the target
 
@@ -72,5 +71,4 @@ branch.
 
 If this skill was invoked on its own, typical next step is
 `/branch-review` (which will no-op the merge if the target is already
-an ancestor). After that review, run `/reorganize-onto-target` to
-rebuild the tree as logical commits.
+an ancestor).

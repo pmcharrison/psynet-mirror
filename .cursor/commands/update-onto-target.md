@@ -9,5 +9,5 @@ regular `git push`. If there is no open MR, stop and ask; do not
 assume `master`.
 
 Do not soft-reset and do not review here. `/branch-review` runs this
-skill first, then reviews. After the review, `/reorganize-onto-target`
-rebuilds the tree as logical commits on the current target.
+skill first, then reviews. `/reorganize-onto-target` is a separate
+command for rewriting commits.
