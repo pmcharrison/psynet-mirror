@@ -1070,6 +1070,25 @@ _SPA_CLEANUP_RETURN_RE = re.compile(
 )
 
 
+def _arrival_updates_for(page, participant):
+    """Return partner-ready websocket config, or None when it cannot be used.
+
+    Hold pages already subscribe to the same channel. Participants with no
+    sync group can never receive a ``GroupBarrier`` arrival notice.
+    """
+    if getattr(page, "is_timeline_hold", False):
+        return None
+    if not getattr(participant, "active_sync_groups", None):
+        return None
+    from psynet.sync import pending_arrival_notice_for
+    from psynet.timeline_hold import _timeline_hold_channel
+
+    return {
+        "channel": _timeline_hold_channel(participant.id),
+        "notice": pending_arrival_notice_for(participant),
+    }
+
+
 class Page(Elt):
     """
     The base class for pages, customised by passing values to the ``__init__``
@@ -1603,13 +1622,14 @@ class Page(Elt):
 
     def attributes(self, participant):
         """
-        Returns a dictionary containing the `session_id`, the page `type`, and the `page_uuid` .
+        Returns a dictionary of page metadata for the browser, including
+        ``session_id``, ``type``, and ``page_uuid``. Partner-ready
+        ``arrival_updates`` are included only when this participant is in an
+        active sync group and the page is not already a timeline hold.
         """
         from psynet.page import UnityPage
-        from psynet.sync import pending_arrival_notice_for
-        from psynet.timeline_hold import _timeline_hold_channel
 
-        return {
+        attributes = {
             "session_id": self.session_id,
             "type": type(self).__name__,
             "unique_id": participant.unique_id,
@@ -1617,11 +1637,11 @@ class Page(Elt):
             "is_unity_page": isinstance(self, UnityPage),
             "requires_full_page_reload": self.requires_full_page_reload,
             "expect_scrolling": self.expect_scrolling,
-            "arrival_updates": {
-                "channel": _timeline_hold_channel(participant.id),
-                "notice": pending_arrival_notice_for(participant),
-            },
         }
+        arrival_updates = _arrival_updates_for(self, participant)
+        if arrival_updates is not None:
+            attributes["arrival_updates"] = arrival_updates
+        return attributes
 
     @property
     def contents(self):

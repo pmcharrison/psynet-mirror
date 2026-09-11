@@ -940,7 +940,10 @@
     };
 
     psynet.ensureArrivalUpdates = function (config) {
-      if (!config?.channel) return;
+      if (!config?.channel || psynet.timelineHold) {
+        psynet.stopArrivalUpdates();
+        return;
+      }
       if (psynet.arrivalUpdates?.channel === config.channel) {
         psynet.applyArrivalNotice(config.notice);
         return;
@@ -1105,6 +1108,7 @@
     };
 
     psynet.beginTimelineHold = function (hold) {
+      psynet.stopArrivalUpdates();
       let active = psynet.timelineHold;
       if (active?.hold.page_uuid === hold.page_uuid) {
         active.hold = hold;

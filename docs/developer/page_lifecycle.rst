@@ -89,7 +89,10 @@ Overrides of :meth:`~psynet.experiment.Experiment.process_response` run in the
 write phase and must return :class:`~psynet.experiment.ResponseResult`.
 ``ResponseResult.payload`` contains the response data, ``page`` retains the
 resolved page for post-commit rendering, and ``flask_response`` can bypass the
-normal payload path. For example::
+normal payload path. The method takes a keyword-only
+``timeline_hold_resume`` flag (default ``False``). Overrides should accept
+``**kwargs`` (or that keyword) so ``POST /response`` can pass it. For
+example::
 
     from psynet.experiment import ResponseResult
 
@@ -340,7 +343,9 @@ condition. ``check_interval`` remains the bounded fallback for missed messages
 and arbitrary conditions without a framework event.
 
 When the last hold on a page ends, the browser closes the hold-channel
-WebSocket. The next hold reconnects. Hold-resume POSTs set
+WebSocket. The next hold reconnects. Partner-ready notices use the same
+channel; the extra arrival-update socket opens only while the participant
+is in an active sync group and not already on a hold. Hold-resume POSTs set
 ``timeline_hold_resume`` so that if a partner already advanced this waiter
 (rotating ``page_uuid``), the server still returns the current page for an
 in-place update. A genuine reject, or a missing timeline fragment, still

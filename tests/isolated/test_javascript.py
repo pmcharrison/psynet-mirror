@@ -1,10 +1,12 @@
 import warnings
 from importlib import resources
+from types import SimpleNamespace
 
 import pytest
 
 from psynet.page import ExecuteFrontEndJS, JsPsychPage, UnityPage
 from psynet.timeline import Page
+from psynet.timeline_hold import _timeline_hold_channel
 
 
 def test_execute_front_end_js_shows_a_spinner_not_prose():
@@ -79,6 +81,78 @@ def test_page_normalizes_javascript_resources():
         "/static/page.js",
         "/static/other-page.js",
     ]
+
+
+def _psynet_js():
+    return (
+        resources.files("psynet") / "resources" / "scripts" / "psynet.js"
+    ).read_text(encoding="utf-8")
+
+
+def _page_participant(**overrides):
+    participant = SimpleNamespace(
+        unique_id="participant-1",
+        page_uuid="page-1",
+        id=7,
+        active_sync_groups={},
+    )
+    participant.__dict__.update(overrides)
+    return participant
+
+
+def test_ungrouped_page_omits_arrival_updates(monkeypatch):
+    """Solo pages must not open the partner-ready websocket."""
+
+    def boom(_participant):
+        raise AssertionError("should not look up arrival notices")
+
+    monkeypatch.setattr("psynet.sync.pending_arrival_notice_for", boom)
+    page = Page(template_fragment_str="<p>Solo page</p>")
+    assert "arrival_updates" not in page.attributes(_page_participant())
+
+
+def test_grouped_page_includes_arrival_updates(monkeypatch):
+    monkeypatch.setattr(
+        "psynet.sync.pending_arrival_notice_for",
+        lambda _participant: "Your partner is ready.",
+    )
+    page = Page(template_fragment_str="<p>Grouped page</p>")
+    participant = _page_participant(active_sync_groups={"main": object()})
+    updates = page.attributes(participant)["arrival_updates"]
+    assert updates["channel"] == _timeline_hold_channel(participant.id)
+    assert updates["notice"] == "Your partner is ready."
+
+
+def test_hold_page_omits_arrival_updates_even_when_grouped(monkeypatch):
+    """The hold websocket already receives partner-ready and overlay messages."""
+
+    class HoldPage(Page):
+        is_timeline_hold = True
+
+    def boom(_participant):
+        raise AssertionError("should not look up arrival notices")
+
+    monkeypatch.setattr("psynet.sync.pending_arrival_notice_for", boom)
+    page = HoldPage(template_fragment_str="<p>Hold page</p>")
+    participant = _page_participant(active_sync_groups={"main": object()})
+    assert "arrival_updates" not in page.attributes(participant)
+
+
+def test_ensure_arrival_updates_closes_when_the_page_has_no_channel():
+    source = _psynet_js()
+    start = source.index("psynet.ensureArrivalUpdates = function")
+    end = source.index("psynet.updatePageForTimelineHold = function")
+    body = source[start:end]
+    assert "psynet.stopArrivalUpdates()" in body
+    assert "psynet.timelineHold" in body
+    assert "!config?.channel" in body
+
+
+def test_begin_timeline_hold_closes_the_arrival_update_socket():
+    source = _psynet_js()
+    start = source.index("psynet.beginTimelineHold = function")
+    end = source.index("psynet.finalizePageReady = async function")
+    assert "psynet.stopArrivalUpdates()" in source[start:end]
 
 
 def test_page_rejects_javascript_url_with_conflicting_lifecycles():

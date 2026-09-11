@@ -3260,7 +3260,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             If True, a ``page_uuid`` that still matches this participant's
             hold record is a catch-up after a partner already advanced the
             waiter, not a multi-tab sync failure. Ignored when the participant
-            is already on a later hold.
+            is already on a later hold. Keyword-only; overrides should accept
+            ``**kwargs`` or this argument.
         """
         _p = get_translator(context=True)
         logger.info(

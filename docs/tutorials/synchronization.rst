@@ -157,7 +157,9 @@ are live-only.
 
 By default, group members still on an earlier page see a pill on the
 progress bar (``Your partner is ready.``, or
-``{n}/{total} of your group are ready.``). That pill stays on one line;
+``{n}/{total} of your group are ready.``). The browser opens that
+live-update websocket only while the participant is in an active sync
+group; hold pages reuse the hold-channel socket instead. That pill stays on one line;
 longer custom notice copy ellipsizes instead of wrapping over the prompt.
 In groups of three or more the hold overlay adds a remaining-not-ready
 line (``2 of 3 not ready yet``). Pairs keep the hold title only, because
