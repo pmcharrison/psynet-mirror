@@ -7,5 +7,5 @@ Start by running `/update-onto-target` (follow that skill) so the
 review is of the real merge with the MR target. Then apply the
 review workflow and report format in full. Always update the merge
 request title and description as part of the review. After an
-acceptable review, tell the user to run `/reorganize-onto-master`
+acceptable review, tell the user to run `/reorganize-onto-target`
 to rebuild the tree as logical commits.

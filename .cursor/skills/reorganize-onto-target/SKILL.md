@@ -1,18 +1,17 @@
 ---
-name: reorganize-onto-master
+name: reorganize-onto-target
 description: >-
   Rebuild a PsyNet feature branch as logical commits on the open GitLab
   merge-request target with git reset --soft, then force-with-lease
-  push. Use after /branch-review, or for /reorganize-onto-master or
-  /reorganize-onto-target. Does not fetch a newer target.
+  push. Use after /branch-review, or when the user asks to reorganize
+  commits or run /reorganize-onto-target. Does not fetch a newer target.
 ---
 
-# Reorganize Onto Master
+# Reorganize Onto Target
 
 Rebuild the current feature branch as a few logical commits on the
-open merge request's **target** (often `master`, not always). Use this
-**after** `/update-onto-target` and `/branch-review`, once the merged
-tree is accepted.
+open merge request's **target**. Use this **after** `/update-onto-target`
+and `/branch-review`, once the merged tree is accepted.
 
 The point is the commit grouping, not merely a straight-line history.
 `git reset --soft origin/<target>` keeps the reviewed tree and moves
