@@ -622,7 +622,7 @@ class Barrier(EltCollection):
                 self.release(participant)
             self._advance_released_hold_waiters(participants_to_release)
         instance = BarrierInstance.query.get(barrier_instance_id)
-        if instance is not None and instance.group_id is not None:
+        if instance is not None:
             still_waiting = any(
                 not participant.active_barriers[self.id].released
                 for participant in waiting_participants
@@ -630,7 +630,7 @@ class Barrier(EltCollection):
             )
             # Last-arrival keeps the row active, so this extra lookup stays
             # off that budgeted path. An inactive leftover must not steal
-            # ``ix_barrier_instance_active_group`` from a newer pool.
+            # the active unique index from a newer pool.
             if still_waiting and not instance.active:
                 other = BarrierInstance._active_instance(
                     instance.barrier_id, instance.group_id

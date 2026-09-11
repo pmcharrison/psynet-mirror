@@ -1762,6 +1762,111 @@ def test_check_instance_does_not_reactivate_when_another_pool_is_active(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_ungrouped_instance_clears_active_so_later_behavior_can_reuse_the_id(
+    in_experiment_directory, db_session
+):
+    """Empty ungrouped visits must not keep the first arrival's behavior hash."""
+    exp = get_experiment()
+    first_wave = [new_participant(exp) for _ in range(3)]
+    second_wave = [new_participant(exp) for _ in range(2)]
+    for participant in first_wave + second_wave:
+        participant.status = "working"
+    db.session.commit()
+    first_grouper = SimpleGrouper(group_type="main", initial_group_size=3)
+    for participant in first_wave:
+        _arrive_at_group_barrier(exp, first_grouper, participant)
+        _commit_barrier_arrivals()
+    instance = BarrierInstance.query.filter_by(barrier_id="main_grouper").one()
+    assert instance.active is False
+    for participant in first_wave:
+        assert participant.sync_group is not None
+        participant.sync_group.close()
+    db.session.commit()
+    second_grouper = SimpleGrouper(group_type="main", initial_group_size=2)
+    _arrive_at_group_barrier(exp, second_grouper, second_wave[0])
+    _commit_barrier_arrivals()
+    instances = BarrierInstance.query.filter_by(barrier_id="main_grouper").all()
+    assert len(instances) == 2
+    active = [row for row in instances if row.active]
+    assert len(active) == 1
+    assert active[0].id != instance.id
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_for_arrival_reactivates_inactive_ungrouped_instance_with_waiters(
+    in_experiment_directory, db_session
+):
+    """A leftover ungrouped waiter must keep the same visit instead of opening a second pool."""
+    exp = get_experiment()
+    first, last = [new_participant(exp) for _ in range(2)]
+    for participant in (first, last):
+        participant.status = "working"
+    db.session.commit()
+    grouper = SimpleGrouper(group_type="reuse_ungrouped", initial_group_size=3)
+    _arrive_at_group_barrier(exp, grouper, first)
+    db.session.commit()
+    instance = BarrierInstance.query.filter_by(
+        barrier_id="reuse_ungrouped_grouper"
+    ).one()
+    instance_id = instance.id
+    instance.active = False
+    db.session.commit()
+
+    recovered = BarrierInstance.for_arrival(grouper, last)
+    assert recovered.id == instance_id
+    assert recovered.active is True
+    assert (
+        BarrierInstance.query.filter_by(barrier_id="reuse_ungrouped_grouper").count()
+        == 1
+    )
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_instance_does_not_reactivate_ungrouped_when_another_pool_is_active(
+    in_experiment_directory, db_session
+):
+    """Leftover ungrouped waiters must not steal a newer active pool."""
+    exp = get_experiment()
+    first = new_participant(exp)
+    first.status = "working"
+    db.session.commit()
+    grouper = SimpleGrouper(group_type="split_ungrouped", initial_group_size=3)
+    _arrive_at_group_barrier(exp, grouper, first)
+    db.session.commit()
+    leftover = BarrierInstance.query.filter_by(
+        barrier_id="split_ungrouped_grouper"
+    ).one()
+    leftover.active = False
+    db.session.commit()
+    newer = BarrierInstance(
+        id=str(uuid.uuid4()),
+        barrier_id=leftover.barrier_id,
+        group_id=None,
+        active=True,
+        spec=leftover.spec,
+        behavior_hash=leftover.behavior_hash,
+    )
+    db.session.add(newer)
+    db.session.commit()
+
+    leftover = BarrierInstance.query.get(leftover.id)
+    assert leftover.active is False
+    assert _check_claimed_barrier_instance(leftover) is True
+    db.session.commit()
+    leftover = BarrierInstance.query.get(leftover.id)
+    newer = BarrierInstance.query.get(newer.id)
+    assert leftover.active is False
+    assert newer.active is True
+    assert _barrier_link_released(first.id, "split_ungrouped_grouper") is False
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_check_barriers_recovers_inactive_grouped_instance_with_waiters(
     in_experiment_directory, db_session
 ):
