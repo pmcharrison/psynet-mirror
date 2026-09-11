@@ -1657,6 +1657,9 @@ def test_participant_link_barrier_lists_waiting_participants(
     assert grouper.get_waiting_participants(second) == []
     with pytest.raises(TypeError, match="for_update"):
         grouper.get_waiting_participants(True)
+    grouped = GroupBarrier(id_="needs_visit", group_type="main")
+    with pytest.raises(TypeError, match="needs a participant"):
+        grouped.get_waiting_participants()
 
 
 def test_check_claimed_barrier_instance_treats_finished_work_as_success():
@@ -1690,6 +1693,29 @@ def test_inactive_grouped_instance_with_waiters_is_still_checked(
     instance = BarrierInstance.query.get(instance.id)
     assert instance.active is True
     assert _barrier_link_released(first.id, barrier.id) is False
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_for_arrival_reactivates_inactive_instance_with_waiters(
+    in_experiment_directory, db_session
+):
+    """A leftover waiter must keep the same visit instead of opening a second pool."""
+    exp = get_experiment()
+    first, last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="reuse_inactive", group_type="main")
+    _arrive_at_group_barrier(exp, barrier, first)
+    db.session.commit()
+    instance = BarrierInstance.query.filter_by(barrier_id=barrier.id).one()
+    instance_id = instance.id
+    instance.active = False
+    db.session.commit()
+
+    recovered = BarrierInstance.for_arrival(barrier, last)
+    assert recovered.id == instance_id
+    assert recovered.active is True
+    assert BarrierInstance.query.filter_by(barrier_id=barrier.id).count() == 1
 
 
 @pytest.mark.parametrize(

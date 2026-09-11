@@ -534,7 +534,7 @@ class Barrier(EltCollection):
         Pass ``participant`` to scope the list to that person's instance.
         Ungrouped barriers (groupers, ``WaitForN``) fall back to the one
         active pool for this barrier ID. Grouped barriers have no ungrouped
-        pool, so omitting ``participant`` returns an empty list. This listing
+        pool; omitting ``participant`` raises ``TypeError``. This listing
         does not take extra row locks unless ``for_update`` is true.
 
         Parameters
@@ -562,6 +562,12 @@ class Barrier(EltCollection):
                 return []
             instance_id = link.barrier_instance_id
         else:
+            if isinstance(self, GroupBarrier):
+                raise TypeError(
+                    "GroupBarrier.get_waiting_participants() needs a participant "
+                    "to identify the visit; use the visit link "
+                    "participant.active_barriers[...].get_waiting_participants()."
+                )
             instance = BarrierInstance._active_instance(self.id, None)
             instance_id = None if instance is None else instance.id
         if instance_id is None:
@@ -1588,6 +1594,13 @@ class BarrierInstance(SQLBase, SQLMixin):
             instance._validate_behavior(behavior_hash)
             return instance
 
+        instance = cls._waiting_inactive_instance(barrier.id, group_id)
+        if instance is not None:
+            instance._validate_behavior(behavior_hash)
+            instance.active = True
+            db.session.flush()
+            return instance
+
         record = cls(
             id=str(uuid.uuid4()),
             barrier_id=barrier.id,
@@ -1623,6 +1636,36 @@ class BarrierInstance(SQLBase, SQLMixin):
             .order_by(cls.id)
             .first()
         )
+
+    @classmethod
+    def _waiting_inactive_instance(cls, barrier_id, group_id):
+        """Return an inactive visit in this pool that still has working waiters.
+
+        Last-arrival can mark a visit inactive from a snapshot that missed a
+        concurrent arriver. The next arrival must join that visit instead of
+        opening a second active instance for the same pool.
+        """
+        waiter_exists = (
+            db.session.query(ParticipantLinkBarrier.id)
+            .join(Participant)
+            .filter(
+                ParticipantLinkBarrier.barrier_instance_id == cls.id,
+                ~ParticipantLinkBarrier.released,
+                ~Participant.failed,
+                Participant.status == "working",
+            )
+            .exists()
+        )
+        query = cls.query.filter(
+            cls.barrier_id == barrier_id,
+            cls.active.is_(False),
+            waiter_exists,
+        )
+        if group_id is None:
+            query = query.filter(cls.group_id.is_(None))
+        else:
+            query = query.filter(cls.group_id == group_id)
+        return query.order_by(cls.id).first()
 
     def get_barrier(self):
         """Return the reconstructed release object for this visit.
@@ -1706,7 +1749,10 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         return barrier
 
     def get_waiting_participants(self, for_update: bool = False):
-        """Return people waiting at this visit, without taking extra locks."""
+        """Return people waiting at this visit.
+
+        Does not take extra row locks unless ``for_update`` is true.
+        """
         return _get_waiting_participants(
             self.barrier_id,
             self.barrier_instance_id,

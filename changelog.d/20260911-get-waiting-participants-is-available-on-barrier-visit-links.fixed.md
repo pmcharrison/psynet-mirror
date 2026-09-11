@@ -1,1 +1,1 @@
-``get_waiting_participants()`` is available on barrier visit links again, so custom waiting pages can list people at the current visit.
+``get_waiting_participants()`` is available on barrier visit links again, so custom waiting pages can list people at the current visit. Grouped barriers need a participant or that visit link to identify the visit; ungrouped groupers can still list the active pool without one.

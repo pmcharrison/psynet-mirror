@@ -1,1 +1,1 @@
-Active barrier instances are unique per waiting pool. A concurrent insert collision reuses the committed winner instead of splitting the group.
+Active barrier instances are unique per waiting pool. A concurrent insert collision reuses the committed winner instead of splitting the group. If a visit was marked inactive while waiters remain, the next arrival reactivates that visit instead of opening a second pool.
