@@ -197,9 +197,8 @@ class Exp(psynet.experiment.Experiment):
         for bot in original_bots:
             assert bot.get_current_page().content == "Welcome to the experiment!"
             bot.take_page()
-            assert bot.get_current_page().is_timeline_hold
 
-        # Send the first three bots into the trial maker
+        # The last arriver skips the grouper hold; refresh drivers off that page.
         advance_past_wait_pages(original_bots)
 
         # Trial 1 (degree = 0)
@@ -207,7 +206,6 @@ class Exp(psynet.experiment.Experiment):
             page = bot.get_current_page()
             assert page.label == "color_trial"
             bot.take_page(response=response)
-            assert bot.get_current_page().is_timeline_hold
 
         # Going now to the next trial;
         # Trial 2 (degree = 1)
