@@ -342,8 +342,13 @@ async function attachClearedHoldResume(
       (entry) =>
         entry.reason && (sinceMs == null || entry.atMs >= sinceMs)
     );
+  const endedAtMs =
+    probe.holdEndedAtMs != null &&
+    (sinceMs == null || probe.holdEndedAtMs >= sinceMs)
+      ? probe.holdEndedAtMs
+      : null;
   session.resumePromise = Promise.resolve({
-    resumedAtMs: probe.holdEndedAtMs || logged?.atMs || Date.now()
+    resumedAtMs: endedAtMs || logged?.atMs || Date.now()
   });
 }
 
@@ -467,12 +472,8 @@ async function assertWaiterReleasedWithLastArriver(
     ? session.choiceTracker.records
     : session.entry.tracker.records;
   const clock = lastArriverClock(lastEntry);
-  const sinceMs = allowWebsocketResume
-    ? (session.resumeSinceMs ?? clock.clickedAtMs)
-    : clock.clickedAtMs;
-  const extraTimelineSinceMs = allowWebsocketResume
-    ? (session.resumeSinceMs ?? clock.paintedAtMs)
-    : clock.paintedAtMs;
+  const sinceMs = clock.clickedAtMs;
+  const extraTimelineSinceMs = clock.paintedAtMs;
   const resumeRequests = responsesSince(records, sinceMs);
   const afterClickMs = resume.resumedAtMs - clock.clickedAtMs;
   const afterPaintMs = resume.resumedAtMs - clock.paintedAtMs;

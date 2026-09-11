@@ -212,7 +212,6 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
   );
 
   await withExperiment(page, context, experimentDir, async (experimentPage) => {
-    const responses = startResponseSubmitTracker(experimentPage);
     await experimentPage.addInitScript(() => {
       if (!["http:", "https:"].includes(location.protocol)) return;
       if (sessionStorage.getItem("timelineHoldWakeCount") === null) {
@@ -249,17 +248,6 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     ).toBe(true);
     await expect(experimentPage.locator("#comment-button")).toBeDisabled();
 
-    const holdClient = await probeTimelineHoldClientBehavior(experimentPage);
-    expect(holdClient).toEqual({
-      closedWithoutChannel: true,
-      closedOnBeginHold: true,
-      updatedMessage: "Updated wait copy",
-      sendCount: 2,
-      approved: 1,
-      passed: true,
-      clocksReset: true
-    });
-
     // The indicator floats, so the preserved page must not shift when it appears.
     const holdLayout = await experimentPage.evaluate(() => {
       const mainBody = document.getElementById("main-body");
@@ -280,20 +268,156 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       holdLayout.headerBottom
     );
 
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "Background feedback processing finished.",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+    const accounting = await experimentPage.evaluate(() => ({
+      credit: Number(document.getElementById("hold-credit").textContent),
+      metric: Number(document.getElementById("hold-metric").textContent)
+    }));
+    expect(accounting.credit).toBeGreaterThanOrEqual(2.5);
+    expect(accounting.credit).toBeLessThanOrEqual(20);
+    expect(accounting.metric).toBeCloseTo(accounting.credit, 5);
+    expect(
+      await experimentPage.evaluate(
+        () => Number(sessionStorage.getItem("timelineHoldWakeCount"))
+      )
+    ).toBeGreaterThanOrEqual(1);
+    await expect(
+      experimentPage.locator("#psynet-timeline-hold-indicator")
+    ).toHaveCount(0);
+    expect(
+      await experimentPage.evaluate(
+        () =>
+          !document.body.classList.contains("timeline-held") &&
+          !document.getElementById("main-body").inert
+      )
+    ).toBe(true);
+    await expect(experimentPage.locator("#comment-button")).toBeEnabled();
+
+    await installBeforeUnloadTracking(experimentPage);
+    const compileFailureCleanup = await experimentPage.evaluate(async () => {
+      const originalCompileResponse = psynet.compileResponse;
+      psynetTemplateData.flags.lucidRecruitment = true;
+      psynet.captureSubmissionControlState();
+      psynet.removeBeforeUnloadEventListener();
+      psynet.compileResponse = async () => {
+        throw new Error("synthetic compile failure");
+      };
+      try {
+        await psynet.submitResponse(() => {});
+      } catch (error) {
+        // Expected synthetic failure.
+      } finally {
+        psynet.compileResponse = originalCompileResponse;
+      }
+      return {
+        controlStateCleared: psynet.submissionControlState === null,
+        lastBeforeUnloadOperation: window.beforeUnloadOperations.at(-1)
+      };
+    });
+    expect(compileFailureCleanup).toEqual({
+      controlStateCleared: true,
+      lastBeforeUnloadOperation: "add"
+    });
+
+    const holdTransitionRecovery = await experimentPage.evaluate(async () => {
+      const originals = {
+        inplaceTransitions:
+          psynetTemplateData.flags.inplaceTimelineTransitions,
+        loadFragment: psynet.loadNextTimelinePageFromResponse,
+        loadReload: psynet.loadNextTimelinePageWithReload,
+        logError: psynet.log.error,
+        stopHold: psynet.stopTimelineHold,
+        timelineHold: psynet.timelineHold
+      };
+      const calls = { reload: 0, stop: 0 };
+      psynetTemplateData.flags.inplaceTimelineTransitions = true;
+      psynet.timelineHold = {};
+      psynet.log.error = () => {};
+      psynet.stopTimelineHold = () => {
+        calls.stop += 1;
+        psynet.timelineHold = null;
+      };
+      psynet.loadNextTimelinePageFromResponse = async () => {
+        throw new Error("synthetic hold fragment failure");
+      };
+      psynet.loadNextTimelinePageWithReload = () => {
+        calls.reload += 1;
+      };
+      try {
+        const result = await psynet.handleApprovedResponse({
+          page: {
+            attributes: {
+              page_uuid: "recovered-page",
+              requires_full_page_reload: false,
+              session_id: null
+            }
+          },
+          timeline_fragment: { html: "<div>unused</div>" }
+        });
+        return { ...calls, result };
+      } finally {
+        psynetTemplateData.flags.inplaceTimelineTransitions =
+          originals.inplaceTransitions;
+        psynet.loadNextTimelinePageFromResponse = originals.loadFragment;
+        psynet.loadNextTimelinePageWithReload = originals.loadReload;
+        psynet.log.error = originals.logError;
+        psynet.stopTimelineHold = originals.stopHold;
+        psynet.timelineHold = originals.timelineHold;
+      }
+    });
+    expect(holdTransitionRecovery).toEqual({
+      reload: 1,
+      stop: 1,
+      result: true
+    });
+    await assertNoBackendError(experimentPage);
+  });
+});
+
+test("timeline hold client overlay and busy retry stay on a live hold", { tag: "@both" }, async ({
+  page,
+  context
+}) => {
+  const experimentDir = path.resolve(
+    "tests/playwright/experiments/timeline_hold_client"
+  );
+
+  await withExperiment(page, context, experimentDir, async (experimentPage) => {
+    const responses = startResponseSubmitTracker(experimentPage);
+    await completeInitialGateway(experimentPage);
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "Submit this page to start a hold that stays until the test finishes.",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+    await experimentPage.locator("#next-button").click();
+    await expect(
+      experimentPage.locator("#psynet-timeline-hold-indicator")
+    ).toBeVisible({ timeout: STEP_TIMEOUT_MS });
+
+    const holdClient = await probeTimelineHoldClientBehavior(experimentPage);
+    expect(holdClient).toEqual({
+      closedWithoutChannel: true,
+      closedOnBeginHold: true,
+      updatedMessage: "Updated wait copy",
+      sendCount: 2,
+      approved: 1,
+      passed: true,
+      clocksReset: true
+    });
+
     await experimentPage.waitForTimeout(500);
     const settledResponseCount = responses.getCount();
     await experimentPage.waitForTimeout(700);
-    expect(responses.getCount()).toBeLessThanOrEqual(
-      settledResponseCount + 1
-    );
+    expect(responses.getCount()).toBeLessThanOrEqual(settledResponseCount + 1);
 
     const blockedBaseline = responses.getCount();
     expect(
       await experimentPage.evaluate(() => psynet.nextPage("unexpected"))
     ).toBe(false);
     await experimentPage.waitForTimeout(200);
-    // A safety-poll resume may land in this window; the unexpected submit must
-    // not add more than one extra /response.
     expect(responses.getCount()).toBeLessThanOrEqual(blockedBaseline + 1);
 
     const rejectedHoldEffects = await experimentPage.evaluate(async () => {
@@ -417,7 +541,13 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
         }
         return originalResume.apply(this, arguments);
       };
-      psynet.nextPage = async function (_button, _answer, _metadata, _blobs, options) {
+      psynet.nextPage = async function (
+        _button,
+        _answer,
+        _metadata,
+        _blobs,
+        options
+      ) {
         await psynet.handleBusyResponse(request, options);
         return false;
       };
@@ -477,111 +607,12 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       }
     });
 
-    await expect(experimentPage.locator("#main-body")).toContainText(
-      "Background feedback processing finished.",
-      { timeout: STEP_TIMEOUT_MS }
-    );
-    const accounting = await experimentPage.evaluate(() => ({
-      credit: Number(document.getElementById("hold-credit").textContent),
-      metric: Number(document.getElementById("hold-metric").textContent)
-    }));
-    expect(accounting.credit).toBeGreaterThanOrEqual(2.5);
-    expect(accounting.credit).toBeLessThanOrEqual(20);
-    expect(accounting.metric).toBeCloseTo(accounting.credit, 5);
-    expect(
-      await experimentPage.evaluate(
-        () => Number(sessionStorage.getItem("timelineHoldWakeCount"))
-      )
-    ).toBeGreaterThanOrEqual(1);
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")
-    ).toHaveCount(0);
+    ).toBeVisible();
     expect(
-      await experimentPage.evaluate(
-        () =>
-          !document.body.classList.contains("timeline-held") &&
-          !document.getElementById("main-body").inert
-      )
+      await experimentPage.evaluate(() => Boolean(psynet.timelineHold))
     ).toBe(true);
-    await expect(experimentPage.locator("#comment-button")).toBeEnabled();
-
-    await installBeforeUnloadTracking(experimentPage);
-    const compileFailureCleanup = await experimentPage.evaluate(async () => {
-      const originalCompileResponse = psynet.compileResponse;
-      psynetTemplateData.flags.lucidRecruitment = true;
-      psynet.captureSubmissionControlState();
-      psynet.removeBeforeUnloadEventListener();
-      psynet.compileResponse = async () => {
-        throw new Error("synthetic compile failure");
-      };
-      try {
-        await psynet.submitResponse(() => {});
-      } catch (error) {
-        // Expected synthetic failure.
-      } finally {
-        psynet.compileResponse = originalCompileResponse;
-      }
-      return {
-        controlStateCleared: psynet.submissionControlState === null,
-        lastBeforeUnloadOperation: window.beforeUnloadOperations.at(-1)
-      };
-    });
-    expect(compileFailureCleanup).toEqual({
-      controlStateCleared: true,
-      lastBeforeUnloadOperation: "add"
-    });
-
-    const holdTransitionRecovery = await experimentPage.evaluate(async () => {
-      const originals = {
-        inplaceTransitions:
-          psynetTemplateData.flags.inplaceTimelineTransitions,
-        loadFragment: psynet.loadNextTimelinePageFromResponse,
-        loadReload: psynet.loadNextTimelinePageWithReload,
-        logError: psynet.log.error,
-        stopHold: psynet.stopTimelineHold,
-        timelineHold: psynet.timelineHold
-      };
-      const calls = { reload: 0, stop: 0 };
-      psynetTemplateData.flags.inplaceTimelineTransitions = true;
-      psynet.timelineHold = {};
-      psynet.log.error = () => {};
-      psynet.stopTimelineHold = () => {
-        calls.stop += 1;
-        psynet.timelineHold = null;
-      };
-      psynet.loadNextTimelinePageFromResponse = async () => {
-        throw new Error("synthetic hold fragment failure");
-      };
-      psynet.loadNextTimelinePageWithReload = () => {
-        calls.reload += 1;
-      };
-      try {
-        const result = await psynet.handleApprovedResponse({
-          page: {
-            attributes: {
-              page_uuid: "recovered-page",
-              requires_full_page_reload: false,
-              session_id: null
-            }
-          },
-          timeline_fragment: { html: "<div>unused</div>" }
-        });
-        return { ...calls, result };
-      } finally {
-        psynetTemplateData.flags.inplaceTimelineTransitions =
-          originals.inplaceTransitions;
-        psynet.loadNextTimelinePageFromResponse = originals.loadFragment;
-        psynet.loadNextTimelinePageWithReload = originals.loadReload;
-        psynet.log.error = originals.logError;
-        psynet.stopTimelineHold = originals.stopHold;
-        psynet.timelineHold = originals.timelineHold;
-      }
-    });
-    expect(holdTransitionRecovery).toEqual({
-      reload: 1,
-      stop: 1,
-      result: true
-    });
     responses.stop();
     await assertNoBackendError(experimentPage);
   });
