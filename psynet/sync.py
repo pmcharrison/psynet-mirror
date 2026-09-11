@@ -104,7 +104,9 @@ from sqlalchemy.orm import (
     joinedload,
     object_session,
     relationship,
+    selectinload,
 )
+from sqlalchemy.orm.attributes import set_committed_value
 
 from psynet.barrier_spec import (
     barrier_from_spec_json,
@@ -183,7 +185,17 @@ def _get_waiting_participants(
     for_update: bool,
     nowait: bool,
 ) -> List[Participant]:
-    """Return active waiters for one persisted barrier visit."""
+    """Return active waiters for one persisted barrier visit.
+
+    Per-waiter collections use ``selectinload``, not extra ``joinedload`` on
+    this query. The lock clause already targets the link and participant
+    rows; joining ``timeline_hold`` or collections would add outer joins to a
+    ``FOR UPDATE`` statement (a PostgreSQL footgun) or a cartesian product.
+    The follow-up ``IN`` queries do not take extra row locks.
+
+    ``sync_group_links`` is populated separately; see
+    ``_populate_sync_group_links``.
+    """
     query = (
         ParticipantLinkBarrier.query.join(Participant)
         .filter(
@@ -193,7 +205,12 @@ def _get_waiting_participants(
             ~Participant.failed,
             Participant.status == "working",
         )
-        .options(joinedload(ParticipantLinkBarrier.participant, innerjoin=True))
+        .options(
+            joinedload(ParticipantLinkBarrier.participant, innerjoin=True).options(
+                selectinload(Participant.active_barriers),
+            ),
+            selectinload(ParticipantLinkBarrier.timeline_hold),
+        )
         .order_by(Participant.id)
     )
     if for_update:
@@ -201,7 +218,29 @@ def _get_waiting_participants(
             of=[ParticipantLinkBarrier, Participant],
             nowait=nowait,
         ).populate_existing()
-    return [link.participant for link in query.all()]
+    waiters = [link.participant for link in query.all()]
+    _populate_sync_group_links(waiters)
+    return waiters
+
+
+def _populate_sync_group_links(participants):
+    """Batch-load ``sync_group_links`` without a relationship loader option.
+
+    ``selectinload(Participant.sync_group_links)`` on the waiter query makes
+    later group walks lazy-load that collection once per member, which shows
+    up as extra statements in arrival-notice lookups. An explicit ``IN``
+    query plus ``set_committed_value`` keeps the check O(1) without that
+    side effect.
+    """
+    if not participants:
+        return
+    grouped = {participant.id: [] for participant in participants}
+    for link in ParticipantLinkSyncGroup.query.filter(
+        ParticipantLinkSyncGroup.participant_id.in_(list(grouped))
+    ):
+        grouped[link.participant_id].append(link)
+    for participant in participants:
+        set_committed_value(participant, "sync_group_links", grouped[participant.id])
 
 
 class _BarrierHoldPage(_TimelineHoldPage):
@@ -1596,6 +1635,7 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
                 self.participant_id,
                 page_uuid=self.timeline_hold.page_uuid,
                 reason="barrier_released",
+                hold=self.timeline_hold,
             )
 
 

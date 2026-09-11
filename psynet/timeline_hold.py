@@ -46,24 +46,38 @@ _WAKE_DEFER_DEPTH_KEY = "psynet_timeline_hold_wake_defer_depth"
 logger = get_logger()
 
 
-def _enqueue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
-    """Queue a targeted hold wake for publication after the next commit."""
-    if page_uuid is None:
-        from psynet.participant import Participant
+def _enqueue_timeline_hold_wake(
+    participant_id, *, page_uuid=None, reason=None, hold=None
+):
+    """Queue a targeted hold wake for publication after the next commit.
 
-        page_uuid = (
-            Participant.query.with_entities(Participant.page_uuid)
-            .filter_by(id=participant_id)
-            .scalar()
-        )
+    Pass ``hold`` when the caller already has the unresumed record so this
+    path does not look it up again.
+    """
+    if hold is not None:
+        if hold.resumed_at is not None:
+            return
+        page_uuid = hold.page_uuid if page_uuid is None else page_uuid
+        active_hold = hold
+    else:
+        if page_uuid is None:
+            from psynet.participant import Participant
+
+            page_uuid = (
+                Participant.query.with_entities(Participant.page_uuid)
+                .filter_by(id=participant_id)
+                .scalar()
+            )
+        if page_uuid is None:
+            return
+        active_hold = TimelineHoldRecord.query.filter_by(
+            participant_id=participant_id,
+            page_uuid=page_uuid,
+            resumed_at=None,
+        ).first()
+        if active_hold is None:
+            return
     if page_uuid is None:
-        return
-    active_hold = TimelineHoldRecord.query.filter_by(
-        participant_id=participant_id,
-        page_uuid=page_uuid,
-        resumed_at=None,
-    ).first()
-    if active_hold is None:
         return
     wake = {
         "wake_token": active_hold.wake_token,
@@ -73,13 +87,16 @@ def _enqueue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
     db.session.info.setdefault(_PENDING_WAKE_KEY, {})[active_hold.wake_token] = wake
 
 
-def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
+def _queue_timeline_hold_wake(
+    participant_id, *, page_uuid=None, reason=None, hold=None
+):
     """Queue a wake without allowing notification failure to break core work."""
     try:
         _enqueue_timeline_hold_wake(
             participant_id,
             page_uuid=page_uuid,
             reason=reason,
+            hold=hold,
         )
     except Exception:
         logger.warning(

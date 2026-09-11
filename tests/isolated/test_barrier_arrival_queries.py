@@ -28,6 +28,7 @@ from psynet.pytest_psynet import path_to_test_experiment
 from psynet.sqlalchemy_profiling import sqlalchemy_profile
 from psynet.sync import (
     GroupBarrier,
+    ParticipantLinkBarrier,
     SimpleGrouper,
     SimpleSyncGroup,
     _run_pending_barrier_checks,
@@ -45,15 +46,16 @@ pytestmark = [
     pytest.mark.usefixtures("in_experiment_directory"),
 ]
 
-# Precise snapshot of the current ORM path (check = 11 + 7N, finalize = 16 + 7N).
+# Precise snapshot of the current ORM path (check = 17, finalize = 23).
 # Statement-by-statement analysis:
 # docs/developer/sqlalchemy_performance.rst ("Barrier last-arrival SQL budgets").
 # Lower counts are an improvement: update these constants and that section.
-_CHECK_FIXED_QUERIES = 11
-_CHECK_QUERIES_PER_WAITER = 7
-_FINALIZE_OVERHEAD_QUERIES = 5
+# Per-row writes still scale with group size; SQLAlchemy flushes them as one
+# executemany statement per table, so UPDATE *statement* count stays 1.
+_CHECK_QUERIES = 17
+_FINALIZE_OVERHEAD_QUERIES = 6
 _STACKED_BARRIER_COUNT = 3  # grouper + two GroupBarriers
-_STACKED_QUERIES_PER_EXTRA_MEMBER = 50  # loose cap, not a target
+_STACKED_QUERIES_PER_EXTRA_MEMBER = 35  # loose cap, not a target
 
 
 def _statement_count(profiler, pattern):
@@ -107,13 +109,20 @@ def _budget(profiler):
             profiler,
             r"FROM participant_link_sync_group WHERE .*participant_link_sync_group\.participant_id",
         ),
-        "active_barriers_by_participant": _statement_count(
+        "active_barriers_selectin": _statement_count(
+            profiler,
+            r"JOIN participant_link_barrier ON .*released = false WHERE participant_1\.id IN",
+        ),
+        "active_barriers_lazy": _statement_count(
             profiler,
             r"FROM participant_link_barrier WHERE .*participant_link_barrier\.participant_id"
             r".*released = false",
         ),
         "hold_by_pk": _statement_count(
             profiler, r"FROM timeline_hold WHERE timeline_hold\.id = "
+        ),
+        "hold_selectin": _statement_count(
+            profiler, r"FROM timeline_hold WHERE timeline_hold\.id IN"
         ),
         "hold_wake_lookup": _statement_count(
             profiler, r"timeline_hold\.resumed_at IS NULL"
@@ -255,13 +264,13 @@ def _json_timeline(exp, participant):
 
 
 def _check_expected(n):
-    """Return the check-window snapshot for *n* waiters.
+    """Return the check-window snapshot for a group of size *n*.
 
     See docs/developer/sqlalchemy_performance.rst (Barrier last-arrival SQL
     budgets). Update both places if an improvement lowers these counts.
     """
     return {
-        "queries": _CHECK_FIXED_QUERIES + _CHECK_QUERIES_PER_WAITER * n,
+        "queries": _CHECK_QUERIES,
         "commits": 1,
         "nested_commits": 1,
         "for_update": 1,
@@ -274,18 +283,20 @@ def _check_expected(n):
         "release_savepoint": 1,
         "lock_timeout": 0,
         "waiter_join": 1,
-        "update_link": n,
-        "update_hold_release": n,
-        "update_participant_wait": n,
-        "sync_links_by_participant": n,
-        "active_barriers_by_participant": n,
-        "hold_by_pk": n,
-        "hold_wake_lookup": n,
+        "update_link": 1,
+        "update_hold_release": 1,
+        "update_participant_wait": 1,
+        "sync_links_by_participant": 1,
+        "active_barriers_selectin": 1,
+        "active_barriers_lazy": 0,
+        "hold_by_pk": 0,
+        "hold_selectin": 1,
+        "hold_wake_lookup": 0,
     }
 
 
 def _finalize_expected(n):
-    """Return the finalize-window snapshot: check plus five overhead statements.
+    """Return the finalize-window snapshot: check plus six overhead statements.
 
     See docs/developer/sqlalchemy_performance.rst (Barrier last-arrival SQL
     budgets). Update both places if an improvement lowers these counts.
@@ -299,13 +310,14 @@ def _finalize_expected(n):
             "for_update": 2,
             "relock_for_update": 1,
             "lock_timeout": 2,
+            "active_barriers_lazy": 1,
         }
     )
     return expected
 
 
 def test_check_instance_sql_matches_waiter_formula(db_session):
-    """Last-arrival checks stay O(1) in locks/spec and O(N) in per-row writes."""
+    """Last-arrival checks stay O(1) in statement count as group size grows."""
     exp = get_experiment()
     _reset_experiment(exp)
     observed = {}
@@ -319,8 +331,14 @@ def test_check_instance_sql_matches_waiter_formula(db_session):
         db.session.expire_all()
         with sqlalchemy_profile(db.engine) as profiler:
             assert _run_pending_barrier_checks(checks) is True
-        _assert_budget(profiler, _check_expected(n), label=f"check n={n}")
+        released = (
+            db_session.query(ParticipantLinkBarrier)
+            .filter_by(barrier_id=barrier.id, released=True)
+            .count()
+        )
+        assert released == n
         observed[n] = _budget(profiler)
+        _assert_budget(profiler, _check_expected(n), label=f"check n={n}")
 
     for key in (
         "nowait",
@@ -329,11 +347,16 @@ def test_check_instance_sql_matches_waiter_formula(db_session):
         "waiter_join",
         "savepoint",
         "commits",
+        "sync_links_by_participant",
+        "active_barriers_selectin",
+        "hold_selectin",
+        "update_link",
+        "update_hold_release",
+        "update_participant_wait",
     ):
         assert observed[2][key] == observed[8][key] == 1
-    assert (
-        observed[8]["queries"] - observed[2]["queries"] == _CHECK_QUERIES_PER_WAITER * 6
-    )
+    assert observed[2]["queries"] == observed[8]["queries"] == _CHECK_QUERIES
+    assert observed[2]["hold_wake_lookup"] == observed[8]["hold_wake_lookup"] == 0
 
 
 def test_finalize_commits_check_then_relock_independent_of_group_size(db_session):
@@ -366,11 +389,9 @@ def test_finalize_commits_check_then_relock_independent_of_group_size(db_session
         "relock_for_update",
         "spec_select",
         "lock_timeout",
+        "queries",
     ):
         assert observed[2][key] == observed[8][key]
-    assert (
-        observed[8]["queries"] - observed[2]["queries"] == _CHECK_QUERIES_PER_WAITER * 6
-    )
 
 
 def test_pending_arrival_notice_reconstructs_each_instance_once(db_session):
@@ -403,7 +424,7 @@ def test_pending_arrival_notice_reconstructs_each_instance_once(db_session):
             "commits": 0,
             "for_update": 0,
             "spec_select": 1,
-            "active_barriers_by_participant": n - 1,
+            "active_barriers_lazy": n - 1,
             "participant_pk": n - 1,
         },
         label="pending_arrival_notice n=8",
@@ -468,6 +489,7 @@ def test_stacked_finalize_commit_and_lock_budget_does_not_grow_with_group_size(
                         "release_savepoint": _STACKED_BARRIER_COUNT,
                         "lock_timeout": 2 * _STACKED_BARRIER_COUNT,
                         "waiter_join": _STACKED_BARRIER_COUNT,
+                        "hold_wake_lookup": 0,
                     },
                     label=f"stacked_finalize n={group_size}",
                 )

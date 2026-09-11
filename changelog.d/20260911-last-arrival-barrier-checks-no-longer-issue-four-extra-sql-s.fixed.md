@@ -1,0 +1,1 @@
+Last-arrival barrier checks now load waiter holds and active barriers in bulk, populate sync-group links in one query, and skip a redundant hold-wake lookup, so check SQL no longer grows with group size.
