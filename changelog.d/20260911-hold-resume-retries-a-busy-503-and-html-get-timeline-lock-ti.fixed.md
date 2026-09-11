@@ -1,0 +1,1 @@
+Hold-resume retries a structured busy HTTP 503 once, same as an ordinary Next submit. HTML ``GET /timeline`` lock timeouts also return that 503 payload so automated drivers can retry. Hold overlays always include a title span, and a same-page hold update applies the new message.

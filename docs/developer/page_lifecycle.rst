@@ -67,7 +67,10 @@ Timeline requests separate state mutation from rendering:
    lock their rows.
 3. PsyNet resolves the final page, runs ``pre_render()``, and commits any
    preparation writes, releasing locks. Remaining queued hold wakes publish
-   after that commit.
+   after that commit. If ``GET /timeline`` finds a ready hold and no queued
+   checks, it relocks that participant, skips the hold, and runs
+   ``pre_render()`` on the page that will be shown. An unreleased barrier hold
+   does not re-run the group check.
 4. HTML, JSON, or an inplace fragment is rendered in a fresh PostgreSQL
    read-only transaction with SQLAlchemy autoflush disabled.
 5. PsyNet verifies that rendering created no new, dirty, or deleted ORM
@@ -108,11 +111,10 @@ are no longer part of this pipeline. Put database preparation in
 
 Participant-facing write phases use a bounded PostgreSQL ``lock_timeout`` so
 unexpected contention fails safely instead of occupying a web worker
-indefinitely. ``GET /timeline?mode=json`` and ``POST /response`` return HTTP
-503 with a ``busy`` payload so the browser can retry; HTML ``/timeline``
-requests show a refresh prompt. Whole timeline requests are not retried
-automatically on the server because author code blocks may contain
-non-idempotent external side effects. Barrier definitions and per-group visit
+indefinitely. ``GET /timeline`` (HTML or JSON) and ``POST /response`` return
+HTTP 503 with a ``busy`` payload so the browser and automated drivers can
+retry. Whole timeline requests are not retried automatically on the server
+because author code blocks may contain non-idempotent external side effects. Barrier definitions and per-group visit
 instances are created in the arrival request's transaction. Each instance
 stores a versioned JSON specification of its release behavior rather than an
 opaque Python-object snapshot. The poller claims an instance with an advisory
@@ -338,11 +340,12 @@ or honor the visible page's full-reload requirement. Refreshing during a hold
 loads a neutral fallback page and reconnects to the same durable hold record.
 
 Workers and barriers queue participant-targeted wake messages in the current
-database transaction. PsyNet publishes the messages on one shared channel only
-after commit. Delivery is an optimization rather than authority: the browser
-always submits an idempotent resume check, and the server re-evaluates the
-condition. ``check_interval`` remains the bounded fallback for missed messages
-and arbitrary conditions without a framework event.
+database transaction. PsyNet publishes the messages on that participant's hold
+channel (``psynet_timeline_hold:<id>``) only after commit. Delivery is an
+optimization rather than authority: the browser always submits an idempotent
+resume check, and the server re-evaluates the condition. ``check_interval``
+remains the bounded fallback for missed messages and arbitrary conditions
+without a framework event.
 
 When the last hold on a page ends, the browser closes the hold-channel
 WebSocket. The next hold reconnects. Partner-ready notices use the same

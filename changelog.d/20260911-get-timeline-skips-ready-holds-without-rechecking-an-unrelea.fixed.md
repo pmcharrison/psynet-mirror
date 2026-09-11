@@ -1,0 +1,1 @@
+``GET /timeline`` skips a ready hold only after relocking that participant, then prepares the next page. An unreleased barrier hold no longer re-runs the group check while the waiter holds ``FOR UPDATE``.

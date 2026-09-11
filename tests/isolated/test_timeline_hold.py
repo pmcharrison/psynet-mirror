@@ -18,6 +18,7 @@ from psynet.timeline_hold import (
     _ConditionHoldPage,
     _queue_timeline_hold_wake,
     _TimelineHoldPage,
+    compose_hold_overlay_html,
 )
 from psynet.utils import serialise
 
@@ -335,3 +336,14 @@ def test_hold_timeout_fails_participant_with_hold_tags():
     _TimelineHoldPage.apply_timeout(hold, participant)
 
     assert tags == ["timeline_hold:test", "fail_on_timeout", "failed"]
+
+
+def test_compose_hold_overlay_html_always_emits_the_title_span():
+    assert (
+        compose_hold_overlay_html("Waiting for your partner")
+        == '<span class="psynet-timeline-hold-title">Waiting for your partner</span>'
+    )
+    html = compose_hold_overlay_html("Waiting for your group", "1 of 3 not ready yet")
+    assert 'class="psynet-timeline-hold-title"' in html
+    assert 'class="psynet-timeline-hold-progress"' in html
+    assert "1 of 3 not ready yet" in html

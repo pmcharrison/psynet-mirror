@@ -1112,6 +1112,9 @@
       let active = psynet.timelineHold;
       if (active?.hold.page_uuid === hold.page_uuid) {
         active.hold = hold;
+        if (hold.message) {
+          psynet.updateTimelineHoldMessage(hold.message);
+        }
         psynet.scheduleTimelineHoldCheck(active);
         psynet.scheduleTimelineHoldTimeout(active);
         return;
@@ -3365,6 +3368,9 @@
         body.message || "The experiment is temporarily busy. Please try again.";
       if (options.timelineHoldResume) {
         psynet.log.warn("A timeline hold resume check was busy: " + message);
+        if (psynet.timelineHold) {
+          psynet.timelineHold.resumeRequested = true;
+        }
         return false;
       }
       psynet.log.warn("The experiment was busy: " + message);
@@ -3484,11 +3490,7 @@
           let request = new XMLHttpRequest();
           request.onreadystatechange = async function () {
             if (request.readyState !== 4) return;
-            if (
-              psynet.isBusyResponse(request) &&
-              !options.timelineHoldResume &&
-              attempt === 0
-            ) {
+            if (psynet.isBusyResponse(request) && attempt === 0) {
               attempt += 1;
               psynet.log.warn(
                 "The experiment was busy; retrying the submission.",

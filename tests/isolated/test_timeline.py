@@ -264,7 +264,12 @@ def test_advance_past_ready_holds_skips_a_cleared_hold():
 def test_finalize_pending_hold_without_checks_relocks_the_participant(monkeypatch):
     """A ready hold on GET /timeline must not advance without FOR UPDATE."""
     participant = SimpleNamespace(id=42)
-    hold = SimpleNamespace(is_timeline_hold=True)
+    hold = SimpleNamespace(
+        is_timeline_hold=True,
+        prepare_resume_if_ready=lambda *_args: True,
+        pre_render=lambda: None,
+        early_exit_available=lambda *_args: False,
+    )
     query = MagicMock()
     query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
     experiment = Experiment.__new__(Experiment)
@@ -273,7 +278,6 @@ def test_finalize_pending_hold_without_checks_relocks_the_participant(monkeypatc
     experiment.timeline.get_current_elt.return_value = hold
     experiment._advance_past_ready_holds = MagicMock(return_value=hold)
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
-    monkeypatch.setattr("psynet.sync._hold_instance_id_for_page", lambda *_args: None)
     monkeypatch.setattr(
         "psynet.experiment._set_transaction_lock_timeout",
         lambda *_args: None,
@@ -282,6 +286,11 @@ def test_finalize_pending_hold_without_checks_relocks_the_participant(monkeypatc
         "psynet.experiment.get_config",
         lambda: SimpleNamespace(get=lambda _key: 5),
     )
+
+    def boom(*_args, **_kwargs):
+        raise AssertionError("unreleased holds must not re-run barrier checks")
+
+    monkeypatch.setattr(Experiment, "_finalize_barrier_arrivals", boom)
 
     returned_participant, returned_page = (
         Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
@@ -309,6 +318,122 @@ def test_finalize_pending_skips_relock_when_the_page_is_not_a_hold(monkeypatch):
     experiment._participant_request_query.assert_not_called()
     assert returned_page is page
     assert returned_participant.id == 1
+
+
+def test_finalize_pending_skips_relock_when_the_hold_is_not_ready(monkeypatch):
+    """A waiter already on an unreleased hold must not lock or re-check."""
+    hold = SimpleNamespace(
+        is_timeline_hold=True,
+        prepare_resume_if_ready=lambda *_args: False,
+        barrier_id="main",
+    )
+    experiment = Experiment.__new__(Experiment)
+    experiment._participant_request_query = MagicMock()
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+    monkeypatch.setattr(
+        "psynet.sync._hold_instance_id_for_page", lambda *_args: "instance-1"
+    )
+
+    def boom(*_args, **_kwargs):
+        raise AssertionError("sitting waiters must not run last-arrival finalize")
+
+    monkeypatch.setattr(Experiment, "_finalize_barrier_arrivals", boom)
+
+    returned_participant, returned_page = (
+        Experiment._finalize_pending_timeline_barriers(
+            experiment, SimpleNamespace(id=1), hold
+        )
+    )
+
+    experiment._participant_request_query.assert_not_called()
+    assert returned_page is hold
+    assert returned_participant.id == 1
+
+
+def test_finalize_pending_prepares_the_page_after_skipping_a_ready_hold(monkeypatch):
+    """GET /timeline must pre_render the page that will be shown after a skip."""
+    participant = SimpleNamespace(id=42)
+    nxt = SimpleNamespace(
+        is_timeline_hold=False,
+        pre_render=MagicMock(),
+        early_exit_available=lambda *_args: False,
+    )
+    hold = SimpleNamespace(
+        is_timeline_hold=True,
+        prepare_resume_if_ready=lambda *_args: True,
+    )
+    query = MagicMock()
+    query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
+    experiment = Experiment.__new__(Experiment)
+    experiment._participant_request_query = MagicMock(return_value=query)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.return_value = hold
+    experiment._advance_past_ready_holds = MagicMock(return_value=nxt)
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout",
+        lambda *_args: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
+    )
+
+    returned_participant, returned_page = (
+        Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
+    )
+
+    nxt.pre_render.assert_called_once()
+    assert returned_page is nxt
+    assert returned_participant is participant
+
+
+def test_process_response_unready_hold_does_not_recheck_readiness(monkeypatch):
+    """An unsuccessful hold-resume must not call ``prepare_resume_if_ready`` twice."""
+    from flask import Flask
+
+    hold = MagicMock()
+    hold.is_timeline_hold = True
+    hold.prepare_resume_if_ready.return_value = False
+    hold.time_estimate = 1.5
+    participant = SimpleNamespace(
+        id=1,
+        page_uuid="hold-uuid",
+        client_ip_address=None,
+        current_trial=None,
+    )
+    query = MagicMock()
+    query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
+    experiment = Experiment.__new__(Experiment)
+    experiment._participant_request_query = MagicMock(return_value=query)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.return_value = hold
+    experiment._advance_past_ready_holds = MagicMock()
+    experiment._approved_payload = lambda _participant, page: {
+        "submission": "approved",
+        "page": page,
+    }
+    monkeypatch.setattr(
+        Experiment,
+        "_skipped_error_recovery_should_render_error_page",
+        classmethod(lambda *_args, **_kwargs: False),
+    )
+
+    with Flask(__name__).test_request_context("/response"):
+        result = experiment.process_response(
+            1,
+            None,
+            {},
+            {},
+            "hold-uuid",
+            "127.0.0.1",
+            timeline_hold_resume=True,
+        )
+
+    hold.prepare_resume_if_ready.assert_called_once_with(experiment, participant)
+    hold.account_wait.assert_called_once_with(participant, settle=False)
+    experiment._advance_past_ready_holds.assert_not_called()
+    assert result.page is hold
 
 
 def test_template_fragment_input_wraps_main_body_content():

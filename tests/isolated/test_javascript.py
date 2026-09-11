@@ -152,7 +152,19 @@ def test_begin_timeline_hold_closes_the_arrival_update_socket():
     source = _psynet_js()
     start = source.index("psynet.beginTimelineHold = function")
     end = source.index("psynet.finalizePageReady = async function")
-    assert "psynet.stopArrivalUpdates()" in source[start:end]
+    body = source[start:end]
+    assert "psynet.stopArrivalUpdates()" in body
+    assert "psynet.updateTimelineHoldMessage(hold.message)" in body
+
+
+def test_hold_resume_retries_a_structured_busy_response_once():
+    source = _psynet_js()
+    start = source.index("return new Promise((resolve) => {")
+    end = source.index("let createTrialProgress = function")
+    body = source[start:end]
+    assert "psynet.isBusyResponse(request) && attempt === 0" in body
+    assert "!options.timelineHoldResume" not in body
+    assert "psynet.timelineHold.resumeRequested = true" in source
 
 
 def test_page_rejects_javascript_url_with_conflicting_lifecycles():
@@ -314,6 +326,45 @@ def test_busy_response_is_retryable_http_503():
     assert data["status"] == "busy"
     assert data["submission"] == "busy"
     assert "temporarily busy" in data["message"]
+
+
+def test_html_timeline_lock_timeout_returns_busy_503(monkeypatch):
+    import sqlalchemy
+    from flask import Flask
+    from psycopg2.errors import LockNotAvailable
+
+    from psynet.experiment import Experiment
+
+    err = sqlalchemy.exc.OperationalError("stmt", {}, LockNotAvailable())
+    monkeypatch.setattr(
+        Experiment,
+        "_is_transient_transaction_error",
+        classmethod(lambda cls, error: True),
+    )
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout", lambda *_args: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
+    )
+
+    def raise_lock(*_args, **_kwargs):
+        raise err
+
+    monkeypatch.setattr(
+        Experiment, "_get_request_participant_from_unique_id", raise_lock
+    )
+    app = Flask(__name__)
+    with app.test_request_context("/timeline?unique_id=worker-1"):
+        response = Experiment.route_timeline()
+
+    if isinstance(response, tuple):
+        body, status = response
+    else:
+        body, status = response, response.status_code
+    assert status == 503
+    assert body.get_json()["status"] == "busy"
 
 
 def test_response_prepare_error_returns_busy_for_transient_lock(monkeypatch):

@@ -3330,9 +3330,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if should_resume:
                     participant.inc_progress(event.time_estimate)
                     self.timeline.advance_page(self, participant)
-                page = self._advance_past_ready_holds(
-                    participant, self.timeline.get_current_elt(self, participant)
-                )
+                    page = self._advance_past_ready_holds(
+                        participant, self.timeline.get_current_elt(self, participant)
+                    )
+                else:
+                    page = event
                 return ResponseResult(
                     payload=self._approved_payload(participant, page),
                     page=page,
@@ -5168,16 +5170,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 unique_id,
                 exc_info=True,
             )
-            if mode == "json":
-                return cls.busy_response()
-            with read_only_transaction():
-                _ = get_translator()
-                return cls.error_page(
-                    error_text=_(
-                        "The experiment is temporarily busy. "
-                        "Please refresh this page and try again."
-                    ),
-                )
+            return cls.busy_response()
 
     @experiment_route("/participant_status/<participant_id>", methods=["GET"])
     @classmethod
@@ -5717,6 +5710,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return page
 
     @classmethod
+    def _prepare_resolved_timeline_page(cls, experiment, participant, page):
+        """Run write-phase preparation for the page that will be rendered."""
+        if page is None:
+            return page
+        page.pre_render()
+        available = getattr(page, "early_exit_available", None)
+        if callable(available) and available(experiment, participant):
+            experiment.prepare_voluntary_exit_plan(participant)
+        return page
+
+    @classmethod
     def _prepare_approved_inplace_page(cls, experiment, participant, page, payload):
         """Prepare an inplace page in the write phase and refresh its JSON.
 
@@ -5724,9 +5728,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         preparation. Same-session clients consume that object, so it must
         include contents and attributes assigned by ``pre_render()``.
         """
-        page.pre_render()
-        if page.early_exit_available(experiment, participant):
-            experiment.prepare_voluntary_exit_plan(participant)
+        cls._prepare_resolved_timeline_page(experiment, participant, page)
         payload["page"] = page.__json__(participant)
         return participant.page_uuid
 
@@ -5734,38 +5736,42 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _finalize_pending_timeline_barriers(cls, experiment, participant, page):
         """Run queued arrival checks before ``/timeline`` renders a hold.
 
-        If no checks were queued, a ready non-barrier hold still needs a
-        participant row lock before ``_advance_past_ready_holds`` mutates
-        wait credit or the timeline cursor.
+        If no checks were queued, a ready hold still needs a participant row
+        lock before ``_advance_past_ready_holds`` mutates wait credit or the
+        timeline cursor. An unreleased barrier hold must not re-run the group
+        check while this waiter holds ``FOR UPDATE``.
         """
         from types import SimpleNamespace
 
-        from .sync import _hold_instance_id_for_page, _take_pending_barrier_checks
+        from .sync import _take_pending_barrier_checks
 
         checks = _take_pending_barrier_checks()
         if not checks and getattr(page, "is_timeline_hold", False):
-            _set_transaction_lock_timeout(
-                get_config().get("timeline_lock_timeout_seconds")
-            )
-            locked = (
-                experiment._participant_request_query()
-                .with_for_update(of=Participant)
-                .populate_existing()
-                .get(participant.id)
-            )
-            if locked is None:
-                raise RuntimeError(
-                    f"Participant {participant.id} disappeared before timeline hold fallback."
+            prepare = getattr(page, "prepare_resume_if_ready", None)
+            ready = callable(prepare) and bool(prepare(experiment, participant))
+            if ready:
+                _set_transaction_lock_timeout(
+                    get_config().get("timeline_lock_timeout_seconds")
                 )
-            participant = locked
-            page = experiment._advance_past_ready_holds(
-                participant,
-                experiment.timeline.get_current_elt(experiment, participant),
-            )
-            checks = _take_pending_barrier_checks()
-            instance_id = _hold_instance_id_for_page(participant, page)
-            if instance_id:
-                checks = [instance_id]
+                locked = (
+                    experiment._participant_request_query()
+                    .with_for_update(of=Participant)
+                    .populate_existing()
+                    .get(participant.id)
+                )
+                if locked is None:
+                    raise RuntimeError(
+                        f"Participant {participant.id} disappeared before timeline hold fallback."
+                    )
+                participant = locked
+                page = experiment._advance_past_ready_holds(
+                    participant,
+                    experiment.timeline.get_current_elt(experiment, participant),
+                )
+                checks = _take_pending_barrier_checks()
+                page = cls._prepare_resolved_timeline_page(
+                    experiment, participant, page
+                )
         if not checks:
             return participant, page
         result = SimpleNamespace(page=page, payload={})
@@ -5775,9 +5781,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             checks,
             result,
         )
-        page = result.page
+        page = cls._prepare_resolved_timeline_page(experiment, participant, result.page)
         if page is not None:
-            page.pre_render()
             db.session.commit()
         return participant, page
 

@@ -1269,7 +1269,9 @@ async function waitForHeldParticipantToResume(
   await expect(page.locator("#main-body")).toContainText(prompt, { timeout });
   await expect(page.locator("#psynet-timeline-hold-indicator")).toHaveCount(0);
   await expect(page.locator("body")).not.toHaveClass(/timeline-held/);
-  return { resumedAtMs: Date.now() };
+  const probe = await readTimelineHoldReleaseProbe(page);
+  // Use the holdEnded event clock, not Date.now() after the prompt appears.
+  return { resumedAtMs: probe.holdEndedAtMs || Date.now() };
 }
 
 function readTimelinePageFromHtml(html) {

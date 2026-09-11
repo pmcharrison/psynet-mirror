@@ -163,10 +163,11 @@ def _html_overlay_line(text):
 
 def compose_hold_overlay_html(title_html, progress_text=None):
     """Join a hold title with an optional progress line."""
+    title = f'<span class="psynet-timeline-hold-title">{title_html}</span>'
     if not progress_text:
-        return title_html
+        return title
     return (
-        f'<span class="psynet-timeline-hold-title">{title_html}</span>'
+        f"{title}"
         f'<span class="psynet-timeline-hold-progress">'
         f"{_html_overlay_line(progress_text)}</span>"
     )
