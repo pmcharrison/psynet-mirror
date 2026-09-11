@@ -66,6 +66,115 @@ async function startBackgroundHold(page, { trackLucidUnload = false } = {}) {
   return { visiblePageUuid, mainBodyTop };
 }
 
+async function probeTimelineHoldClientBehavior(page) {
+  return page.evaluate(async () => {
+    const controller = psynet.timelineHold;
+    if (!controller) {
+      throw new Error("timeline hold is not active");
+    }
+    const originalSchedule = psynet.scheduleTimelineHoldCheck;
+    clearTimeout(controller.safetyTimer);
+    psynet.scheduleTimelineHoldCheck = function () {};
+
+    let arrivalClosed = 0;
+    const fakeArrival = () => ({
+      channel: "test",
+      connection: {
+        close() {
+          arrivalClosed += 1;
+        }
+      }
+    });
+
+    try {
+      psynet.arrivalUpdates = fakeArrival();
+      psynet.ensureArrivalUpdates(null);
+      const closedWithoutChannel =
+        arrivalClosed === 1 && psynet.arrivalUpdates === null;
+
+      psynet.arrivalUpdates = fakeArrival();
+      const hold = { ...controller.hold };
+      psynet.beginTimelineHold(hold);
+      const closedOnBeginHold =
+        arrivalClosed === 2 && psynet.arrivalUpdates === null;
+
+      psynet.beginTimelineHold({
+        ...hold,
+        message: "Updated wait copy"
+      });
+      const updatedMessage = document.querySelector(
+        "#psynet-timeline-hold-indicator .psynet-timeline-hold-message"
+      )?.innerHTML;
+
+      const OriginalXHR = window.XMLHttpRequest;
+      let sendCount = 0;
+      window.XMLHttpRequest = function FakeXHR() {
+        const xhr = {
+          readyState: 0,
+          status: 0,
+          response: "",
+          onreadystatechange: null,
+          open() {},
+          send() {
+            sendCount += 1;
+            xhr.readyState = 4;
+            if (sendCount === 1) {
+              xhr.status = 503;
+              xhr.response = JSON.stringify({
+                status: "busy",
+                submission: "busy",
+                message: "The experiment is temporarily busy. Please try again."
+              });
+            } else {
+              xhr.status = 200;
+              xhr.response = JSON.stringify({
+                submission: "approved",
+                page: { contents: "", attributes: {} }
+              });
+            }
+            if (xhr.onreadystatechange) {
+              xhr.onreadystatechange();
+            }
+          }
+        };
+        return xhr;
+      };
+      const originalApproved = psynet.handleApprovedResponse;
+      let approved = 0;
+      psynet.handleApprovedResponse = async () => {
+        approved += 1;
+        return true;
+      };
+      const pendingBefore = psynet.nextPagePending;
+      psynet.nextPagePending = false;
+      let passed = false;
+      try {
+        passed = await psynet.nextPage(null, {}, {}, undefined, {
+          timelineHoldResume: true
+        });
+      } finally {
+        window.XMLHttpRequest = OriginalXHR;
+        psynet.handleApprovedResponse = originalApproved;
+        psynet.nextPagePending = pendingBefore;
+      }
+
+      return {
+        closedWithoutChannel,
+        closedOnBeginHold,
+        updatedMessage,
+        sendCount,
+        approved,
+        passed
+      };
+    } finally {
+      psynet.scheduleTimelineHoldCheck = originalSchedule;
+      if (psynet.timelineHold) {
+        psynet.scheduleTimelineHoldCheck(psynet.timelineHold);
+      }
+    }
+  });
+}
+
 test("wait_while preserves the submitted page and wakes after async work", { tag: "@both" }, async ({
   page,
   context
@@ -111,6 +220,16 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       )
     ).toBe(true);
     await expect(experimentPage.locator("#comment-button")).toBeDisabled();
+
+    const holdClient = await probeTimelineHoldClientBehavior(experimentPage);
+    expect(holdClient).toEqual({
+      closedWithoutChannel: true,
+      closedOnBeginHold: true,
+      updatedMessage: "Updated wait copy",
+      sendCount: 2,
+      approved: 1,
+      passed: true
+    });
 
     // The indicator floats, so the preserved page must not shift when it appears.
     const holdLayout = await experimentPage.evaluate(() => {
@@ -220,13 +339,18 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       };
       const isBusy = psynet.isBusyResponse(request);
       await psynet.handleBusyResponse(request, { timelineHoldResume: true });
+      const resumeRequested = Boolean(psynet.timelineHold?.resumeRequested);
+      if (psynet.timelineHold) {
+        psynet.timelineHold.resumeRequested = false;
+      }
       psynet.alert = originalAlert;
       psynet.response.enable = originalResponseEnable;
       psynet.submit.enable = originalSubmitEnable;
-      return { isBusy, ...effects };
+      return { isBusy, resumeRequested, ...effects };
     });
     expect(busyHoldEffects).toEqual({
       isBusy: true,
+      resumeRequested: true,
       alerts: 0,
       responseEnables: 0,
       submitEnables: 0

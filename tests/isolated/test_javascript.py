@@ -83,12 +83,6 @@ def test_page_normalizes_javascript_resources():
     ]
 
 
-def _psynet_js():
-    return (
-        resources.files("psynet") / "resources" / "scripts" / "psynet.js"
-    ).read_text(encoding="utf-8")
-
-
 def _page_participant(**overrides):
     participant = SimpleNamespace(
         unique_id="participant-1",
@@ -136,38 +130,6 @@ def test_hold_page_omits_arrival_updates_even_when_grouped(monkeypatch):
     page = HoldPage(template_fragment_str="<p>Hold page</p>")
     participant = _page_participant(active_sync_groups={"main": object()})
     assert "arrival_updates" not in page.attributes(participant)
-
-
-def test_ensure_arrival_updates_closes_when_the_page_has_no_channel():
-    source = _psynet_js()
-    start = source.index("psynet.ensureArrivalUpdates = function")
-    end = source.index("psynet.updatePageForTimelineHold = function")
-    body = source[start:end]
-    assert "psynet.stopArrivalUpdates()" in body
-    assert "psynet.timelineHold" in body
-    assert "!config?.channel" in body
-
-
-def test_begin_timeline_hold_closes_the_arrival_update_socket():
-    source = _psynet_js()
-    start = source.index("psynet.beginTimelineHold = function")
-    end = source.index("psynet.finalizePageReady = async function")
-    body = source[start:end]
-    assert "psynet.stopArrivalUpdates()" in body
-    assert "psynet.updateTimelineHoldMessage(hold.message)" in body
-
-
-def test_hold_resume_retries_a_structured_busy_response_once():
-    source = _psynet_js()
-    start = source.index("return new Promise((resolve) => {")
-    end = source.index("let createTrialProgress = function")
-    body = source[start:end]
-    assert "psynet.isBusyResponse(request) && attempt === 0" in body
-    assert (
-        "psynet.isBusyResponse(request) && attempt === 0 && !options.timelineHoldResume"
-        not in source
-    )
-    assert "psynet.timelineHold.resumeRequested = true" in source
 
 
 def test_page_rejects_javascript_url_with_conflicting_lifecycles():
