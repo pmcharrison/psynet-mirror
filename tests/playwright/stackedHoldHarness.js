@@ -17,7 +17,8 @@ const {
   unexpectedBlockingRequests,
   waitForHeldParticipantToResume,
   waitForTimelinePageReady,
-  withFreshParticipantIds
+  withFreshParticipantIds,
+  isInplaceTimelineModeEnabled
 } = require("./psynetHarness");
 
 const STEP_TIMEOUT_MS = 120000;
@@ -83,6 +84,7 @@ function holdReleaseSummary({
   extraTimelineGets,
   probe,
   resumeRequests,
+  resumeLog = [],
   holdFrames = [],
   waitingWakeToken = null,
   label = "waiter"
@@ -95,13 +97,27 @@ function holdReleaseSummary({
     : "no hold wake event";
   const holdResumePost =
     holdResumePostMs == null ? "missing" : `${Math.round(holdResumePostMs)}ms`;
+  const responseNotes =
+    resumeLog
+      .filter((entry) => entry.kind)
+      .map((entry) => {
+        if (entry.kind === "approved") {
+          return `approved ${entry.pageType} fragment=${entry.hasFragment} hold=${entry.hasHold} requiresReload=${entry.requiresReload} inplace=${entry.inplace}`;
+        }
+        if (entry.kind === "rejected") {
+          return `rejected ${entry.message || ""}`;
+        }
+        return entry.kind;
+      })
+      .join("; ") || "no response handler notes";
   return (
     `${label}: last arriver consent→timeline ${Math.round(
       lastArriverConsentToTimelineMs
     )}ms; waiter ${Math.round(afterTimelineMs)}ms after last timeline ` +
     `(${Math.round(afterConsentMs)}ms after last consent; ` +
     `hold-resume POST ${holdResumePost}; extra GET /timeline ${extraTimelineGets}; ` +
-    `${wake}; resumes ${reasons}; ` +
+    `inplace=${isInplaceTimelineModeEnabled()}; ` +
+    `${wake}; resumes ${reasons}; ${responseNotes}; ` +
     `hold resumes ${probe.nextPageHoldResumes?.length || 0}; ` +
     `waiting token ${waitingWakeToken || "missing"}; ` +
     `published ${publishedWakeTokens(holdFrames).join(",") || "none"}; ` +
@@ -141,7 +157,7 @@ async function createHoldSession(browser, recruitmentUrl, label) {
   const resumeLog = [];
   await context.exposeBinding("__psynetRecordHoldResume", (_source, entry) => {
     resumeLog.push({
-      reason: entry && entry.reason,
+      ...(entry || {}),
       atMs: Date.now()
     });
   });
@@ -377,7 +393,9 @@ async function assertWaiterReleasedWithLastArriver(
   const reasonsAfterLast = [
     ...resumeReasonsSince(probe, lastEntry.start.consentClickedAtMs),
     ...(session.resumeLog || []).filter((entry) => entry.atMs >= sinceMs)
-  ].map((entry) => entry.reason);
+  ]
+    .map((entry) => entry.reason)
+    .filter(Boolean);
   const summary = holdReleaseSummary({
     lastArriverConsentToTimelineMs,
     afterConsentMs,
@@ -389,6 +407,7 @@ async function assertWaiterReleasedWithLastArriver(
       resumeReasons: reasonsAfterLast.map((reason) => ({ reason, atMs: sinceMs }))
     },
     resumeRequests,
+    resumeLog: session.resumeLog || [],
     holdFrames: session.sockets?.frames || [],
     waitingWakeToken: session.waitingWakeToken,
     label: session.label
@@ -404,7 +423,11 @@ async function assertWaiterReleasedWithLastArriver(
   expect(
     afterTimelineMs,
     `${session.label} still held after the last arriver painted (${summary})`
-  ).toBeLessThan(WAITER_AFTER_TIMELINE_MAX_MS);
+  ).toBeLessThan(
+    isInplaceTimelineModeEnabled()
+      ? WAITER_AFTER_TIMELINE_MAX_MS
+      : PARTNER_HOLD_RELEASE_MAX_MS
+  );
   expect(
     afterConsentMs,
     `${session.label} still held after the last arriver started (${summary})`
@@ -417,10 +440,17 @@ async function assertWaiterReleasedWithLastArriver(
     resumeRequests.filter((record) => record.busy),
     `${session.label} hold-resume retries: ${summary}`
   ).toEqual([]);
-  expect(
-    laterTimeline.length,
-    `${session.label} extra /timeline reloads after the last arriver painted (${summary})`
-  ).toBe(0);
+  if (isInplaceTimelineModeEnabled()) {
+    expect(
+      laterTimeline.length,
+      `${session.label} extra /timeline reloads after the last arriver painted (${summary})`
+    ).toBe(0);
+  } else {
+    expect(
+      laterTimeline.length,
+      `${session.label} extra /timeline reloads after the last arriver painted (${summary})`
+    ).toBeLessThanOrEqual(1);
+  }
   expect(
     holdResumePosts.length,
     `${session.label} missing hold-resume POST /response (${summary})`

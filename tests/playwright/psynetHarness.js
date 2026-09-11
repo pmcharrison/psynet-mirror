@@ -929,8 +929,16 @@ function startParticipantRequestTracker(page) {
     const task = (async () => {
       await response.finished().catch(() => {});
       const wallMs = Date.now() - (startedAt.get(request) || Date.now());
+      const extras = {};
+      if (parsed.kind === "response") {
+        const posted = request.postData() || "";
+        extras.holdResume =
+          posted.includes('"timeline_hold_resume": true') ||
+          posted.includes('"timeline_hold_resume":true');
+      }
       records.push({
         ...parsed,
+        ...extras,
         status: response.status(),
         durationMs: requestDurationMs(request, wallMs),
         busy: response.status() === 503,
@@ -960,9 +968,13 @@ function summarizeParticipantRequests(records) {
   return records
     .map((record) => {
       const duration = record.durationMs == null ? "?" : `${Math.round(record.durationMs)}ms`;
+      const extra =
+        record.kind === "response" && record.holdResume != null
+          ? ` holdResume=${record.holdResume}`
+          : "";
       return `${record.method} ${record.path} ${record.status} ${duration}${
         record.busy ? " busy" : ""
-      }`;
+      }${extra}`;
     })
     .join("; ");
 }
@@ -1092,6 +1104,42 @@ function timelineHoldReleaseProbeScript() {
       const options = args[4] || {};
       if (options.timelineHoldResume) {
         probe.nextPageHoldResumes.push({ atMs: Date.now() });
+      }
+    });
+    probe.wrappedApproved = wrapNamed(object, "handleApprovedResponse", (args) => {
+      const response = args[0] || {};
+      const details = {
+        kind: "approved",
+        hasFragment: Boolean(response.timeline_fragment),
+        hasHold: Boolean(response.page && response.page.attributes && response.page.attributes.timeline_hold),
+        pageType: (response.page && response.page.attributes && response.page.attributes.type) || null,
+        requiresReload: object.requiresFullPageReloadTransition
+          ? object.requiresFullPageReloadTransition(response)
+          : null,
+        inplace:
+          window.psynetTemplateData && window.psynetTemplateData.flags
+            ? window.psynetTemplateData.flags.inplaceTimelineTransitions
+            : null
+      };
+      probe.approvedResponses = probe.approvedResponses || [];
+      probe.approvedResponses.push(details);
+      if (typeof window.__psynetRecordHoldResume === "function") {
+        window.__psynetRecordHoldResume(details);
+      }
+    });
+    probe.wrappedRejected = wrapNamed(object, "handleRejectedResponse", (args) => {
+      const response = args[0] || {};
+      const details = {
+        kind: "rejected",
+        message: response.message || null
+      };
+      if (typeof window.__psynetRecordHoldResume === "function") {
+        window.__psynetRecordHoldResume(details);
+      }
+    });
+    probe.wrappedReload = wrapNamed(object, "loadNextTimelinePageWithReload", () => {
+      if (typeof window.__psynetRecordHoldResume === "function") {
+        window.__psynetRecordHoldResume({ kind: "reload" });
       }
     });
     return Boolean(probe.wrappedResume);
