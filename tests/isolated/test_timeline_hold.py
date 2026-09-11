@@ -348,6 +348,25 @@ def test_hold_timeout_fails_participant_with_hold_tags():
     assert tags == ["timeline_hold:test", "fail_on_timeout", "failed"]
 
 
+def test_timeline_hold_payload_is_omitted_without_a_record():
+    """A stale hold page object must not crash while building browser attributes."""
+
+    class Hold(_TimelineHoldPage):
+        def participant_can_resume(self, experiment, participant):
+            return False
+
+    page = Hold(
+        hold_id="missing",
+        expected_wait=1,
+        max_wait_time=20,
+        fix_time_credit=False,
+        check_interval=2,
+    )
+    participant = SimpleNamespace(id=1, page_uuid="gone")
+    page.get_hold_record = lambda _participant: None
+    assert page.timeline_hold_payload(participant) is None
+
+
 def test_compose_hold_overlay_html_always_emits_the_title_span():
     assert (
         compose_hold_overlay_html("Waiting for your partner")

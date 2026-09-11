@@ -1183,7 +1183,14 @@ def test_finalize_barrier_arrivals_does_not_relock_after_losing_claim(monkeypatc
     """A peer that owns the check may keep participant rows locked."""
     events = []
     participant = SimpleNamespace(id=1)
-    hold = SimpleNamespace(is_timeline_hold=True)
+
+    class Hold:
+        is_timeline_hold = True
+
+        def __json__(self, _participant):
+            return "hold"
+
+    hold = Hold()
 
     class Query:
         def with_for_update(self, **kwargs):
@@ -1200,7 +1207,7 @@ def test_finalize_barrier_arrivals_does_not_relock_after_losing_claim(monkeypatc
             get_current_elt=lambda _experiment, _participant: hold
         ),
     )
-    result = SimpleNamespace(page=hold, payload={"page": "hold"})
+    result = SimpleNamespace(page=hold, payload={"page": "stale"})
 
     monkeypatch.setattr(
         "psynet.experiment._set_transaction_lock_timeout", lambda seconds: None
@@ -1222,6 +1229,58 @@ def test_finalize_barrier_arrivals_does_not_relock_after_losing_claim(monkeypatc
     assert events == ["check", "commit", "participant_read"]
     assert result.page is hold
     assert result.payload == {"page": "hold"}
+
+
+def test_finalize_barrier_arrivals_uses_later_hold_after_lost_claim(monkeypatch):
+    """If the winner skipped to the next hold, the loser must not first-paint the old one."""
+    events = []
+    participant = SimpleNamespace(id=1)
+
+    class NextHold:
+        is_timeline_hold = True
+
+        def __json__(self, _participant):
+            return {"label": "next_hold"}
+
+    page = NextHold()
+
+    class Query:
+        def with_for_update(self, **kwargs):
+            events.append("participant_relock")
+            return self
+
+        def get(self, participant_id):
+            events.append("participant_read")
+            return participant
+
+    experiment = SimpleNamespace(
+        _participant_request_query=lambda: Query(),
+        timeline=SimpleNamespace(
+            get_current_elt=lambda _experiment, _participant: page
+        ),
+    )
+    result = SimpleNamespace(page=object(), payload={"page": "old_hold"})
+
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout", lambda seconds: None
+    )
+    monkeypatch.setattr(
+        "psynet.sync._run_pending_barrier_checks",
+        lambda checks: events.append("check") or False,
+    )
+    monkeypatch.setattr(db.session, "commit", lambda: events.append("commit"))
+
+    returned = Experiment._finalize_barrier_arrivals(
+        experiment,
+        participant_id=1,
+        checks=["instance"],
+        result=result,
+    )
+
+    assert returned is participant
+    assert events == ["check", "commit", "participant_read"]
+    assert result.page is page
+    assert result.payload["page"] == {"label": "next_hold"}
 
 
 def test_finalize_barrier_arrivals_uses_already_advanced_page_after_lost_claim(

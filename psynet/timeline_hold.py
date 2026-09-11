@@ -577,8 +577,14 @@ class _TimelineHoldPage(Page):
         return None
 
     def timeline_hold_payload(self, participant):
-        """Return browser configuration for this hold visit."""
+        """Return browser configuration for this hold visit.
+
+        Returns ``None`` when the hold record is already gone, so a stale
+        page object cannot crash while building attributes.
+        """
         record = self.get_hold_record(participant)
+        if record is None:
+            return None
         remaining_timeout_ms = None
         if record.deadline is not None:
             remaining_timeout_ms = max(
@@ -596,7 +602,9 @@ class _TimelineHoldPage(Page):
 
     def attributes(self, participant):
         attributes = super().attributes(participant)
-        attributes["timeline_hold"] = self.timeline_hold_payload(participant)
+        payload = self.timeline_hold_payload(participant)
+        if payload is not None:
+            attributes["timeline_hold"] = payload
         return attributes
 
     def get_bot_response(self, experiment, bot):

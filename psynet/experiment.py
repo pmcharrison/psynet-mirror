@@ -5794,8 +5794,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         stale wait page. A ready skip always commits before the next page is
         prepared or stacked last-arrival checks run, so this waiter does not
         keep ``FOR UPDATE`` through ``pre_render()`` or last-arrival locking.
-        ``SET LOCAL lock_timeout`` is reapplied after those commits before
-        the next page is prepared.
+        ``SET LOCAL lock_timeout`` is reapplied after those commits, and also
+        before preparing a next page discovered via the live cursor, because
+        the GET route commits before this helper runs.
         """
         from types import SimpleNamespace
 
@@ -5806,6 +5807,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page = experiment.timeline.get_current_elt(experiment, participant)
             if not getattr(page, "is_timeline_hold", False):
                 if not checks:
+                    _set_transaction_lock_timeout(
+                        get_config().get("timeline_lock_timeout_seconds")
+                    )
                     page = cls._prepare_resolved_timeline_page(
                         experiment, participant, page
                     )
@@ -5913,14 +5917,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.commit()
             if not all_claimed:
                 # Another request owns at least one in-flight check and may still
-                # hold its waiters. Do not wait to relock those rows. If that
-                # winner already moved this participant off the hold, return the
-                # advanced page so the last arriver does not first-paint a wait.
+                # hold its waiters. Do not wait to relock those rows. Follow the
+                # live cursor even when it is still a hold, so a later stacked
+                # wait is not first-painted as the hold this request submitted.
                 participant = experiment._participant_request_query().get(
                     participant_id
                 )
                 page = experiment.timeline.get_current_elt(experiment, participant)
-                if page is not None and not getattr(page, "is_timeline_hold", False):
+                if page is not None:
                     result.page = page
                     result.payload["page"] = page.__json__(participant)
                 return participant

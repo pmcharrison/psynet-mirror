@@ -501,7 +501,16 @@ def test_finalize_pending_stale_hold_uses_the_live_cursor(monkeypatch):
     experiment.timeline = MagicMock()
     experiment.timeline.get_current_elt.return_value = nxt
     experiment._participant_request_query = MagicMock()
+    timeouts = []
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout",
+        lambda *_args: timeouts.append("timeout"),
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
+    )
 
     returned_participant, returned_page = (
         Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
@@ -509,6 +518,7 @@ def test_finalize_pending_stale_hold_uses_the_live_cursor(monkeypatch):
 
     experiment._participant_request_query.assert_not_called()
     nxt.pre_render.assert_called_once()
+    assert timeouts == ["timeout"]
     assert returned_page is nxt
     assert returned_participant is participant
 
