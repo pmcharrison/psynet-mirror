@@ -532,10 +532,10 @@ class Barrier(EltCollection):
         """Return people currently waiting at this barrier visit.
 
         Pass ``participant`` to scope the list to that person's instance.
-        Ungrouped barriers (groupers, ``WaitForN``) fall back to the one
-        active pool for this barrier ID. Grouped barriers have no ungrouped
-        pool; omitting ``participant`` raises ``TypeError``. This listing
-        does not take extra row locks unless ``for_update`` is true.
+        Ungrouped barriers (groupers) fall back to the one active pool for
+        this barrier ID. Grouped barriers require a participant; see
+        :meth:`GroupBarrier.get_waiting_participants`. This listing does
+        not take extra row locks unless ``for_update`` is true.
 
         Parameters
         ----------
@@ -562,12 +562,6 @@ class Barrier(EltCollection):
                 return []
             instance_id = link.barrier_instance_id
         else:
-            if isinstance(self, GroupBarrier):
-                raise TypeError(
-                    "GroupBarrier.get_waiting_participants() needs a participant "
-                    "to identify the visit; use the visit link "
-                    "participant.active_barriers[...].get_waiting_participants()."
-                )
             instance = BarrierInstance._active_instance(self.id, None)
             instance_id = None if instance is None else instance.id
         if instance_id is None:
@@ -629,11 +623,21 @@ class Barrier(EltCollection):
             self._advance_released_hold_waiters(participants_to_release)
         instance = BarrierInstance.query.get(barrier_instance_id)
         if instance is not None and instance.group_id is not None:
-            instance.active = any(
+            still_waiting = any(
                 not participant.active_barriers[self.id].released
                 for participant in waiting_participants
                 if self.id in participant.active_barriers
             )
+            # Last-arrival keeps the row active, so this extra lookup stays
+            # off that budgeted path. An inactive leftover must not steal
+            # ``ix_barrier_instance_active_group`` from a newer pool.
+            if still_waiting and not instance.active:
+                other = BarrierInstance._active_instance(
+                    instance.barrier_id, instance.group_id
+                )
+                if other is not None and other.id != instance.id:
+                    still_waiting = False
+            instance.active = still_waiting
         return waiting_participants
 
     def _advance_released_hold_waiters(self, participants):
@@ -808,6 +812,22 @@ class GroupBarrier(Barrier):
                 f"got {timeout_between_barriers_action!r}"
             )
         self.timeout_between_barriers_action = timeout_between_barriers_action
+
+    def get_waiting_participants(self, participant=None, *, for_update: bool = False):
+        """Return people waiting at this group visit.
+
+        Grouped barriers have no ungrouped pool, so ``participant`` is
+        required to identify the visit. Use the visit link
+        ``participant.active_barriers[...].get_waiting_participants()``
+        when you already have it.
+        """
+        if participant is None:
+            raise TypeError(
+                "GroupBarrier.get_waiting_participants() needs a participant "
+                "to identify the visit; use the visit link "
+                "participant.active_barriers[...].get_waiting_participants()."
+            )
+        return super().get_waiting_participants(participant, for_update=for_update)
 
     def _hold_progress_text(self, participant):
         """Return hold-overlay progress when arrival notices are enabled."""

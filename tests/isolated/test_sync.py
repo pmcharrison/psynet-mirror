@@ -1657,9 +1657,13 @@ def test_participant_link_barrier_lists_waiting_participants(
     assert grouper.get_waiting_participants(second) == []
     with pytest.raises(TypeError, match="for_update"):
         grouper.get_waiting_participants(True)
+    pair_first, _pair_last = _pair_sync_group(exp, db_session)[0]
     grouped = GroupBarrier(id_="needs_visit", group_type="main")
     with pytest.raises(TypeError, match="needs a participant"):
         grouped.get_waiting_participants()
+    _arrive_at_group_barrier(exp, grouped, pair_first)
+    db.session.commit()
+    assert grouped.get_waiting_participants(pair_first) == [pair_first]
 
 
 def test_check_claimed_barrier_instance_treats_finished_work_as_success():
@@ -1716,6 +1720,43 @@ def test_for_arrival_reactivates_inactive_instance_with_waiters(
     assert recovered.id == instance_id
     assert recovered.active is True
     assert BarrierInstance.query.filter_by(barrier_id=barrier.id).count() == 1
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_instance_does_not_reactivate_when_another_pool_is_active(
+    in_experiment_directory, db_session
+):
+    """Leftover waiters on an inactive visit must not steal a newer active pool."""
+    exp = get_experiment()
+    first, _last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="split_pool", group_type="main")
+    _arrive_at_group_barrier(exp, barrier, first)
+    db.session.commit()
+    leftover = BarrierInstance.query.filter_by(barrier_id=barrier.id).one()
+    leftover.active = False
+    db.session.commit()
+    newer = BarrierInstance(
+        id=str(uuid.uuid4()),
+        barrier_id=leftover.barrier_id,
+        group_id=leftover.group_id,
+        active=True,
+        spec=leftover.spec,
+        behavior_hash=leftover.behavior_hash,
+    )
+    db.session.add(newer)
+    db.session.commit()
+
+    leftover = BarrierInstance.query.get(leftover.id)
+    assert leftover.active is False
+    assert _check_claimed_barrier_instance(leftover) is True
+    db.session.commit()
+    leftover = BarrierInstance.query.get(leftover.id)
+    newer = BarrierInstance.query.get(newer.id)
+    assert leftover.active is False
+    assert newer.active is True
+    assert _barrier_link_released(first.id, barrier.id) is False
 
 
 @pytest.mark.parametrize(
