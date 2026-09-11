@@ -23,9 +23,11 @@ Grouper and sync group
 Barrier definition and instance
     A ``BarrierDefinition`` identifies the public waiting area. A
     ``BarrierInstance`` stores the stable behavior for one group visit.
-    ``ParticipantLinkBarrier`` rows attach participants to that visit. Keeping
-    definition, visit, and work-claim identities separate lets multiple worker
-    processes cooperate without using mutable metadata as a mutex.
+    ``ParticipantLinkBarrier`` rows attach participants to that visit. At most
+    one active instance exists per group visit, and ungrouped barriers share
+    one active pool per barrier ID. Keeping definition, visit, and work-claim
+    identities separate lets multiple worker processes cooperate without using
+    mutable metadata as a mutex.
 
 Where this shows up in a timeline
 ---------------------------------
@@ -89,6 +91,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -1480,7 +1483,12 @@ class BarrierDefinition(SQLBase, SQLMixin):
 
 @register_table
 class BarrierInstance(SQLBase, SQLMixin):
-    """Persist one stable barrier behavior for a coordination visit."""
+    """Persist one stable barrier behavior for a coordination visit.
+
+    At most one active row exists per ``(barrier_id, group_id)``. Ungrouped
+    barriers (``group_id`` is null), including groupers, share one active
+    waiting pool per barrier ID.
+    """
 
     __tablename__ = "barrier_instance"
 
@@ -1495,6 +1503,21 @@ class BarrierInstance(SQLBase, SQLMixin):
     group = relationship("SyncGroup")
     participant_links = relationship(
         "ParticipantLinkBarrier", back_populates="barrier_instance"
+    )
+    __table_args__ = (
+        Index(
+            "ix_barrier_instance_active_group",
+            "barrier_id",
+            "group_id",
+            unique=True,
+            postgresql_where=text("active IS true AND group_id IS NOT NULL"),
+        ),
+        Index(
+            "ix_barrier_instance_active_ungrouped",
+            "barrier_id",
+            unique=True,
+            postgresql_where=text("active IS true AND group_id IS NULL"),
+        ),
     )
 
     @classmethod
@@ -1516,18 +1539,30 @@ class BarrierInstance(SQLBase, SQLMixin):
         _claim_barrier_instance(scope, wait=True)
 
         instance = cls._active_instance(barrier.id, group_id)
+        if instance is not None:
+            instance._validate_behavior(behavior_hash)
+            return instance
+
+        record = cls(
+            id=str(uuid.uuid4()),
+            barrier_id=barrier.id,
+            group_id=group_id,
+            active=True,
+            spec=spec,
+            behavior_hash=behavior_hash,
+        )
+        # Partial unique indexes make a SAVEPOINT-plus-IntegrityError insert
+        # show up as extra profiler commits. ON CONFLICT DO NOTHING reuses the
+        # committed winner without opening a nested transaction.
+        values = _insert_values_from_state(record)
+        values["spec"] = spec
+        db.session.execute(pg_insert(cls).values(**values).on_conflict_do_nothing())
+        instance = cls._active_instance(barrier.id, group_id)
         if instance is None:
-            instance = cls(
-                id=str(uuid.uuid4()),
-                barrier_id=barrier.id,
-                group_id=group_id,
-                active=True,
-                spec=spec,
-                behavior_hash=behavior_hash,
+            raise RuntimeError(
+                f"Failed to create or load barrier instance '{barrier.id}'."
             )
-            db.session.add(instance)
-            db.session.flush()
-        else:
+        if instance.id != record.id:
             instance._validate_behavior(behavior_hash)
         return instance
 

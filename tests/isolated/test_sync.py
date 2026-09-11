@@ -10,7 +10,7 @@ from dallinger import db
 from dallinger.models import timenow
 from flask import Flask
 from sqlalchemy import Column, String, text
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from psynet.dashboard.sync_groups import (
     _fail_sync_group_participant,
@@ -335,6 +335,98 @@ def test_existing_barrier_instance_does_not_take_creation_lock(
 
     monkeypatch.setattr("psynet.sync._claim_barrier_instance", reject_creation_lock)
     barrier.receive_participant(second)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_active_barrier_instance_is_unique_per_group(
+    in_experiment_directory, db_session
+):
+    """Two active visits for the same group must not share a waiting pool."""
+    exp = get_experiment()
+    first, _second = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="unique_group_instance", group_type="main")
+    barrier.receive_participant(first)
+    db_session.commit()
+    existing = first.active_barriers[barrier.id].barrier_instance
+    duplicate = BarrierInstance(
+        id=str(uuid.uuid4()),
+        barrier_id=existing.barrier_id,
+        group_id=existing.group_id,
+        active=True,
+        spec=existing.spec,
+        behavior_hash=existing.behavior_hash,
+    )
+    with pytest.raises(IntegrityError):
+        with db_session.begin_nested():
+            db_session.add(duplicate)
+            db_session.flush()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_active_ungrouped_barrier_instance_is_unique(
+    in_experiment_directory, db_session
+):
+    """Groupers and other ungrouped barriers share one active pool per ID."""
+    BarrierDefinition.ensure_exists("unique_ungrouped", SimpleGrouper)
+    first = BarrierInstance(
+        id=str(uuid.uuid4()),
+        barrier_id="unique_ungrouped",
+        group_id=None,
+        active=True,
+        spec="{}",
+        behavior_hash="hash",
+    )
+    db_session.add(first)
+    db_session.commit()
+    duplicate = BarrierInstance(
+        id=str(uuid.uuid4()),
+        barrier_id="unique_ungrouped",
+        group_id=None,
+        active=True,
+        spec="{}",
+        behavior_hash="hash",
+    )
+    with pytest.raises(IntegrityError):
+        with db_session.begin_nested():
+            db_session.add(duplicate)
+            db_session.flush()
+    first.active = False
+    db_session.commit()
+    db_session.add(duplicate)
+    db_session.flush()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_for_arrival_recovers_when_a_concurrent_insert_wins(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """A unique-index collision must reuse the committed winner."""
+    exp = get_experiment()
+    first, second = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="unique_recover", group_type="main")
+    barrier.receive_participant(first)
+    db_session.commit()
+    winner = first.active_barriers[barrier.id].barrier_instance
+    remaining = {"lookups": 2}
+    original = BarrierInstance._active_instance.__func__
+
+    def miss_then_find(cls, barrier_id, group_id):
+        if remaining["lookups"]:
+            remaining["lookups"] -= 1
+            return None
+        return original(cls, barrier_id, group_id)
+
+    monkeypatch.setattr(
+        BarrierInstance, "_active_instance", classmethod(miss_then_find)
+    )
+    recovered = BarrierInstance.for_arrival(barrier, second)
+    assert recovered.id == winner.id
 
 
 @pytest.mark.parametrize(
