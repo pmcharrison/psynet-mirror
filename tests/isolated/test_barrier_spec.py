@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from markupsafe import Markup
 
 from psynet.barrier_spec import (
     BarrierSpecError,
@@ -185,3 +186,30 @@ def test_non_json_numeric_state_is_rejected():
 
     with pytest.raises(BarrierSpecError, match="non-JSON numeric"):
         barrier_spec_json(barrier)
+
+
+def test_local_barrier_class_is_rejected_at_encode_time():
+    class LocalBarrier(Barrier):
+        def choose_who_to_release(self, waiting_participants):
+            return waiting_participants
+
+    with pytest.raises(BarrierSpecError, match="local class"):
+        barrier_spec_json(LocalBarrier("local"))
+
+
+def test_local_class_value_is_rejected_at_encode_time():
+    class LocalHelper:
+        pass
+
+    barrier = ThresholdBarrier("threshold", threshold=2)
+    barrier.helper_cls = LocalHelper
+    with pytest.raises(BarrierSpecError, match="local class"):
+        barrier_spec_json(barrier)
+
+
+def test_markup_content_round_trips():
+    original = ThresholdBarrier("threshold", threshold=2)
+    original.content = Markup("<em>Wait</em>")
+    restored = barrier_from_spec_json(barrier_spec_json(original))
+    assert isinstance(restored.content, Markup)
+    assert str(restored.content) == "<em>Wait</em>"

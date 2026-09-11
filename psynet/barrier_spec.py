@@ -17,6 +17,7 @@ import json
 
 from jsonpickle.unpickler import loadclass
 from jsonpickle.util import importable_name
+from markupsafe import Markup
 
 from psynet.data import SQLBase, get_primary_key_values
 from psynet.serialize import (
@@ -51,16 +52,34 @@ class BarrierSpecError(ValueError):
     """Raised when barrier behavior cannot be represented declaratively."""
 
 
+def _importable_class_path(cls, context):
+    """Return an import path that round-trips through ``loadclass``."""
+    path = importable_name(cls)
+    qualname = getattr(cls, "__qualname__", "")
+    if "<locals>" in path or "<locals>" in qualname:
+        raise BarrierSpecError(
+            f"{context} is a local class and cannot be reconstructed. "
+            "Define the class at module level."
+        )
+    loaded = loadclass(path)
+    if loaded is None:
+        raise BarrierSpecError(
+            f"{context} class {path!r} cannot be imported after encoding."
+        )
+    return path
+
+
 def barrier_spec(barrier):
     """Return a JSON-compatible specification of a barrier's release behavior."""
+    class_name = barrier.__class__.__name__
     state = {
-        key: _encode_value(value, context=f"{barrier.__class__.__name__}.{key}")
+        key: _encode_value(value, context=f"{class_name}.{key}")
         for key, value in vars(barrier).items()
         if key not in _EXCLUDED_FROM_STATE
     }
     spec = {
         "version": SPEC_VERSION,
-        "class": importable_name(barrier.__class__),
+        "class": _importable_class_path(barrier.__class__, class_name),
         "state": state,
     }
     presentation = _encode_field_group(barrier, _PRESENTATION_FIELDS)
@@ -144,6 +163,8 @@ def behavior_hash_from_json(serialized):
 
 
 def _encode_value(value, *, context):
+    if isinstance(value, Markup):
+        return {"__type__": "markup", "html": str(value)}
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
     if isinstance(value, SerializedCallable):
@@ -160,7 +181,10 @@ def _encode_value(value, *, context):
             "identifiers": _encode_value(identifiers, context=f"{context}.identifiers"),
         }
     if isinstance(value, type):
-        return {"__type__": "class", "path": importable_name(value)}
+        return {
+            "__type__": "class",
+            "path": _importable_class_path(value, context),
+        }
     if callable(value):
         return _encode_callable(serialize_callable(value, context), context=context)
     if isinstance(value, list):
@@ -226,6 +250,8 @@ def _decode_value(value):
                 f"{identifiers} no longer exists."
             )
         return instance
+    if kind == "markup":
+        return Markup(value["html"])
     if kind == "class":
         cls = loadclass(value["path"])
         if cls is None:
