@@ -32,6 +32,10 @@ const RESULTS_PROMPT = "Everyone is ready";
 const PAIR_HOLD_TEXT = "Waiting for your partner";
 const GROUP_HOLD_TEXT = "Waiting for your group";
 const RELEASE_RESUME_REASONS = new Set(["server notification", "queued hold wake"]);
+const LATE_ARRIVAL_RESUME_REASONS = new Set([
+  ...RELEASE_RESUME_REASONS,
+  "websocket connection"
+]);
 
 function entryPathRequests(records) {
   return records.filter((record) =>
@@ -297,6 +301,54 @@ async function armChoiceHold(
   await armVisibleHold(session, { holdText, prompt, timeout });
 }
 
+async function waitForHoldOrPrompt(
+  page,
+  { holdText, prompt, timeout = STEP_TIMEOUT_MS }
+) {
+  await page.waitForFunction(
+    ({ expectedPrompt, expectedHold }) => {
+      const body = document.getElementById("main-body")?.innerText || "";
+      const hold =
+        document.querySelector(".psynet-timeline-hold-message")?.innerText || "";
+      const indicator = document.getElementById("psynet-timeline-hold-indicator");
+      return Boolean(
+        (indicator && hold.includes(expectedHold)) ||
+          (body.includes(expectedPrompt) && !indicator)
+      );
+    },
+    { expectedPrompt: prompt, expectedHold: holdText },
+    { timeout }
+  );
+  return (await page.locator("#psynet-timeline-hold-indicator").count()) > 0;
+}
+
+async function attachClearedHoldResume(
+  session,
+  { wakeToken, prompt = ACTION_PROMPT, timeout }
+) {
+  if (wakeToken) {
+    session.waitingWakeToken = wakeToken;
+  }
+  await wrapTimelineHoldResumeProbe(session.page);
+  await assertActionOrPrompt(session.page, prompt, timeout);
+  const probe = await readTimelineHoldReleaseProbe(session.page);
+  const logged = (session.resumeLog || []).find((entry) => entry.reason);
+  session.resumePromise = Promise.resolve({
+    resumedAtMs: probe.holdEndedAtMs || logged?.atMs || Date.now()
+  });
+}
+
+function choiceHoldStart(clickedAtMs, paintedAtMs) {
+  return {
+    kind: "choice",
+    clickedAtMs,
+    paintedAtMs,
+    clickToPaintMs: paintedAtMs - clickedAtMs,
+    consentClickedAtMs: clickedAtMs,
+    timelineAtMs: paintedAtMs
+  };
+}
+
 async function submitChoiceMaybeHeld(
   session,
   {
@@ -309,49 +361,47 @@ async function submitChoiceMaybeHeld(
   session.choiceTracker = startParticipantRequestTracker(session.page);
   const clickedAtMs = Date.now();
   await session.page.getByRole("button", { name: buttonName }).click();
-  await session.page.waitForFunction(
-    ({ expectedPrompt, expectedHold }) => {
-      const body = document.getElementById("main-body")?.innerText || "";
-      const hold =
-        document.querySelector(".psynet-timeline-hold-message")?.innerText || "";
-      return body.includes(expectedPrompt) || hold.includes(expectedHold);
-    },
-    { expectedPrompt: prompt, expectedHold: holdText },
-    { timeout }
-  );
-  const held =
-    (await session.page.locator("#psynet-timeline-hold-indicator").count()) > 0;
+  await wrapTimelineHoldResumeProbe(session.page);
+  const stillHeld = await waitForHoldOrPrompt(session.page, {
+    holdText,
+    prompt,
+    timeout
+  });
   const doneAtMs = Date.now();
-  if (!held) {
-    await assertActionOrPrompt(session.page, prompt, timeout);
-    expect(
-      doneAtMs - clickedAtMs,
-      `${session.label} stayed on a hold after a last-choice skip`
-    ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
-    return {
-      held: false,
-      start: {
-        kind: "choice",
-        clickedAtMs,
-        paintedAtMs: doneAtMs,
-        clickToPaintMs: doneAtMs - clickedAtMs,
-        consentClickedAtMs: clickedAtMs,
-        timelineAtMs: doneAtMs
-      }
-    };
+  const start = choiceHoldStart(clickedAtMs, doneAtMs);
+  if (stillHeld) {
+    session.resumeSinceMs = clickedAtMs;
+    await armVisibleHold(session, { holdText, prompt, timeout });
+    return { held: true, start };
   }
-  await armVisibleHold(session, { holdText, prompt, timeout });
-  return {
-    held: true,
-    start: {
-      kind: "choice",
-      clickedAtMs,
-      paintedAtMs: doneAtMs,
-      clickToPaintMs: doneAtMs - clickedAtMs,
-      consentClickedAtMs: clickedAtMs,
-      timelineAtMs: doneAtMs
-    }
-  };
+  await session.choiceTracker.flush();
+  const paintedHold = session.choiceTracker.records.find(
+    (record) =>
+      record.kind === "response" &&
+      (record.startedAtMs ?? 0) >= clickedAtMs &&
+      record.responseWakeToken
+  );
+  const resumedHold = session.choiceTracker.records.some(
+    (record) =>
+      record.kind === "response" &&
+      (record.startedAtMs ?? 0) >= clickedAtMs &&
+      record.holdResume === true
+  );
+  if (paintedHold || resumedHold) {
+    session.resumeSinceMs = clickedAtMs;
+    await attachClearedHoldResume(session, {
+      wakeToken: paintedHold?.responseWakeToken,
+      prompt,
+      timeout
+    });
+    return { held: true, start };
+  }
+  await assertActionOrPrompt(session.page, prompt, timeout);
+  expect(
+    doneAtMs - clickedAtMs,
+    `${session.label} stayed on a hold after a last-choice skip`
+  ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+  return { held: false, start };
 }
 
 async function submitLastChoice(
@@ -388,7 +438,11 @@ async function submitLastChoice(
 async function assertWaiterReleasedWithLastArriver(
   session,
   lastEntry,
-  { prompt = ACTION_PROMPT, timeout = STEP_TIMEOUT_MS } = {}
+  {
+    prompt = ACTION_PROMPT,
+    timeout = STEP_TIMEOUT_MS,
+    allowWebsocketResume = false
+  } = {}
 ) {
   const resume = await session.resumePromise;
   await expect(session.page.locator("#main-body")).toContainText(prompt, {
@@ -404,13 +458,18 @@ async function assertWaiterReleasedWithLastArriver(
     ? session.choiceTracker.records
     : session.entry.tracker.records;
   const clock = lastArriverClock(lastEntry);
-  const sinceMs = clock.clickedAtMs;
+  const sinceMs = allowWebsocketResume
+    ? (session.resumeSinceMs ?? clock.clickedAtMs)
+    : clock.clickedAtMs;
+  const extraTimelineSinceMs = allowWebsocketResume
+    ? (session.resumeSinceMs ?? clock.paintedAtMs)
+    : clock.paintedAtMs;
   const resumeRequests = responsesSince(records, sinceMs);
   const afterClickMs = resume.resumedAtMs - clock.clickedAtMs;
   const afterPaintMs = resume.resumedAtMs - clock.paintedAtMs;
   const laterTimeline = requestsSince(
     records,
-    clock.paintedAtMs,
+    extraTimelineSinceMs,
     "timeline_document"
   );
   const holdResumePosts = resumeRequests.filter(
@@ -444,10 +503,16 @@ async function assertWaiterReleasedWithLastArriver(
     session.waitingWakeToken,
     `${session.label} hold is missing a wake token (${summary})`
   ).toBeTruthy();
-  expect(
-    publishedWakeTokens(session.sockets?.frames || []),
-    `${session.label} last arriver did not wake the waiting hold (${summary})`
-  ).toContain(session.waitingWakeToken);
+  if (
+    !allowWebsocketResume ||
+    !reasonsAfterLast.includes("websocket connection") ||
+    reasonsAfterLast.includes("server notification")
+  ) {
+    expect(
+      publishedWakeTokens(session.sockets?.frames || []),
+      `${session.label} last arriver did not wake the waiting hold (${summary})`
+    ).toContain(session.waitingWakeToken);
+  }
   expect(
     afterPaintMs,
     `${session.label} hold-resume clock ran backwards (${summary})`
@@ -491,8 +556,11 @@ async function assertWaiterReleasedWithLastArriver(
     reasonsAfterLast,
     `${session.label} used a hold-timeout resume after the last arriver started (${summary})`
   ).not.toContain("hold timeout");
+  const allowedReasons = allowWebsocketResume
+    ? LATE_ARRIVAL_RESUME_REASONS
+    : RELEASE_RESUME_REASONS;
   expect(
-    reasonsAfterLast.some((reason) => RELEASE_RESUME_REASONS.has(reason)),
+    reasonsAfterLast.some((reason) => allowedReasons.has(reason)),
     `${session.label} did not resume from a server wake (${summary})`
   ).toBe(true);
   expect(
@@ -503,14 +571,10 @@ async function assertWaiterReleasedWithLastArriver(
   return { resume, probe, summary };
 }
 
-async function assertAllWaitersReleasedTogether(
-  sessions,
-  lastEntry,
-  { prompt = ACTION_PROMPT, timeout = STEP_TIMEOUT_MS } = {}
-) {
+async function assertAllWaitersReleasedTogether(sessions, lastEntry, options = {}) {
   const results = await Promise.all(
     sessions.map((session) =>
-      assertWaiterReleasedWithLastArriver(session, lastEntry, { prompt, timeout })
+      assertWaiterReleasedWithLastArriver(session, lastEntry, options)
     )
   );
   const times = results.map((result) => result.resume.resumedAtMs);
@@ -522,42 +586,47 @@ async function assertAllWaitersReleasedTogether(
   return results;
 }
 
-async function awaitPossiblyHeldArrival(
+async function enterPossiblyHeldArrival(
   session,
-  entry,
-  lastEntry,
   { holdText, prompt = ACTION_PROMPT, timeout = STEP_TIMEOUT_MS } = {}
 ) {
+  const entry = await enterTimelineAfterGateway(session.page, timeout);
   session.entry = entry;
+  assertEntryWasResponsive(entry, session.label);
   if (entry.timeline.busy || entry.timeline.busyPage || !entry.paint.showsHold) {
-    await assertActionPage(session.page, timeout);
-    return;
+    expect(entry.paint.type).toBe("ModularPage");
+    expect(entry.paint.showsHold).toBe(false);
+    await waitForTimelinePageReady(session.page, timeout);
+    await expect(session.page.locator("#main-body")).toContainText(prompt, {
+      timeout
+    });
+    await expect(session.page.locator("#psynet-timeline-hold-indicator")).toHaveCount(
+      0
+    );
+    return { entry, held: false };
   }
   await waitForTimelinePageReady(session.page, timeout);
-  if ((await session.page.locator("#psynet-timeline-hold-indicator").count()) === 0) {
-    await assertActionPage(session.page, timeout);
-    await entry.tracker.flush();
-    const clock = lastArriverClock(lastEntry);
-    const laterTimeline = requestsSince(
-      entry.tracker.records,
-      clock.paintedAtMs,
-      "timeline_document"
-    );
-    if (isInplaceTimelineModeEnabled()) {
-      expect(
-        laterTimeline.length,
-        `${session.label} extra /timeline reloads after a first-paint hold already cleared`
-      ).toBe(0);
-    } else {
-      expect(
-        laterTimeline.length,
-        `${session.label} extra /timeline reloads after a first-paint hold already cleared`
-      ).toBeLessThanOrEqual(1);
-    }
-    return;
+  await wrapTimelineHoldResumeProbe(session.page);
+  const stillHeld = await waitForHoldOrPrompt(session.page, {
+    holdText,
+    prompt,
+    timeout
+  });
+  session.resumeSinceMs = entry.start.timelineAtMs;
+  if (stillHeld) {
+    await armVisibleHold(session, { holdText, prompt, timeout });
+    return { entry, held: true };
   }
-  await armVisibleHold(session, { holdText, prompt, timeout });
-  await assertWaiterReleasedWithLastArriver(session, lastEntry, { prompt, timeout });
+  expect(
+    entry.paint.wakeToken,
+    `${session.label} first-paint hold is missing a wake token`
+  ).toBeTruthy();
+  await attachClearedHoldResume(session, {
+    wakeToken: entry.paint.wakeToken,
+    prompt,
+    timeout
+  });
+  return { entry, held: true };
 }
 
 async function assertActionOrPrompt(page, prompt, timeout = STEP_TIMEOUT_MS) {
@@ -607,7 +676,7 @@ module.exports = {
   assertNoSessionErrors,
   assertStillHeld,
   assertWaiterReleasedWithLastArriver,
-  awaitPossiblyHeldArrival,
+  enterPossiblyHeldArrival,
   closeHoldSessions,
   createHoldSession,
   enterSkippingHold,

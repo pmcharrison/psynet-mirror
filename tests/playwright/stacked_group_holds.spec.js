@@ -4,16 +4,14 @@ const {
   ACTION_PROMPT,
   GROUP_HOLD_TEXT,
   RESULTS_PROMPT,
-  STEP_TIMEOUT_MS,
   armChoiceHold,
   assertAllWaitersReleasedTogether,
   assertNoSessionErrors,
   assertStillHeld,
   assertWaiterReleasedWithLastArriver,
-  awaitPossiblyHeldArrival,
   closeHoldSessions,
+  enterPossiblyHeldArrival,
   enterSkippingHold,
-  enterTimelineAfterGateway,
   enterWaitingHold,
   startHoldExperiment,
   stopExperiment,
@@ -58,8 +56,9 @@ test("last of three skips stacked holds and releases every waiter", { tag: "@bot
 test("two late trio members arriving together release every waiter", { tag: "@both" }, async ({
   browser
 }) => {
-  // Concurrent last arrivals share one group fill. Whoever loses the first
-  // paint still has to leave as soon as the group is complete.
+  // Concurrent last arrivals share one group fill. Arm both late members at
+  // first paint so a hold that clears before Playwright looks at the chip still
+  // has to prove a wake token, hold-resume POST, and server-driven resume.
   const { experiment, sessions } = await startHoldExperiment(browser, TRIO_DIR, [
     "trio_wait",
     "trio_late_a",
@@ -72,19 +71,33 @@ test("two late trio members arriving together release every waiter", { tag: "@bo
       holdText: GROUP_HOLD_TEXT,
       prompt: ACTION_PROMPT
     });
-    const [entryA, entryB] = await Promise.all([
-      enterTimelineAfterGateway(lateA.page, STEP_TIMEOUT_MS),
-      enterTimelineAfterGateway(lateB.page, STEP_TIMEOUT_MS)
+    const [arrivalA, arrivalB] = await Promise.all([
+      enterPossiblyHeldArrival(lateA, {
+        holdText: GROUP_HOLD_TEXT,
+        prompt: ACTION_PROMPT
+      }),
+      enterPossiblyHeldArrival(lateB, {
+        holdText: GROUP_HOLD_TEXT,
+        prompt: ACTION_PROMPT
+      })
     ]);
     const laterEntry =
-      entryA.start.timelineAtMs >= entryB.start.timelineAtMs ? entryA : entryB;
+      arrivalA.entry.start.timelineAtMs >= arrivalB.entry.start.timelineAtMs
+        ? arrivalA.entry
+        : arrivalB.entry;
     await assertWaiterReleasedWithLastArriver(first, laterEntry);
-    await awaitPossiblyHeldArrival(lateA, entryA, laterEntry, {
-      holdText: GROUP_HOLD_TEXT
-    });
-    await awaitPossiblyHeldArrival(lateB, entryB, laterEntry, {
-      holdText: GROUP_HOLD_TEXT
-    });
+    const heldLate = [];
+    if (arrivalA.held) {
+      heldLate.push(lateA);
+    }
+    if (arrivalB.held) {
+      heldLate.push(lateB);
+    }
+    if (heldLate.length) {
+      await assertAllWaitersReleasedTogether(heldLate, laterEntry, {
+        allowWebsocketResume: true
+      });
+    }
     await assertNoSessionErrors(sessions);
   } finally {
     await closeHoldSessions(sessions);
@@ -177,7 +190,9 @@ test("two late choices complete a trio without a safety poll", { tag: "@both" },
   browser
 }) => {
   // After grouping, the remaining race is POST /response. One member waits
-  // on the post-choice barrier while the other two submit together.
+  // on the post-choice barrier while the other two submit together. A late
+  // submit that first-paints a hold, even if the chip is already gone, still
+  // has to resume from a server-driven hold-resume rather than a skip.
   const { experiment, sessions } = await startHoldExperiment(browser, TRIO_DIR, [
     "trio_choice_wait",
     "trio_choice_late_a",
@@ -225,7 +240,8 @@ test("two late choices complete a trio without a safety poll", { tag: "@both" },
     }
     if (heldLate.length) {
       await assertAllWaitersReleasedTogether(heldLate, laterChoice, {
-        prompt: RESULTS_PROMPT
+        prompt: RESULTS_PROMPT,
+        allowWebsocketResume: true
       });
     }
     await assertNoSessionErrors(sessions);

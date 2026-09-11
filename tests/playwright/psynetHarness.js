@@ -911,6 +911,18 @@ function requestDurationMs(request, fallbackMs) {
   return fallbackMs;
 }
 
+function wakeTokenFromResponseBody(body) {
+  if (!body || body[0] !== "{") {
+    return null;
+  }
+  try {
+    const payload = JSON.parse(body);
+    return payload?.page?.attributes?.timeline_hold?.wake_token || null;
+  } catch {
+    return null;
+  }
+}
+
 function startParticipantRequestTracker(page) {
   const records = [];
   const pending = [];
@@ -935,6 +947,9 @@ function startParticipantRequestTracker(page) {
         extras.holdResume =
           posted.includes('"timeline_hold_resume": true') ||
           posted.includes('"timeline_hold_resume":true');
+        extras.responseWakeToken = wakeTokenFromResponseBody(
+          await response.text().catch(() => "")
+        );
       }
       records.push({
         ...parsed,
@@ -1144,6 +1159,19 @@ function timelineHoldReleaseProbeScript() {
     });
     return Boolean(probe.wrappedResume);
   };
+
+  // Wrap as soon as window.psynet exists. Concurrent late waiters can resume
+  // before Playwright's page.evaluate runs, and those resumes must still land
+  // in resumeLog.
+  const pollWrap = () => {
+    if (window.__psynetHoldReleaseProbeInstallWrap()) {
+      return;
+    }
+    const delay =
+      document.getElementById("psynet-template-data") || window.psynet ? 0 : 50;
+    setTimeout(pollWrap, delay);
+  };
+  pollWrap();
 }
 
 async function installTimelineHoldReleaseProbeOnContext(context) {
@@ -1252,9 +1280,11 @@ function readTimelinePageFromHtml(html) {
     throw new Error("Timeline HTML is missing #psynet-template-data.");
   }
   const payload = JSON.parse(match[1]);
+  const hold = payload?.page?.attributes?.timeline_hold;
   return {
     type: payload?.page?.attributes?.type ?? null,
-    showsHold: html.includes('id="psynet-timeline-hold-indicator"')
+    showsHold: html.includes('id="psynet-timeline-hold-indicator"'),
+    wakeToken: hold?.wake_token ?? null
   };
 }
 

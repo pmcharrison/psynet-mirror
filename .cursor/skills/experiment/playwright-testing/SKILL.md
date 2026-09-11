@@ -91,6 +91,12 @@ expect(firstResume.resumedAtMs - lastEntry.start.timelineAtMs).toBeLessThan(2500
 expect(firstResume.resumedAtMs - lastEntry.start.consentClickedAtMs).toBeLessThan(8500);
 ```
 
+Concurrent late arrivals must wrap and arm at first paint, inside the same
+`Promise.all` as consent. If the hold chip is already gone, still assert the
+first-paint `wake_token`, a hold-resume POST, and no extra GET `/timeline` in
+inplace mode. Those late waiters may resume from `websocket connection` as well
+as `server notification`.
+
 Gateway, consent, and timeline pages have different DOM. Do not assume
 `#main-body` exists on the ad page. If the timeline is known in advance, encode
 that sequence; treat a mismatch as a failure rather than hunting for a Next

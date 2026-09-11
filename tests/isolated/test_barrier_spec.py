@@ -103,7 +103,27 @@ def test_unsupported_state_is_rejected():
         barrier_spec_json(barrier)
 
 
-def test_group_barrier_restores_scalar_presentation_not_waiting_pages():
+def arrival_message(**kwargs):
+    return "Someone arrived"
+
+
+def test_group_barrier_restores_on_arrival_message_callable():
+    original = GroupBarrier(
+        "pair_hold",
+        group_type="pair",
+        on_arrival_message=arrival_message,
+    )
+
+    restored = barrier_from_spec_json(barrier_spec_json(original))
+    spec = json.loads(barrier_spec_json(original))
+
+    assert restored.notify_arrivals is True
+    assert restored.on_arrival_message.function is arrival_message
+    assert spec["notifications"]["on_arrival_message"]["__type__"] == "callable"
+    assert spec["notifications"]["notify_arrivals"] is True
+    assert behavior_hash(restored) == behavior_hash(
+        GroupBarrier("pair_hold", group_type="pair", notify_arrivals=False)
+    )
     original = GroupBarrier(
         "pair_hold",
         group_type="pair",
