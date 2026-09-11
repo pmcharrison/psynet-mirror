@@ -114,3 +114,23 @@ def test_advance_past_wait_pages_refreshes_status_when_server_already_advanced()
     advance_past_wait_pages([bot])
     bot.take_page.assert_not_called()
     bot._fetch_status.assert_called_once()
+
+
+def test_advance_past_wait_pages_refreshes_before_each_wait_iteration():
+    """A partner skipped mid-loop must not submit a stale wait-page uuid."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from psynet.bot import advance_past_wait_pages
+
+    bot = MagicMock()
+
+    def current_page():
+        if bot.take_page.call_count:
+            return SimpleNamespace(is_timeline_hold=False)
+        return SimpleNamespace(is_timeline_hold=True)
+
+    bot.get_current_page.side_effect = current_page
+    advance_past_wait_pages([bot])
+    assert bot.take_page.call_count == 1
+    assert bot._fetch_status.call_count == 2
