@@ -72,7 +72,9 @@ is left for the 0.5 s poller so a locked partner cannot abort the submit.
 
 Callable attributes on barriers (e.g., ``on_release``) persist through
 :mod:`psynet.barrier_spec` so each ``BarrierInstance`` keeps stable release
-behavior without pickling waiting pages.
+behavior without pickling waiting pages. The reconstructed object is a
+release/callback receiver, not a wait page. See :class:`Barrier` for which
+methods are live-only.
 """
 
 import random
@@ -279,6 +281,19 @@ class Barrier(EltCollection):
     are satisfied to release them. The decision about which participants to release at any given point is taken by
     the ``choose_who_to_release`` method, which the user is expected to provide.
 
+    Timeline construction and wait UI run on this live object. Barrier checks,
+    ``on_release``, and arrival-notice lookups reconstruct a separate object
+    from :func:`~psynet.barrier_spec.barrier_from_spec_json`. That reconstructed
+    object has ``id``, custom release state, scalar presentation (``content``,
+    timeouts), and notification settings. It does not include wait-page
+    construction (``waiting_logic``, ``_uses_timeline_hold``,
+    ``waiting_logic_expected_repetitions``).
+
+    Call :meth:`check_waiting_participants`, :meth:`choose_who_to_release`,
+    and :meth:`release` on reconstructed objects. Keep
+    :meth:`receive_participant` on the live timeline barrier; arrival overlay
+    notify (``_notify_arrivals``) is live-only as well.
+
     Parameters
     ----------
 
@@ -363,6 +378,8 @@ class Barrier(EltCollection):
         Given a list of waiting participants, decides which of these participants should be released
         from the barrier.
 
+        Runs on the reconstructed registry barrier during evaluation.
+
         Parameters
         ----------
         waiting_participants
@@ -416,6 +433,11 @@ class Barrier(EltCollection):
             self.release(participant)
 
     def receive_participant(self, participant: Participant):
+        """Register this participant on the live timeline barrier.
+
+        Live timeline only. Default holds queue the release check from the
+        hold page after the wait row exists.
+        """
         if object_session(participant) is None:
             db.session.add(participant)
 
@@ -437,7 +459,10 @@ class Barrier(EltCollection):
         _queue_barrier_check(barrier_instance.id)
 
     def _notify_arrivals(self, arriving_participant):
-        """Optionally tell the group that someone arrived at this barrier."""
+        """Optionally tell the group that someone arrived at this barrier.
+
+        Live timeline only. Overlay HTML comes from ``waiting_logic``.
+        """
 
     def _hold_progress_text(self, participant):
         """Return hold-overlay progress copy, if this barrier publishes arrivals."""
@@ -462,10 +487,15 @@ class Barrier(EltCollection):
         return not barrier_is_active
 
     def check_waiting_participants(self, waiting_participants: List[Participant]):
-        """Run any side-effecting checks before deciding who to release."""
+        """Run any side-effecting checks before deciding who to release.
+
+        Runs on the reconstructed registry barrier during evaluation.
+        """
 
     def _check_instance(self, barrier_instance_id: str):
         """Lock waiters, release whoever is ready, and return the locked waiters.
+
+        Runs on the reconstructed registry barrier.
 
         Returns
         -------
@@ -545,6 +575,8 @@ class GroupBarrier(Barrier):
     a short transaction so partners are released without waiting for the 0.5 s
     poller. On the default hold path that arriver then skips the wait indicator.
     If a partner wait row is locked, the poller finishes the release.
+    ``on_release`` receives the reconstructed registry barrier; see
+    :class:`Barrier` for the live-versus-reconstructed method split.
 
     Parameters
     ----------
@@ -590,6 +622,8 @@ class GroupBarrier(Barrier):
         Optional callback invoked when the barrier releases participants.
         Must be a module-level function, ``@staticmethod``/``@classmethod``,
         or a bound method on a TrialMaker or ORM instance with a primary key.
+        The ``barrier`` argument is the reconstructed registry object for this
+        visit (scalar presentation and notification settings, not wait pages).
 
     fix_time_credit
         If set to ``True``, award fixed expected time credit. Otherwise default
@@ -703,7 +737,10 @@ class GroupBarrier(Barrier):
         )
 
     def _call_arrival_message(self, **kwargs):
-        """Return author or default arrival copy for one recipient."""
+        """Return author or default arrival copy for one recipient.
+
+        Safe on reconstructed registry barriers.
+        """
         callback = self.on_arrival_message
         if callback is None:
             return call_function_with_context(
@@ -712,7 +749,10 @@ class GroupBarrier(Barrier):
         return callback(barrier=self, **kwargs)
 
     def _notify_arrivals(self, arriving_participant):
-        """Publish hold progress and partner-ready notices after an arrival."""
+        """Publish hold progress and partner-ready notices after an arrival.
+
+        Live timeline only. Overlay HTML comes from ``waiting_logic``.
+        """
         if not self.notify_arrivals:
             return
         if arriving_participant.failed or not self._participant_is_waiting(
@@ -1466,7 +1506,11 @@ class BarrierInstance(SQLBase, SQLMixin):
         )
 
     def get_barrier(self):
-        """Materialize this visit's release behavior from its declarative spec."""
+        """Return the reconstructed release object for this visit.
+
+        This is not the live timeline barrier. See :class:`Barrier` for which
+        methods are safe here.
+        """
         return barrier_from_spec_json(self.spec)
 
     def _validate_behavior(self, behavior_hash):
@@ -1581,7 +1625,11 @@ def _waiting_barrier_instance_ids():
 
 
 def pending_arrival_notice_for(participant):
-    """Return a partner-ready notice if this participant is behind a waiter."""
+    """Return a partner-ready notice if this participant is behind a waiter.
+
+    Reconstructs registry barriers for this call only. Overlay HTML stays on
+    the live timeline barrier.
+    """
     if participant is None or getattr(participant, "failed", False):
         return None
     groups = getattr(participant, "active_sync_groups", None) or {}

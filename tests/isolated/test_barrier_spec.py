@@ -70,6 +70,16 @@ def test_callback_round_trip():
     assert restored.on_release.function is on_release
 
 
+def test_reconstructed_barrier_runs_release_hooks():
+    original = ThresholdBarrier("threshold", threshold=2)
+    restored = barrier_from_spec_json(barrier_spec_json(original))
+    waiters = [object(), object()]
+
+    assert restored.choose_who_to_release(waiters) == waiters
+    assert restored.choose_who_to_release(waiters[:1]) == []
+    _assert_page_fields_omitted(json.loads(barrier_spec_json(original)), restored)
+
+
 @pytest.mark.parametrize(
     "original",
     [

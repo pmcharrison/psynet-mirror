@@ -6,6 +6,7 @@ This module stores the importable barrier class, release-hook state, scalar
 presentation (``content``, timeouts), and arrival-notice settings. Waiting
 pages and hold-page construction (``waiting_logic``, ``_uses_timeline_hold``,
 ``waiting_logic_expected_repetitions``) stay on the live timeline object.
+See :class:`~psynet.sync.Barrier` for which methods are live-only.
 Callback identity is kept separate from the ORM receiver selected for one
 visit, so behavior comparisons are stable while invocation remains correctly
 bound.
@@ -94,7 +95,8 @@ def barrier_from_spec_json(serialized):
 
     The result is a callback/release object: scalar presentation and
     notifications are restored. Waiting pages and hold-page construction stay
-    on the live timeline barrier.
+    on the live timeline barrier. See :class:`~psynet.sync.Barrier` for which
+    methods are live-only.
     """
     try:
         spec = json.loads(serialized)

@@ -133,16 +133,27 @@ preparation and :meth:`~psynet.sync.Barrier.choose_who_to_release` for the
 release decision. Barrier evaluation and participant locking are
 framework-owned and are not extension points.
 
+.. _sync-reconstructed-barriers:
+
+Release callbacks
+~~~~~~~~~~~~~~~~~
+
 PsyNet persists the release behavior of each active waiting pool as a
 versioned declarative specification. Custom attributes used by the release
 hooks must therefore contain JSON-compatible values, supported callables,
-classes, or persisted PsyNet ORM records. Waiting pages
-(``waiting_logic``) and hold-page construction stay on the live timeline
-object and are not restored into callbacks. Scalar fields such as
-``content`` and ``max_wait_time`` are restored, so ``on_release`` and
-``on_arrival_message`` may read them from ``barrier``. Overlay copy may
-still vary between participants in one pool; it is not part of behavior
-identity.
+classes, or persisted PsyNet ORM records.
+
+``on_release`` and ``on_arrival_message`` receive that reconstructed
+barrier. Read scalar fields such as ``content`` and ``max_wait_time``
+from it::
+
+    def on_release(*, group, participants, barrier, **kwargs):
+        group.var.wait_copy = barrier.content
+
+Wait pages (``waiting_logic``) stay on the live timeline object. Overlay
+copy may still vary between participants in one pool; it is not part of
+behavior identity. See :class:`~psynet.sync.Barrier` for which methods
+are live-only.
 
 By default, group members still on an earlier page see a pill on the
 progress bar (``Your partner is ready.``, or

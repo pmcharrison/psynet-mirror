@@ -55,7 +55,10 @@ If participants exchange live actions or messages within a trial, also read
   groups when the last needed member arrives, without waiting for the
   barrier poller.
 - Use `GroupBarrier(on_release=...)` for atomic shared updates such as role
-  assignment, scoring, aggregation, or recording round outcomes.
+  assignment, scoring, aggregation, or recording round outcomes. The
+  callback's `barrier` argument is the reconstructed registry object; read
+  `content` and timeouts from it. Wait pages stay on the live timeline
+  barrier (see `docs/tutorials/synchronization.rst`, "Release callbacks").
 - Sort `sync_group.participants` by participant ID before deterministic role
   assignment; PsyNet does not guarantee the stored order.
 - Use `sync_group_type` on trial makers when all group members should follow the

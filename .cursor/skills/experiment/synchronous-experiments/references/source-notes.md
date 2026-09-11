@@ -21,6 +21,8 @@ and platform docs when a study is near deployment.
   `on_arrival_message`.
   It checks `min_group_size`, can wait for top-ups, can fail under-quota groups,
   and accepts `on_release(group, participants)` for atomic shared updates.
+  The `barrier` argument is reconstructed; see
+  `docs/tutorials/synchronization.rst` ("Release callbacks").
 - `psynet.sync.SimpleGrouper` creates `SyncGroup`s by waiting for `batch_size`
   participants and partitioning them into groups of `initial_group_size`.
   The last arrival tries `check()` in that request so pairing does not wait
