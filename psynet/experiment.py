@@ -5794,6 +5794,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         stale wait page. A ready skip always commits before the next page is
         prepared or stacked last-arrival checks run, so this waiter does not
         keep ``FOR UPDATE`` through ``pre_render()`` or last-arrival locking.
+        ``SET LOCAL lock_timeout`` is reapplied after those commits before
+        the next page is prepared.
         """
         from types import SimpleNamespace
 
@@ -5846,6 +5848,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     )
                 page = experiment.timeline.get_current_elt(experiment, participant)
                 if not checks:
+                    _set_transaction_lock_timeout(
+                        get_config().get("timeline_lock_timeout_seconds")
+                    )
                     page = cls._prepare_resolved_timeline_page(
                         experiment, participant, page
                     )
@@ -5863,6 +5868,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             checks,
             result,
         )
+        _set_transaction_lock_timeout(get_config().get("timeline_lock_timeout_seconds"))
         page = cls._prepare_resolved_timeline_page(experiment, participant, result.page)
         if page is not None:
             db.session.commit()

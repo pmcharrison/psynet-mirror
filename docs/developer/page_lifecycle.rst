@@ -71,9 +71,9 @@ Timeline requests separate state mutation from rendering:
    checks, it relocks that participant, skips the hold, and runs
    ``pre_render()`` on the page that will be shown. After that write-phase
    commit, GET re-reads the live timeline cursor so a partner who already
-   advanced this waiter does not resume a stale hold page. If skipping a
-   ready hold queues stacked last-arrival checks, GET commits first so it
-   does not keep ``FOR UPDATE`` while those checks lock waiters. An
+   advanced this waiter does not resume a stale hold page. Skipping a
+   ready hold always commits first so it does not keep ``FOR UPDATE``
+   through ``pre_render()`` or stacked last-arrival checks. An
    unreleased barrier hold may recover a dropped last-arrival check without
    taking ``FOR UPDATE`` first, so a concurrent last arriver can still lock
    waiters with ``NOWAIT``.

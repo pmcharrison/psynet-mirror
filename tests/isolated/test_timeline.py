@@ -339,7 +339,7 @@ def test_finalize_pending_ready_hold_does_not_prepare_before_relock(monkeypatch)
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
     monkeypatch.setattr(
         "psynet.experiment._set_transaction_lock_timeout",
-        lambda *_args: None,
+        lambda *_args: order.append("timeout"),
     )
     monkeypatch.setattr(
         "psynet.experiment.get_config",
@@ -353,7 +353,15 @@ def test_finalize_pending_ready_hold_does_not_prepare_before_relock(monkeypatch)
 
     Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
 
-    assert order == ["ready", "lock", "advance", "commit", "prepare"]
+    assert order == [
+        "ready",
+        "timeout",
+        "lock",
+        "advance",
+        "commit",
+        "timeout",
+        "prepare",
+    ]
     query.with_for_update.assert_called_once_with(of=Participant)
 
 
@@ -393,6 +401,14 @@ def test_finalize_pending_unreleased_hold_rechecks_without_relock(monkeypatch):
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
     monkeypatch.setattr(
         "psynet.sync._hold_instance_id_for_page", lambda *_args: "instance-1"
+    )
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout",
+        lambda *_args: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
     )
     captured = {}
 
@@ -452,13 +468,17 @@ def test_finalize_pending_prepares_the_page_after_skipping_a_ready_hold(monkeypa
     monkeypatch.setattr(
         "psynet.experiment.db.session.commit", lambda: order.append("commit")
     )
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout",
+        lambda *_args: order.append("timeout"),
+    )
 
     returned_participant, returned_page = (
         Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
     )
 
     nxt.pre_render.assert_called_once()
-    assert order == ["commit", "prepare"]
+    assert order == ["timeout", "commit", "timeout", "prepare"]
     assert returned_page is nxt
     assert returned_participant is participant
 
@@ -522,9 +542,10 @@ def test_finalize_pending_ready_hold_commits_before_arrival_checks(monkeypatch):
     experiment.timeline.get_current_elt.side_effect = [hold, hold, nxt]
     experiment._advance_past_ready_holds = MagicMock(return_value=nxt)
     monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", take)
+    timeouts = []
     monkeypatch.setattr(
         "psynet.experiment._set_transaction_lock_timeout",
-        lambda *_args: None,
+        lambda *_args: timeouts.append("timeout"),
     )
     monkeypatch.setattr(
         "psynet.experiment.get_config",
@@ -538,6 +559,7 @@ def test_finalize_pending_ready_hold_commits_before_arrival_checks(monkeypatch):
     def fake_finalize(cls, _experiment, participant_id, checks, result):
         captured["checks"] = list(checks)
         captured["commits_before"] = list(commits)
+        captured["timeouts_before"] = list(timeouts)
         captured["pre_render_before"] = nxt.pre_render.call_count
         result.page = nxt
         return participant
@@ -553,6 +575,8 @@ def test_finalize_pending_ready_hold_commits_before_arrival_checks(monkeypatch):
     assert captured["commits_before"] == ["commit"]
     assert captured["pre_render_before"] == 0
     nxt.pre_render.assert_called_once()
+    assert timeouts[-1] == "timeout"
+    assert len(timeouts) > len(captured["timeouts_before"])
 
 
 def test_process_response_unready_hold_does_not_recheck_readiness(monkeypatch):
