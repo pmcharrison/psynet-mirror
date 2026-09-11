@@ -140,15 +140,15 @@ def default_group_barrier_arrival_message(
     if kind == "hold":
         if group_size <= 2 or remaining == 0:
             return None
-        return _p("timeline_hold", "{remaining} of {total} not ready yet").format(
-            remaining=remaining,
-            total=group_size,
+        return _p("timeline_hold", "{REMAINING} of {TOTAL} not ready yet").format(
+            REMAINING=remaining,
+            TOTAL=group_size,
         )
     if group_size == 2:
         return _p("timeline_hold", "Your partner is ready.")
-    return _p("timeline_hold", "{arrived}/{total} of your group are ready.").format(
-        arrived=waiting_count,
-        total=group_size,
+    return _p("timeline_hold", "{ARRIVED}/{TOTAL} of your group are ready.").format(
+        ARRIVED=waiting_count,
+        TOTAL=group_size,
     )
 
 
