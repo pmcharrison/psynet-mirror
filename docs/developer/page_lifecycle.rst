@@ -123,7 +123,9 @@ barrier in a short coordination transaction before rendering. This preserves
 the fast route without holding partner rows through author code or
 ``pre_render()``. Websocket wakes from those coordination commits stay unpublished
 until stacked finalize returns, so a waiting partner is not told to resume
-while a later entry check still holds their row. The barrier poller locks waiters with
+while a later entry check still holds their row. SAVEPOINT releases inside a
+check are not treated as durable commits for those wakes; a later root
+rollback discards them. The barrier poller locks waiters with
 ``FOR UPDATE NOWAIT`` so a participant write cannot stall other groups; if any
 waiter is busy, that barrier is skipped until the next tick. The sync-group
 recount job likewise skip-locks one group at a time.

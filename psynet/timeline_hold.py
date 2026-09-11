@@ -43,6 +43,7 @@ def _timeline_hold_channel(participant_id):
 _PENDING_WAKE_KEY = "psynet_timeline_hold_wakes"
 _DEFERRED_WAKE_KEY = "psynet_deferred_timeline_hold_wakes"
 _WAKE_DEFER_DEPTH_KEY = "psynet_timeline_hold_wake_defer_depth"
+_NESTED_WAKE_SNAPSHOTS_KEY = "psynet_nested_timeline_hold_wake_keys"
 logger = get_logger()
 
 
@@ -182,8 +183,11 @@ def _defer_timeline_hold_wakes():
 
     Stacked last-arrival finalize commits after each barrier check. Publishing
     on those commits would wake waiting partners while later checks still lock
-    their rows. Rollback still discards uncommitted pending wakes; already
-    committed wakes stay deferred and flush here even if a later check fails.
+    their rows. SAVEPOINT releases are not durable: nested ``after_commit``
+    does not publish or stash. Nested rollback restores pending wakes to the
+    keys that existed when that savepoint began. Root rollback still discards
+    uncommitted pending wakes; already committed wakes stay deferred and flush
+    here even if a later check fails.
     """
     session = db.session
     depth = session.info.get(_WAKE_DEFER_DEPTH_KEY, 0)
@@ -239,8 +243,19 @@ def _flush_deferred_timeline_hold_wakes(session):
         _publish_wakes(list(deferred.values()))
 
 
+@event.listens_for(db.session, "after_transaction_create")
+def _snapshot_pending_wakes_for_nested(session, transaction):
+    """Remember pending wake keys so a SAVEPOINT rollback can restore them."""
+    if not transaction.nested:
+        return
+    pending = session.info.get(_PENDING_WAKE_KEY) or {}
+    session.info.setdefault(_NESTED_WAKE_SNAPSHOTS_KEY, []).append(set(pending))
+
+
 @event.listens_for(db.session, "after_commit")
 def _publish_timeline_hold_wakes(session):
+    if session.in_nested_transaction():
+        return
     pending = session.info.pop(_PENDING_WAKE_KEY, None) or {}
     if session.info.get(_WAKE_DEFER_DEPTH_KEY, 0):
         _stash_committed_wakes(session, pending)
@@ -250,7 +265,29 @@ def _publish_timeline_hold_wakes(session):
 
 @event.listens_for(db.session, "after_rollback")
 def _discard_timeline_hold_wakes(session):
+    """Restore pre-savepoint wakes on nested rollback; drop pending on root rollback.
+
+    Detect the SAVEPOINT via the snapshot stack. ``in_nested_transaction()``
+    may already be false when this handler runs.
+    """
+    stack = session.info.get(_NESTED_WAKE_SNAPSHOTS_KEY) or []
+    if stack:
+        keys_before = stack[-1]
+        pending = session.info.get(_PENDING_WAKE_KEY) or {}
+        session.info[_PENDING_WAKE_KEY] = {
+            key: wake for key, wake in pending.items() if key in keys_before
+        }
+        return
     session.info.pop(_PENDING_WAKE_KEY, None)
+
+
+@event.listens_for(db.session, "after_transaction_end")
+def _pop_nested_wake_snapshot(session, transaction):
+    if not transaction.nested:
+        return
+    stack = session.info.get(_NESTED_WAKE_SNAPSHOTS_KEY)
+    if stack:
+        stack.pop()
 
 
 @register_table

@@ -2716,6 +2716,105 @@ def test_deferred_hold_wakes_publish_only_on_context_exit(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_savepoint_release_does_not_publish_hold_wakes(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """A nested SAVEPOINT commit is not durable until the root transaction commits."""
+    participant = new_participant(get_experiment())
+    hold = _participant_hold(participant, "nested-wake", "nested")
+    publications = _hold_wake_publications(monkeypatch)
+
+    with db_session.begin_nested():
+        _enqueue_timeline_hold_wake(
+            participant.id,
+            page_uuid="nested-wake",
+            reason="barrier_released",
+            hold=hold,
+        )
+        assert publications == []
+
+    assert publications == []
+    db_session.commit()
+    assert _released_wake_count(publications) == 1
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_savepoint_then_outer_rollback_does_not_publish_hold_wakes(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Wakes queued under a SAVEPOINT must not publish after the root rolls back."""
+    participant = new_participant(get_experiment())
+    hold = _participant_hold(participant, "nested-rollback", "nested-rollback")
+    publications = _hold_wake_publications(monkeypatch)
+
+    with _defer_timeline_hold_wakes():
+        with db_session.begin_nested():
+            _enqueue_timeline_hold_wake(
+                participant.id,
+                page_uuid="nested-rollback",
+                reason="barrier_released",
+                hold=hold,
+            )
+        db_session.rollback()
+        assert publications == []
+
+    assert publications == []
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_nested_rollback_keeps_wakes_queued_before_the_savepoint(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """A SAVEPOINT rollback must not drop wakes queued in the outer transaction."""
+    participant = new_participant(get_experiment())
+    outer = _participant_hold(participant, "outer-wake", "outer")
+    inner = TimelineHoldRecord(
+        participant=participant,
+        page_uuid="inner-wake",
+        hold_id="inner",
+        started_at=timenow(),
+        expected_wait=1,
+        max_wait_time=20,
+        fix_time_credit=False,
+    )
+    db.session.add(inner)
+    db.session.flush()
+    publications = _hold_wake_publications(monkeypatch)
+
+    _enqueue_timeline_hold_wake(
+        participant.id,
+        page_uuid="outer-wake",
+        reason="barrier_released",
+        hold=outer,
+    )
+    try:
+        with db_session.begin_nested():
+            _enqueue_timeline_hold_wake(
+                participant.id,
+                page_uuid="inner-wake",
+                reason="barrier_released",
+                hold=inner,
+            )
+            raise RuntimeError("savepoint failed")
+    except RuntimeError:
+        pass
+    db_session.commit()
+
+    tokens = [
+        target.get("wake_token")
+        for _, payload in publications
+        for target in payload.get("targets", [])
+    ]
+    assert tokens == [outer.wake_token]
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_deferred_hold_wakes_keep_committed_payloads_after_later_rollback(
     in_experiment_directory, db_session, monkeypatch
 ):
