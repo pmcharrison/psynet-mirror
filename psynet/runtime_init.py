@@ -32,6 +32,7 @@ def ensure_runtime() -> None:
       extra config keys when no experiment is on the path.
     - Sets ``GEVENT_SUPPORT=True`` in the process environment.
     - Patches yaspin's Jupyter detection.
+    - Replaces Dallinger launch retries with a progress display.
     - Imports ``psynet.recruiters`` (registers recruiter classes).
 
     Subsequent calls are no-ops.
@@ -100,3 +101,7 @@ def _initialize_runtime() -> None:
     os.environ["GEVENT_SUPPORT"] = "True"
 
     patch_yaspin_jupyter_detection()
+
+    from psynet.deploy_launch import patch_dallinger_handle_launch_data
+
+    patch_dallinger_handle_launch_data()

@@ -6,6 +6,18 @@ Troubleshooting
 ===============
 
 
+HTTPS/SSL errors while launching over SSH
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``psynet debug ssh`` and ``psynet deploy ssh`` call ``/launch`` as soon as
+Caddy reloads, which is often a few seconds before HTTPS is ready. Handshake
+failures such as ``TLSV1_ALERT_INTERNAL_ERROR`` are expected during that
+window. PsyNet shows a progress bar while it retries, and only prints the
+underlying error if the experiment still cannot be launched when the wait
+ends. If that happens, inspect the remote logs as described in
+:ref:`deploy_troubleshooting_stuck_during_launch`.
+
+
 No space left on device
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -120,6 +132,8 @@ though note that this may interrupt pre-existing deployed experiments.
 This problem needs further investigation.
 
 
+.. _deploy_troubleshooting_stuck_during_launch:
+
 Stuck during experiment launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -131,9 +145,10 @@ checking the docker compose logs on the remote server:
   cd ~/dallinger/<your-app-name>
   docker compose logs
 
-If the error occurs during "Launching experiment", beware that the last error may not be indicative of the real issue,
-because it may instead reflect errors from the launch command repeatedly trying to relaunch over a previous partial launch.
-It's a good idea to scroll up to the first issue in this case.
+If launch still fails after the HTTPS wait, the command prints the last
+error from ``/launch``. That error may still not be the root cause if a
+previous partial launch left the app in a bad state, so scroll up in the
+Docker Compose logs to the first issue.
 Note also that if your command fails early on then you might instead see Docker compose logs from the previous time 
 you tried to launch the experiment.
 

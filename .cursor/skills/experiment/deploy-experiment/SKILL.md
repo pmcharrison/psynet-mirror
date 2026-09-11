@@ -133,8 +133,9 @@ dallinger ec2 teardown --name <server-name> --region <region> --dns-host <server
   external assets.
 - App/server/DNS names diverge between logs, commands, and config files.
 - Export exists for one app but teardown is being planned for another.
-- SSL/TLS errors during first launch can be transient cold-start issues; retry
-  after a short wait before changing code.
+- During `psynet debug ssh` / `psynet deploy ssh`, HTTPS/SSL handshake errors
+  while Caddy finishes certificates are shown as launch progress, not as
+  failures. A real error is printed only if launch still fails after that wait.
 - Relative export paths are easy to lose track of; prefer absolute `--path`
   values in export commands and logs.
 - Large asset exports may fail even when anonymized tabular exports are usable;

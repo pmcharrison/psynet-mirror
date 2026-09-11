@@ -163,6 +163,11 @@ at the URL ``https://<your-experiment-name>.<your-dns-host>``.
 Note that you can have multiple experiments running on the same server,
 as long as they have different app names.
 
+While HTTPS certificates and the web process start, the command shows a
+progress bar instead of SSL handshake errors. Those failures are expected
+startup noise; a real error is printed only if launch still fails after that
+wait.
+
 .. note::
 
     If you encounter an error on deployment, try the following:
