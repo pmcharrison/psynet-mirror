@@ -1347,7 +1347,36 @@ class ParticipantDriver:
         if remaining_sleep_duration > 0:
             time.sleep(remaining_sleep_duration)
 
-    def _submit_response(self, status, response_files, response=NoArgumentProvided):
+    def _retry_submit_after_page_advanced(self, status, response, already_retried):
+        """Retry once when last-arrival already rotated this driver's page uuid.
+
+        Bots cache ``/participant_status`` and POST that ``page_uuid``. A
+        partner can skip this waiter onto the next hold in between. That
+        leftover overlay is a genuine sync mismatch; humans reload
+        ``/timeline``. Drivers refresh and submit the live page once.
+        """
+        if already_retried:
+            return False
+        previous_uuid = status.get("page_uuid")
+        self._fetch_status()
+        if self.status.get("page_uuid") == previous_uuid:
+            return False
+        self._submit_response(
+            self.status,
+            self.response_files,
+            response,
+            _retried_stale_page=True,
+        )
+        return True
+
+    def _submit_response(
+        self,
+        status,
+        response_files,
+        response=NoArgumentProvided,
+        *,
+        _retried_stale_page=False,
+    ):
         """
         Submit the participant's response to the server.
 
@@ -1408,9 +1437,13 @@ class ParticipantDriver:
                     files=files,
                 )
 
-            response = _retry_busy_http(send)
-        resp_json = response.json()
+            http_response = _retry_busy_http(send)
+        resp_json = http_response.json()
         if resp_json.get("submission") != "approved":
+            if self._retry_submit_after_page_advanced(
+                status, response, _retried_stale_page
+            ):
+                return
             raise RuntimeError(
                 f"The participant's response was rejected: {resp_json.get('message')}"
             )
