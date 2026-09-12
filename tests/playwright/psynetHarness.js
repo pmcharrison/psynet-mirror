@@ -1671,6 +1671,7 @@ module.exports = {
   readTimelinePageFromHtml,
   startParticipantRequestTracker,
   summarizeParticipantRequests,
+  requestHandlerMs,
   requestTimingDetail,
   unexpectedBlockingRequests,
   withExperiment,

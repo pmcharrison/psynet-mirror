@@ -534,6 +534,16 @@ def test_debug_legacy_gunicorn_workers_follow_env(monkeypatch):
     assert calls[0]["exp_config"] == {"threads": "5"}
 
 
+@pytest.mark.parametrize("raw", ["0", "-1", "two"])
+def test_debug_legacy_gunicorn_workers_reject_invalid_env(monkeypatch, raw):
+    """A bad worker override must fail before gunicorn starts with one process."""
+    from psynet.command_line import _legacy_debug_gunicorn_threads
+
+    monkeypatch.setenv("PSYNET_LEGACY_DEBUG_GUNICORN_THREADS", raw)
+    with pytest.raises(click.UsageError, match="positive integer"):
+        _legacy_debug_gunicorn_threads()
+
+
 # @pytest.mark.parametrize("experiment_directory", [path_to_test_experiment("timeline")], indirect=True)
 # @pytest.mark.usefixtures("in_experiment_directory")
 # class TestDeploy:

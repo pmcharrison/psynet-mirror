@@ -13,6 +13,7 @@ const {
   startTimelineHoldSocketTracker,
   stopExperiment,
   summarizeParticipantRequests,
+  requestHandlerMs,
   requestTimingDetail,
   unexpectedBlockingRequests,
   waitForHeldParticipantToResume,
@@ -29,7 +30,8 @@ const BLOCKING_REQUEST_MS = 4000;
 // Fast waiters leave in ~0.2–0.8s after last paint. Keep this floor under the
 // 2s safety poll so a missed wake cannot hide inside the budget. When CI load
 // makes the approved hold-resume POST itself slower than 1.8s, overlay linger
-// tracks that POST; the budget then becomes post duration plus slack.
+// tracks that POST's Server-Timing app (handler time), not browser wall
+// (which includes gunicorn listen-queue). The budget is handler plus slack.
 const PARTNER_HOLD_RELEASE_MAX_MS = 1800;
 const HOLD_RESUME_OVERLAY_SLACK_MS = 500;
 const WAITER_RELEASE_SPREAD_MAX_MS = 1500;
@@ -110,8 +112,8 @@ function lastArriverReleaseAtMs(lastEntry) {
   return lastArriverClock(lastEntry).paintedAtMs;
 }
 
-function overlayLingerBudgetMs(holdResumePostMs) {
-  const postMs = Number(holdResumePostMs) || 0;
+function overlayLingerBudgetMs(holdResumePost) {
+  const postMs = requestHandlerMs(holdResumePost);
   return Math.max(
     PARTNER_HOLD_RELEASE_MAX_MS,
     postMs + HOLD_RESUME_OVERLAY_SLACK_MS
@@ -195,7 +197,7 @@ function holdReleaseSummary({
     ? `${lastArriverWork.method} ${lastArriverWork.path}`
     : "work";
   const lastWorkDetail = requestTimingDetail(lastArriverWork, clickToPaintMs);
-  const lingerBudget = overlayLingerBudgetMs(holdResumePostMs);
+  const lingerBudget = overlayLingerBudgetMs(holdResumePost);
   const responseNotes =
     resumeLog
       .filter((entry) => entry.kind)
@@ -642,7 +644,7 @@ async function assertWaiterReleasedWithLastArriver(
       record.holdResume === true
   );
   const holdResumePostMs = holdResumePosts[0]?.durationMs ?? null;
-  const lingerBudgetMs = overlayLingerBudgetMs(holdResumePostMs);
+  const lingerBudgetMs = overlayLingerBudgetMs(holdResumePosts[0] || null);
   const lastArriverWork = lastArriverWorkRecord(lastEntry);
   const reasonsAfterLast = (session.resumeLog || [])
     .filter((entry) => entry.atMs >= sinceMs && entry.reason)

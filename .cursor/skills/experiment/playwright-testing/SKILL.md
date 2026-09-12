@@ -69,27 +69,25 @@ expect(entry.timeline.durationMs).toBeLessThan(2500);
 expect(entry.start.consentToTimelineMs).toBeLessThan(6000);
 ```
 
-When a partner is already on a hold, start `waitForHeldParticipantToResume`
-before the last arriver consents, wrap `psynet.resumeTimelineHold` after the
-hold page is ready, and call `silenceTimelineHoldSafetyPoll` so a 2s poll
-cannot hide a missed websocket wake. Assert the waiting partner reaches the
-next durable prompt soon after that last arriver's first timeline paint,
-resumes from `server notification` (not `safety poll`), does not retry a busy
-hold-resume, and in inplace mode does not reload `GET /timeline`. Legacy
-reload mode may issue one follow-up timeline document. When several partners are
-waiting, they must leave close together:
+When a partner is already on a hold, use `stackedHoldHarness.js`:
+`enterWaitingHold` wraps the resume probe, silences the 2s safety poll, and
+arms `waitForHeldParticipantToResume` before the last arriver consents.
+`assertWaiterReleasedWithLastArriver` then checks that overlay leave
+(`resumedAtMs`) is timed from `lastArriverReleaseAtMs` (the grouping request
+finish, not the follow-up HTML 200), resume is `server notification` (not
+`safety poll`), there is no busy hold-resume retry, inplace mode issues no
+extra `GET /timeline`, and overlay linger stays under
+`max(1800ms, hold-resume Server-Timing app + 500ms)`. Do not fold gunicorn
+`queue~` into linger or waiter spread. Spread is overlay leave times, at most
+1500ms:
 
 ```js
-await wrapTimelineHoldResumeProbe(firstPage);
-await silenceTimelineHoldSafetyPoll(firstPage);
-const firstResumePromise = waitForHeldParticipantToResume(firstPage, {
-  prompt: "Choose your action",
-});
-const lastEntry = await enterTimelineAfterGateway(lastPage);
-const firstResume = await firstResumePromise;
-expect(firstResume.resumedAtMs - lastEntry.start.timelineAtMs).toBeLessThan(1800);
-expect(firstResume.resumedAtMs - lastEntry.start.consentClickedAtMs).toBeLessThan(7800);
+await enterWaitingHold(first, { holdText: "Waiting for your partner" });
+const lastEntry = await enterSkippingHold(last);
+await assertWaiterReleasedWithLastArriver(first, lastEntry);
 ```
+
+Legacy reload mode may issue one follow-up timeline document.
 
 Concurrent late arrivals must wrap and arm at first paint, inside the same
 `Promise.all` as consent. If the hold chip is already gone, still assert the
