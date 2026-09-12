@@ -3857,11 +3857,14 @@ def test_async_process_events_wake_timeline_holds(
     )
     cancelled = WorkerAsyncProcess(async_process_noop, participant=participant)
     timed_out.timeout_scheduled_for = datetime.now() - timedelta(seconds=1)
+    db_session.flush()
+    finished_id = finished.id
+    cancelled_id = cancelled.id
     db_session.commit()
 
-    LocalAsyncProcess.call_function(finished.id)
+    LocalAsyncProcess.call_function(finished_id)
     WorkerAsyncProcess.check_timeouts()
-    cancelled.cancel()
+    WorkerAsyncProcess.query.get(cancelled_id).cancel()
 
     assert wakes == [
         "async_process_finished",
