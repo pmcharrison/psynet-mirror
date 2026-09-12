@@ -1827,6 +1827,48 @@ def test_check_instance_does_not_reactivate_when_another_pool_is_active(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_leftover_check_evaluates_the_live_instance_barrier(
+    in_experiment_directory, db_session, monkeypatch
+):
+    """Migrated leftover waiters must be released with the live visit's spec."""
+    exp = get_experiment()
+    first, _last = _pair_sync_group(exp, db_session)[0]
+    barrier = GroupBarrier(id_="split_pool_live_spec", group_type="main")
+    _arrive_at_group_barrier(exp, barrier, first)
+    db.session.commit()
+    leftover = BarrierInstance.query.filter_by(barrier_id=barrier.id).one()
+    leftover.active = False
+    db.session.commit()
+    newer = BarrierInstance(
+        id=str(uuid.uuid4()),
+        barrier_id=leftover.barrier_id,
+        group_id=leftover.group_id,
+        active=True,
+        spec=leftover.spec,
+        behavior_hash=leftover.behavior_hash,
+    )
+    db.session.add(newer)
+    db.session.commit()
+
+    reconstructed = []
+    original = BarrierInstance.get_barrier
+
+    def tracking_get(self):
+        reconstructed.append(self.id)
+        return original(self)
+
+    monkeypatch.setattr(BarrierInstance, "get_barrier", tracking_get)
+    leftover = BarrierInstance.query.get(leftover.id)
+    newer_id = newer.id
+    leftover_id = leftover.id
+    assert _check_claimed_barrier_instance(leftover) is True
+    assert reconstructed[0] == leftover_id
+    assert reconstructed[-1] == newer_id
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_ungrouped_instance_clears_active_so_later_behavior_can_reuse_the_id(
     in_experiment_directory, db_session
 ):

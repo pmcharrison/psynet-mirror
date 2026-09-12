@@ -614,7 +614,12 @@ class Barrier(EltCollection):
             self._migrate_leftover_waiters(waiting_participants, other)
             instance.active = False
             db.session.flush()
-            return self._check_instance(other.id)
+            live = other.get_barrier()
+            if not isinstance(live, Barrier):
+                raise RuntimeError(
+                    f"Barrier instance '{other.id}' is missing or invalid."
+                )
+            return live._check_instance(other.id)
         return self._release_ready_waiters(waiting_participants, instance)
 
     def _other_active_pool(self, instance):
@@ -909,20 +914,20 @@ class GroupBarrier(Barrier):
         for member in group.active_participants:
             if member.failed:
                 continue
-            is_waiting = self._participant_is_waiting(member)
+            if self._participant_is_waiting(member):
+                hold_html = None
+                if self._uses_timeline_hold:
+                    hold_html = self.waiting_logic.overlay_html(member)
+                _queue_arrival_update(member.id, hold_message=hold_html)
+                continue
             text = self._call_arrival_message(
-                kind="hold" if is_waiting else "notice",
+                kind="notice",
                 waiting_count=waiting_count,
                 group_size=group_size,
                 recipient=member,
                 group=group,
             )
-            if is_waiting:
-                hold_html = None
-                if self._uses_timeline_hold:
-                    hold_html = self.waiting_logic.overlay_html(member)
-                _queue_arrival_update(member.id, hold_message=hold_html)
-            elif text:
+            if text:
                 _queue_arrival_update(member.id, notice=str(text))
 
     def handle_max_wait_timeout(self, participant: Participant):
@@ -1870,6 +1875,9 @@ def pending_arrival_notice_for(participant):
                 continue
             for link in list(member.active_barriers.values()):
                 if link.released:
+                    continue
+                instance = link.barrier_instance
+                if instance is not None and instance.group_id != group.id:
                     continue
                 barrier = reconstructed.get(link.barrier_instance_id)
                 if barrier is None:
