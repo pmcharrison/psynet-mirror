@@ -3428,8 +3428,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _advance_past_ready_holds(self, participant, page):
         """Skip holds that are already clear after this request's writes.
 
-        Used when the last group member arrives and ``GroupBarrier`` releases
-        the hold before ``/response`` returns, so that arriver never sees wait UI.
+        Callers must already hold the participant row. Last-arrival uses this
+        so released partners leave the wait overlay; ``POST /response`` uses it
+        while that write still holds the row (``NOWAIT`` on hold-resume);
+        ``GET /timeline`` uses it only after ``_skip_ready_hold_on_get`` takes
+        blocking ``FOR UPDATE``.
         """
         while getattr(page, "is_timeline_hold", False) and page.prepare_resume_if_ready(
             self, participant
@@ -5797,79 +5800,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def _finalize_pending_timeline_barriers(cls, experiment, participant, page):
-        """Run queued arrival checks before ``/timeline`` renders a hold.
+        """Finish GET ``/timeline`` hold skip and any remaining arrival checks.
 
-        If no checks were queued, a ready hold still needs a participant row
-        lock before ``_advance_past_ready_holds`` mutates wait credit or the
-        timeline cursor. An unreleased barrier hold may recover a dropped
-        last-arrival check, but it must not take ``FOR UPDATE`` before that
-        check so a concurrent last arriver can still lock waiters with
-        ``NOWAIT``. After expire-on-commit, re-read the live cursor so a
-        partner who already advanced this waiter does not leave GET holding a
-        stale wait page. A ready skip always commits before the next page is
-        prepared or stacked last-arrival checks run, so this waiter does not
-        keep ``FOR UPDATE`` through ``pre_render()`` or last-arrival locking.
-        ``SET LOCAL lock_timeout`` is reapplied after those commits, and also
-        before preparing a next page discovered via the live cursor, because
-        the GET route commits before this helper runs.
+        ``POST /response`` does not call this. Hold-resume already holds the
+        participant with ``NOWAIT`` and skips with ``_advance_past_ready_holds``
+        in that write. See the page lifecycle docs (Timeline hold resume
+        protocol).
         """
         from types import SimpleNamespace
 
-        from .sync import _hold_instance_id_for_page, _take_pending_barrier_checks
-
-        checks = _take_pending_barrier_checks()
-        if getattr(page, "is_timeline_hold", False):
-            page = experiment.timeline.get_current_elt(experiment, participant)
-            if not getattr(page, "is_timeline_hold", False):
-                if not checks:
-                    return cls._reapply_lock_timeout_and_prepare(
-                        experiment, participant, page
-                    )
-        if not checks and getattr(page, "is_timeline_hold", False):
-            is_ready = getattr(page, "is_ready_to_resume", None)
-            if callable(is_ready):
-                ready = bool(is_ready(experiment, participant))
-            else:
-                prepare = getattr(page, "prepare_resume_if_ready", None)
-                ready = callable(prepare) and bool(prepare(experiment, participant))
-            if ready:
-                _set_transaction_lock_timeout(
-                    get_config().get("timeline_lock_timeout_seconds")
-                )
-                locked = (
-                    experiment._participant_request_query()
-                    .with_for_update(of=Participant)
-                    .populate_existing()
-                    .get(participant.id)
-                )
-                if locked is None:
-                    raise RuntimeError(
-                        f"Participant {participant.id} disappeared before timeline hold fallback."
-                    )
-                participant = locked
-                participant_id = participant.id
-                page = experiment._advance_past_ready_holds(
-                    participant,
-                    experiment.timeline.get_current_elt(experiment, participant),
-                )
-                checks = _take_pending_barrier_checks()
-                db.session.commit()
-                participant = experiment._participant_request_query().get(
-                    participant_id
-                )
-                if participant is None:
-                    raise RuntimeError(
-                        f"Participant {participant_id} disappeared after timeline hold skip."
-                    )
-                page = experiment.timeline.get_current_elt(experiment, participant)
-                if not checks:
-                    return cls._reapply_lock_timeout_and_prepare(
-                        experiment, participant, page
-                    )
-            else:
-                instance_id = _hold_instance_id_for_page(participant, page)
-                if instance_id:
-                    checks = [instance_id]
+        participant, page, checks = cls._resolve_get_timeline_hold(
+            experiment, participant, page
+        )
         if not checks:
             return participant, page
         result = SimpleNamespace(page=page, payload={})
@@ -5882,6 +5824,96 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls._reapply_lock_timeout_and_prepare(
             experiment, participant, result.page, commit=True
         )
+
+    @classmethod
+    def _resolve_get_timeline_hold(cls, experiment, participant, page):
+        """Re-read the live cursor, skip a ready hold, or recover a dropped check.
+
+        ``GET /timeline`` commits before this runs, so expire-on-commit can
+        leave ``page`` stale. A partner who already advanced this waiter must
+        not be sent back onto that hold. A ready hold may skip only after
+        blocking ``FOR UPDATE``. An unreleased barrier hold may recover a
+        dropped last-arrival check without that lock, so the last arriver can
+        still take waiters with ``NOWAIT``.
+
+        Returns
+        -------
+        participant, page, checks
+            Remaining barrier instance ids to evaluate. An empty list means
+            this GET can render ``page``.
+        """
+        from .sync import _hold_instance_id_for_page, _take_pending_barrier_checks
+
+        checks = _take_pending_barrier_checks()
+        if getattr(page, "is_timeline_hold", False):
+            page = experiment.timeline.get_current_elt(experiment, participant)
+            if not getattr(page, "is_timeline_hold", False):
+                if not checks:
+                    participant, page = cls._reapply_lock_timeout_and_prepare(
+                        experiment, participant, page
+                    )
+                    return participant, page, []
+        if not checks and getattr(page, "is_timeline_hold", False):
+            if cls._timeline_hold_is_ready_to_resume(page, experiment, participant):
+                participant, page, checks = cls._skip_ready_hold_on_get(
+                    experiment, participant
+                )
+                if not checks:
+                    participant, page = cls._reapply_lock_timeout_and_prepare(
+                        experiment, participant, page
+                    )
+                    return participant, page, []
+            else:
+                instance_id = _hold_instance_id_for_page(participant, page)
+                if instance_id:
+                    checks = [instance_id]
+        return participant, page, checks
+
+    @staticmethod
+    def _timeline_hold_is_ready_to_resume(page, experiment, participant):
+        """Return whether GET may relock this hold, without timeout side effects."""
+        is_ready = getattr(page, "is_ready_to_resume", None)
+        if callable(is_ready):
+            return bool(is_ready(experiment, participant))
+        prepare = getattr(page, "prepare_resume_if_ready", None)
+        return callable(prepare) and bool(prepare(experiment, participant))
+
+    @classmethod
+    def _skip_ready_hold_on_get(cls, experiment, participant):
+        """Relock this waiter, skip ready holds, commit, and re-read the cursor.
+
+        Timeout and fail run only after ``FOR UPDATE``. The skip commits
+        before ``pre_render()`` or stacked last-arrival checks so this waiter
+        does not keep that lock. ``POST /response`` does not use this helper.
+        """
+        from .sync import _take_pending_barrier_checks
+
+        _set_transaction_lock_timeout(get_config().get("timeline_lock_timeout_seconds"))
+        locked = (
+            experiment._participant_request_query()
+            .with_for_update(of=Participant)
+            .populate_existing()
+            .get(participant.id)
+        )
+        if locked is None:
+            raise RuntimeError(
+                f"Participant {participant.id} disappeared before timeline hold fallback."
+            )
+        participant = locked
+        participant_id = participant.id
+        page = experiment._advance_past_ready_holds(
+            participant,
+            experiment.timeline.get_current_elt(experiment, participant),
+        )
+        checks = _take_pending_barrier_checks()
+        db.session.commit()
+        participant = experiment._participant_request_query().get(participant_id)
+        if participant is None:
+            raise RuntimeError(
+                f"Participant {participant_id} disappeared after timeline hold skip."
+            )
+        page = experiment.timeline.get_current_elt(experiment, participant)
+        return participant, page, checks
 
     @classmethod
     def _finalize_barrier_arrivals(cls, experiment, participant_id, checks, result):

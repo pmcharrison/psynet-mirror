@@ -585,6 +585,8 @@ class Barrier(EltCollection):
         Runs on the reconstructed registry barrier. An inactive leftover with
         waiters is moved onto the live pool before release runs, so those
         people join the active visit instead of stealing its unique index.
+        Last-arrival keeps ``instance.active``, so looking for that other
+        pool stays off the budgeted path.
 
         Returns
         -------

@@ -6,6 +6,9 @@ record and the internal page protocol shared by barriers and ``wait_while``.
 Hold-release websocket wakes publish after the next database commit. Last-arrival
 finalize can defer those publishes until its stacked checks finish so waiting
 partners are not woken while later checks still lock their rows.
+``GET /timeline`` and ``POST /response`` skip ready holds under a participant
+row lock, but they do not share that lock protocol. The page lifecycle
+developer docs describe the resume protocol.
 """
 
 import json

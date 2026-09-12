@@ -319,3 +319,9 @@ spec reloads onto the stacked path.
 Query *count* still grows with *N* because each released waiter is advanced
 onto the next hold. The stacked test allows at most 35 extra statements per
 extra member as a loose cap on that advancement SQL, not as a target.
+
+Leftover inactive visits are outside this budget. Last-arrival keeps
+``instance.active``, so ``Barrier._other_active_pool`` does not look up a
+second pool on that path. Migrating waiters onto the live visit is extra SQL
+only when the instance is already inactive. See
+:ref:`timeline-hold-resume-protocol`.
