@@ -6117,9 +6117,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ``get_current_page`` through the first commit. ``barriers`` is hold
         skip plus last-arrival checks. ``render`` is the HTML or JSON body.
         ``app`` is handler time; browser wall minus ``app`` is queueing plus
-        network. Flask debug is one process; legacy debug uses three gunicorn
-        workers, so waiter queueing means the pool is busy, not that this
-        waiter's SQL is slow.
+        network. Flask debug is one process; ``psynet debug --legacy`` uses
+        gunicorn. Waiter queueing means that worker pool is busy, not that
+        this waiter's SQL is slow. Playwright hold tests set the worker count
+        to the session count.
         """
         metrics = {
             "lock": phases.get("lock") or 0.0,
@@ -6162,9 +6163,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ``process`` is ``process_response``. ``barriers`` is queued last-arrival
         work. ``render`` includes inplace prepare plus fragment rendering.
         ``app`` is handler time; browser wall minus ``app`` is queueing plus
-        network. Flask debug is one process; legacy debug uses three gunicorn
-        workers, so waiter queueing means the pool is busy, not that this
-        waiter's SQL is slow.
+        network. Flask debug is one process; ``psynet debug --legacy`` uses
+        gunicorn. Waiter queueing means that worker pool is busy, not that
+        this waiter's SQL is slow. Playwright hold tests set the worker count
+        to the session count.
         """
         metrics = {
             "process": phases.get("process") or 0.0,

@@ -154,10 +154,13 @@ time (``queue~``) for the last arriver's request and the waiter's hold-resume
 POST. ``GET /timeline`` also prints ``lock``, ``page``, ``barriers``, and
 ``render``. Blocking-request checks use ``app`` when that header is present, so
 worker-pool queueing is not treated as a slow handler. GitLab Playwright jobs
-run ``psynet debug --legacy`` (three gunicorn workers) so last-arrival work can
-overlap two waiter hold-resume POSTs. A short HTTP 503 on hold-resume is the
+run ``psynet debug --legacy`` (gunicorn). Playwright hold tests set the worker
+count to the session count so last-arrival work can overlap every waiter
+hold-resume POST. A short HTTP 503 on hold-resume is the
 ``NOWAIT`` busy retry when those requests hit the same participant row;
-the suite still fails a busy retry that lasts 500ms or more.
+the suite still fails a busy retry that lasts 500ms or more. Both Playwright
+CI jobs use gunicorn; the default vs legacy job is in-place vs full reload.
+Worker-pool ``queue~`` is therefore not reload-specific.
 
 Last-arrival ``GET /timeline`` can 302 when ``page_uuid`` advances during
 read-only render. First-paint assertions wait for the following 200 HTML
@@ -204,14 +207,18 @@ Playwright harness startup options
 The Playwright harness launches experiments with ``psynet debug local`` by default
 and does not force legacy mode. GitLab Playwright jobs set
 ``PSYNET_USE_LEGACY_DEBUG=1`` so those runs use gunicorn. ``psynet debug
---legacy`` starts three gunicorn workers, which lets last-arrival ``GET
-/timeline`` overlap two waiter hold-resume POSTs. The default vs legacy *job*
-split is still in-place vs full reload (``inplace_timeline_transitions``),
-not Flask vs gunicorn.
+--legacy`` starts four gunicorn workers by default. Playwright stacked-hold
+tests set ``PSYNET_LEGACY_DEBUG_GUNICORN_THREADS`` to the session count so
+last-arrival ``GET /timeline`` can overlap every waiter hold-resume POST. The
+default vs legacy *job* split is still in-place vs full reload
+(``inplace_timeline_transitions``), not Flask vs gunicorn.
 
 Optional environment variables:
 
 - ``PSYNET_USE_LEGACY_DEBUG=1``: add ``--legacy`` to the debug command.
+- ``PSYNET_LEGACY_DEBUG_GUNICORN_THREADS``: gunicorn worker processes for
+  ``psynet debug --legacy`` (default ``4``). Stacked-hold tests set this to
+  the session count.
 - ``PSYNET_DEBUG_EXTRA_FLAGS="..."``: append extra flags to the debug command
   (for local troubleshooting).
 - ``PSYNET_USE_UV_RUN=1``: launch via ``uv run`` instead of invoking ``psynet``

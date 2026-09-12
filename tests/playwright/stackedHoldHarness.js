@@ -300,7 +300,12 @@ async function closeHoldSessions(sessions) {
 }
 
 async function startHoldExperiment(browser, experimentDir, labels, options = {}) {
-  const experiment = startExperiment(experimentDir, options);
+  const env = { ...(options.env || {}) };
+  if (env.PSYNET_LEGACY_DEBUG_GUNICORN_THREADS == null) {
+    // Last-arrival GET /timeline plus one hold-resume POST per waiter.
+    env.PSYNET_LEGACY_DEBUG_GUNICORN_THREADS = String(Math.max(labels.length, 1));
+  }
+  const experiment = startExperiment(experimentDir, { ...options, env });
   const recruitmentUrl = await experiment.urlPromise;
   const sessions = [];
   try {
@@ -713,10 +718,11 @@ async function assertWaiterReleasedWithLastArriver(
     unexpectedBlockingRequests(resumeRequests, ENTRY_REQUEST_MAX_MS),
     `${session.label} hold-resume blocking: ${summary}`
   ).toEqual([]);
-  // Three gunicorn workers can overlap last-arrival GET /timeline with two
-  // waiter hold-resume POSTs. A short HTTP 503 is NOWAIT when a POST hits the
-  // same participant row as that participant's GET. unexpectedBlockingRequests
-  // still fails a busy retry that lasts 500ms or more.
+  // Hold tests set gunicorn workers to the session count so last-arrival GET
+  // /timeline can overlap every waiter hold-resume POST. A short HTTP 503 is
+  // NOWAIT when a POST hits the same participant row as that participant's
+  // GET. unexpectedBlockingRequests still fails a busy retry that lasts 500ms
+  // or more.
   if (isInplaceTimelineModeEnabled()) {
     expect(
       laterTimeline.length,

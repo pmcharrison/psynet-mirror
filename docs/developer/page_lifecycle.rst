@@ -412,10 +412,15 @@ Those routes do not share a lock protocol:
   ``get_current_page`` through the first commit; ``barriers`` is hold skip
   plus last-arrival checks; ``render`` is the HTML (or JSON) body. Browser
   wall time minus ``app`` is queueing plus network. ``psynet debug local``
-  (Flask) is one process. ``psynet debug --legacy`` starts three gunicorn
-  workers so last-arrival GET can overlap two waiter POSTs; remaining
-  ``queue~`` means the worker pool is busy. A short HTTP 503 on hold-resume
-  is that ``NOWAIT`` overlap, not a missed wake.
+  (Flask) is one process, so last-arrival and waiter POSTs cannot overlap.
+  ``psynet debug --legacy`` starts gunicorn; both Playwright CI jobs use that
+  path. The default vs legacy *job* split is in-place vs full reload, not
+  Flask vs gunicorn. Worker-pool ``queue~`` happens in both job modes: the
+  last arriver's request (entry ``GET /timeline``, or a later last-arrival
+  ``POST /response``) occupies one worker while each waiter POSTs hold-resume.
+  Playwright hold tests set workers to the session count. Remaining ``queue~``
+  means the pool is still busy. A short HTTP 503 on hold-resume is ``NOWAIT``
+  overlap, not a missed wake.
 * After the arrival write commits, queued barrier checks run in short
   transactions. Websocket wakes from those inner commits wait until stacked
   finalize returns.

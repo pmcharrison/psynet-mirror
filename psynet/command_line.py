@@ -741,7 +741,7 @@ def sql_profiled_command(func):
 @click.option(
     "--legacy",
     is_flag=True,
-    help="Use gunicorn (three workers) instead of Flask auto-reload.",
+    help="Use gunicorn instead of Flask auto-reload (default four worker processes).",
 )
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
 @_add_sql_profile_options
@@ -841,14 +841,37 @@ def run_pre_auto_reload_checks():
             )
 
 
-# Dallinger ``threads`` is gunicorn worker *processes*. Three workers let
-# last-arrival GET /timeline occupy one process while two waiter hold-resume
-# POSTs occupy the others. A trio extra waiter is otherwise queued behind that
-# GET. That is closer to deploy (``threads=auto``) than a single worker. One
-# worker saved ~1s of startup in 2022; local gunicorn does not pay a Heroku
-# dyno cost, and performance-test / Playwright duration checks need overlap
-# rather than serialized queueing.
-LEGACY_DEBUG_GUNICORN_THREADS = "3"
+# Dallinger ``threads`` is gunicorn worker *processes*. Last-arrival GET
+# /timeline occupies one process while each waiting partner POSTs hold-resume.
+# A group of size *n* therefore wants *n* workers at the wake, or extra waiters
+# sit in the listen queue. That is closer to deploy (``threads=auto``) than a
+# single worker. One worker saved ~1s of startup in 2022; local gunicorn does
+# not pay a Heroku dyno cost, and performance-test / Playwright duration
+# checks need overlap rather than serialized queueing. Playwright hold tests
+# set ``PSYNET_LEGACY_DEBUG_GUNICORN_THREADS`` to the session count. The
+# default covers the largest stacked-hold group in that suite (four).
+LEGACY_DEBUG_GUNICORN_THREADS = "4"
+LEGACY_DEBUG_GUNICORN_THREADS_ENV = "PSYNET_LEGACY_DEBUG_GUNICORN_THREADS"
+
+
+def _legacy_debug_gunicorn_threads():
+    """Return gunicorn worker processes for ``psynet debug --legacy``."""
+    raw = os.environ.get(LEGACY_DEBUG_GUNICORN_THREADS_ENV)
+    if raw is None or str(raw).strip() == "":
+        return LEGACY_DEBUG_GUNICORN_THREADS
+    try:
+        workers = int(raw)
+    except ValueError as err:
+        raise click.UsageError(
+            f"{LEGACY_DEBUG_GUNICORN_THREADS_ENV} must be a positive integer, "
+            f"got {raw!r}."
+        ) from err
+    if workers < 1:
+        raise click.UsageError(
+            f"{LEGACY_DEBUG_GUNICORN_THREADS_ENV} must be a positive integer, "
+            f"got {raw!r}."
+        )
+    return str(workers)
 
 
 def _debug_legacy(ctx, archive, no_browsers):
@@ -868,7 +891,7 @@ def _debug_legacy(ctx, archive, no_browsers):
             bot=False,
             proxy=None,
             no_browsers=no_browsers,
-            exp_config={"threads": LEGACY_DEBUG_GUNICORN_THREADS},
+            exp_config={"threads": _legacy_debug_gunicorn_threads()},
         )
     finally:
         db.session.commit()
@@ -1266,7 +1289,7 @@ def deploy():
 @click.option(
     "--legacy",
     is_flag=True,
-    help="Use gunicorn (three workers) instead of Flask auto-reload.",
+    help="Use gunicorn instead of Flask auto-reload (default four worker processes).",
 )
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
 @click.pass_context
@@ -3943,7 +3966,7 @@ def _run_performance_test_with_new_server(
     n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
 ):
     """Run performance test after starting a new experiment server"""
-    # Prefer legacy debug: gunicorn with three workers is closer to a deployed
+    # Prefer legacy debug: gunicorn with several workers is closer to a deployed
     # server than the auto-reload develop path used by normal
     # ``psynet debug local``.
     server_info = _start_local_server_and_wait_for_ready(

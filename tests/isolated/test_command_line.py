@@ -487,8 +487,8 @@ class TestCommandLine(object):
 #
 
 
-def test_debug_legacy_starts_three_gunicorn_workers(monkeypatch):
-    """Legacy debug overlaps last-arrival GET with two waiter hold-resume POSTs."""
+def test_debug_legacy_starts_four_gunicorn_workers(monkeypatch):
+    """Legacy debug defaults to four workers so a quartet extra waiter can POST."""
     from psynet.command_line import LEGACY_DEBUG_GUNICORN_THREADS, _debug_legacy
 
     calls = []
@@ -497,21 +497,41 @@ def test_debug_legacy_starts_three_gunicorn_workers(monkeypatch):
         def invoke(self, _command, **kwargs):
             calls.append(kwargs)
 
+    monkeypatch.delenv("PSYNET_LEGACY_DEBUG_GUNICORN_THREADS", raising=False)
     monkeypatch.setattr("psynet.command_line.db.session.commit", lambda: None)
     monkeypatch.setattr("psynet.command_line.reset_console", lambda: None)
 
     _debug_legacy(_Ctx(), archive=None, no_browsers=True)
 
-    assert LEGACY_DEBUG_GUNICORN_THREADS == "3"
+    assert LEGACY_DEBUG_GUNICORN_THREADS == "4"
     assert calls == [
         {
             "verbose": True,
             "bot": False,
             "proxy": None,
             "no_browsers": True,
-            "exp_config": {"threads": "3"},
+            "exp_config": {"threads": "4"},
         }
     ]
+
+
+def test_debug_legacy_gunicorn_workers_follow_env(monkeypatch):
+    """Playwright hold tests set workers to the live session count."""
+    from psynet.command_line import _debug_legacy
+
+    calls = []
+
+    class _Ctx:
+        def invoke(self, _command, **kwargs):
+            calls.append(kwargs)
+
+    monkeypatch.setenv("PSYNET_LEGACY_DEBUG_GUNICORN_THREADS", "5")
+    monkeypatch.setattr("psynet.command_line.db.session.commit", lambda: None)
+    monkeypatch.setattr("psynet.command_line.reset_console", lambda: None)
+
+    _debug_legacy(_Ctx(), archive=None, no_browsers=True)
+
+    assert calls[0]["exp_config"] == {"threads": "5"}
 
 
 # @pytest.mark.parametrize("experiment_directory", [path_to_test_experiment("timeline")], indirect=True)
