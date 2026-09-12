@@ -514,6 +514,66 @@ def test_response_render_error_after_commit_does_not_return_busy(monkeypatch):
     assert rolled_back == [True]
 
 
+def test_response_render_error_after_commit_reloads_timeline_when_transient(
+    monkeypatch,
+):
+    from types import SimpleNamespace
+
+    import sqlalchemy
+    from psycopg2.errors import LockNotAvailable
+
+    from psynet.experiment import Experiment
+
+    class FakeOperationalError(sqlalchemy.exc.OperationalError):
+        pass
+
+    err = FakeOperationalError("stmt", {}, LockNotAvailable())
+    monkeypatch.setattr(
+        Experiment,
+        "_is_transient_transaction_error",
+        classmethod(lambda cls, error: True),
+    )
+    handled = {}
+    rolled_back = []
+    page = SimpleNamespace()
+    page.__json__ = lambda participant: {"attributes": {}}
+    participant = SimpleNamespace(id=1, current_trial=None)
+
+    class FakeExperiment:
+        HandledError = type("HandledError", (Exception,), {})
+
+        def handle_error(self, error, **kwargs):
+            handled["error"] = error
+
+        def _approved_payload(self, participant, page):
+            return {"submission": "approved", "page": page.__json__(participant)}
+
+        timeline = SimpleNamespace(get_current_elt=lambda exp, p: page)
+
+    monkeypatch.setattr(
+        "psynet.experiment.db.session.rollback",
+        lambda: rolled_back.append(True),
+    )
+    monkeypatch.setattr(
+        Experiment,
+        "_participant_request_query",
+        classmethod(lambda cls: SimpleNamespace(get=lambda pid: participant)),
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.success_response",
+        lambda **kwargs: ("reload", kwargs),
+    )
+    result = Experiment._handle_response_render_error(
+        FakeExperiment(),
+        participant_id=1,
+        error=err,
+    )
+    assert result[0] == "reload"
+    assert result[1]["page"]["attributes"]["requires_full_page_reload"] is True
+    assert "error" not in handled
+    assert rolled_back == [True]
+
+
 @pytest.mark.parametrize(
     "timeline",
     [

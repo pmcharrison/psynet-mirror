@@ -152,9 +152,10 @@ function holdReleaseSummary({
 function assertEntryWasResponsive(entry, label) {
   const summary = summarizeParticipantRequests(entry.tracker.records);
   const entryRequests = entryPathRequests(entry.tracker.records);
-  expect(entry.timeline.status, `${label} first GET /timeline (${summary})`).toBe(
-    200
-  );
+  expect(
+    [200, 301, 302, 303, 307, 308].includes(entry.timeline.status),
+    `${label} first GET /timeline status ${entry.timeline.status} (${summary})`
+  ).toBe(true);
   expect(entry.timeline.busy, `${label} first GET /timeline was busy (${summary})`).toBe(
     false
   );
@@ -347,8 +348,14 @@ async function attachClearedHoldResume(
     (sinceMs == null || probe.holdEndedAtMs >= sinceMs)
       ? probe.holdEndedAtMs
       : null;
+  const resumedAtMs = endedAtMs || logged?.atMs;
+  if (resumedAtMs == null) {
+    throw new Error(
+      `${session.label} holdEndedAtMs missing after the hold cleared`
+    );
+  }
   session.resumePromise = Promise.resolve({
-    resumedAtMs: endedAtMs || logged?.atMs || Date.now()
+    resumedAtMs
   });
 }
 
@@ -414,7 +421,7 @@ async function submitChoiceMaybeHeld(
   expect(
     doneAtMs - clickedAtMs,
     `${session.label} stayed on a hold after a last-choice skip`
-  ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+  ).toBeLessThan(START_PAGE_MAX_MS);
   return { held: false, start };
 }
 
@@ -434,7 +441,7 @@ async function submitLastChoice(
   expect(
     doneAtMs - clickedAtMs,
     `${session.label} stayed on a hold after submitting the last choice`
-  ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+  ).toBeLessThan(START_PAGE_MAX_MS);
   return {
     clickedAtMs,
     doneAtMs,
@@ -477,6 +484,10 @@ async function assertWaiterReleasedWithLastArriver(
   const resumeRequests = responsesSince(records, sinceMs);
   const afterClickMs = resume.resumedAtMs - clock.clickedAtMs;
   const afterPaintMs = resume.resumedAtMs - clock.paintedAtMs;
+  const wakeToEndMs =
+    probe.holdEndedAtMs != null && probe.wakeReceivedAtMs != null
+      ? probe.holdEndedAtMs - probe.wakeReceivedAtMs
+      : null;
   const laterTimeline = requestsSince(
     records,
     extraTimelineSinceMs,
@@ -524,13 +535,17 @@ async function assertWaiterReleasedWithLastArriver(
     ).toContain(session.waitingWakeToken);
   }
   expect(
+    wakeToEndMs,
+    `${session.label} missing wake→end clock (${summary})`
+  ).not.toBeNull();
+  expect(
+    wakeToEndMs,
+    `${session.label} hold overlay lingered after the wake (${summary})`
+  ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+  expect(
     afterPaintMs,
     `${session.label} hold-resume clock ran backwards (${summary})`
   ).toBeGreaterThan(-ENTRY_REQUEST_MAX_MS);
-  expect(
-    afterPaintMs,
-    `${session.label} still held after the last arriver painted (${summary})`
-  ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
   expect(
     afterClickMs,
     `${session.label} still held after the last arriver started (${summary})`

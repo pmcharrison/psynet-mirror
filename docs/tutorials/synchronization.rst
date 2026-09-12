@@ -80,7 +80,9 @@ Groupers with the same ``group_type`` can be used to regroup the participants in
 as they progress through the experiment.
 However, it is not possible to be in multiple groups with the same ``group_type`` simultaneously;
 one must place a ``GroupCloser`` in the timeline to close the group before assigning the participants
-to a new one.
+to a new one. Sequential same-type groupers with different sizes get distinct default IDs
+(``{group_type}_grouper_{size}``). Give them explicit ``id_`` values if they should share a pool,
+and only when their release behavior matches.
 
 
 Group barrier
@@ -105,10 +107,11 @@ which will be executed on the group of participants at the point when they leave
 Treat a barrier's ``id_`` as the identity of one kind of waiting point. Reusing
 an ID with a different barrier class is an error. Within one active waiting
 pool, its release behavior and callbacks must also remain consistent; use a
-different ID for different release behavior. Waiting presentation may vary
-between participants sharing a pool. Group barriers keep separate waiting pools
-for each group and visit, so different groups may safely use callbacks bound to
-their own group-specific objects.
+different ID for different release behavior. A timeline that lists the same ID
+with two different behaviors is rejected when the experiment is constructed.
+Waiting presentation may vary between participants sharing a pool. Group
+barriers keep separate waiting pools for each group and visit, so different
+groups may safely use callbacks bound to their own group-specific objects.
 
 By default, a barrier keeps the participant's current page visible, disables
 interaction, and displays a small waiting indicator. Pass ``content`` to
@@ -136,7 +139,7 @@ framework-owned and are not extension points.
 .. _sync-reconstructed-barriers:
 
 Release callbacks
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 PsyNet persists the release behavior of each active waiting pool as a
 versioned declarative specification. Custom attributes used by the release
@@ -157,7 +160,7 @@ are live-only.
 
 By default, group members still on an earlier page see a pill on the
 progress bar (``Your partner is ready.``, or
-``{n}/{total} of your group are ready.``). The browser opens that
+``{ARRIVED}/{TOTAL} of your group are ready.``). The browser opens that
 live-update websocket only while the participant is in an active sync
 group; hold pages reuse the hold-channel socket instead. That pill stays on one line;
 longer custom notice copy ellipsizes instead of wrapping over the prompt.

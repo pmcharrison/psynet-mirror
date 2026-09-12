@@ -582,7 +582,9 @@ class Barrier(EltCollection):
     def _check_instance(self, barrier_instance_id: str):
         """Lock waiters, release whoever is ready, and return the locked waiters.
 
-        Runs on the reconstructed registry barrier.
+        Runs on the reconstructed registry barrier. An inactive leftover with
+        waiters is moved onto the live pool before release runs, so those
+        people join the active visit instead of stealing its unique index.
 
         Returns
         -------
@@ -606,6 +608,40 @@ class Barrier(EltCollection):
             ", ".join([str(p.id) for p in waiting_participants]),
         )
 
+        instance = BarrierInstance.query.get(barrier_instance_id)
+        other = self._other_active_pool(instance)
+        if other is not None:
+            self._migrate_leftover_waiters(waiting_participants, other)
+            instance.active = False
+            db.session.flush()
+            return self._check_instance(other.id)
+        return self._release_ready_waiters(waiting_participants, instance)
+
+    def _other_active_pool(self, instance):
+        """Return the live visit that an inactive leftover must not steal.
+
+        Last-arrival keeps ``instance.active`` true, so this lookup stays off
+        that budgeted path.
+        """
+        if instance is None or instance.active:
+            return None
+        other = BarrierInstance._active_instance(instance.barrier_id, instance.group_id)
+        if other is not None and other.id != instance.id:
+            return other
+        return None
+
+    def _migrate_leftover_waiters(self, waiting_participants, other):
+        """Move unreleased leftover waiters onto the live pool."""
+        for participant in waiting_participants:
+            link = participant.active_barriers.get(self.id)
+            if link is None or link.released:
+                continue
+            if link.barrier_instance_id == other.id:
+                continue
+            link.barrier_instance_id = other.id
+
+    def _release_ready_waiters(self, waiting_participants, instance):
+        """Release whoever is ready and record whether the visit still waits."""
         self.check_waiting_participants(waiting_participants)
         participants_to_release = self.choose_who_to_release(waiting_participants)
         participants_to_release.sort(key=lambda p: p.id)
@@ -621,23 +657,12 @@ class Barrier(EltCollection):
             for participant in participants_to_release:
                 self.release(participant)
             self._advance_released_hold_waiters(participants_to_release)
-        instance = BarrierInstance.query.get(barrier_instance_id)
         if instance is not None:
-            still_waiting = any(
+            instance.active = any(
                 not participant.active_barriers[self.id].released
                 for participant in waiting_participants
                 if self.id in participant.active_barriers
             )
-            # Last-arrival keeps the row active, so this extra lookup stays
-            # off that budgeted path. An inactive leftover must not steal
-            # the active unique index from a newer pool.
-            if still_waiting and not instance.active:
-                other = BarrierInstance._active_instance(
-                    instance.barrier_id, instance.group_id
-                )
-                if other is not None and other.id != instance.id:
-                    still_waiting = False
-            instance.active = still_waiting
         return waiting_participants
 
     def _advance_released_hold_waiters(self, participants):
@@ -751,8 +776,8 @@ class GroupBarrier(Barrier):
         ``group``, ``barrier``, ``experiment``). Return ``None`` to hide that
         surface. Same serialization rules as ``on_release``. The default pair
         notice is "Your partner is ready."; pair holds omit a second line.
-        Groups of three or more default to ``"{n} of {total} not ready yet"``
-        on the hold and ``"{n}/{total} of your group are ready."`` on the
+        Groups of three or more default to ``"{REMAINING} of {TOTAL} not ready yet"``
+        on the hold and ``"{ARRIVED}/{TOTAL} of your group are ready."`` on the
         pill. Notice copy stays on one line (overflow ellipsizes) and sits
         on the progress bar, so keep ``kind="notice"`` return values to a
         short sentence. Hold overlay copy may use a second line.
@@ -1084,7 +1109,7 @@ class Grouper(Barrier):
         content=None,
     ):
         if not id_:
-            id_ = group_type + "_" + "grouper"
+            id_ = f"{group_type}_grouper"
         super().__init__(
             id_=id_,
             waiting_logic=waiting_logic,
@@ -1192,7 +1217,10 @@ class SimpleGrouper(Grouper):
         subsequent GroupBarriers.
 
     initial_group_size
-        Size of the groups to create.
+        Size of the groups to create. The default barrier ID is
+        ``{group_type}_grouper_{initial_group_size}``, so sequential groupers
+        of different sizes do not share a waiting pool. Pass ``id_`` only when
+        two groupers should share one pool and have the same release behavior.
 
     max_group_size
         If ``join_existing_groups=True``, then participants will be allowed to join groups until
@@ -1250,6 +1278,8 @@ class SimpleGrouper(Grouper):
         if initial_group_size is None:
             raise ValueError("initial_group_size must be provided.")
 
+        if not kwargs.get("id_"):
+            kwargs["id_"] = f"{group_type}_grouper_{initial_group_size}"
         super().__init__(group_type=group_type, **kwargs)
 
         if max_group_size == "initial_group_size":
@@ -1768,10 +1798,11 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
             )
         return barrier
 
-    def get_waiting_participants(self, for_update: bool = False):
+    def get_waiting_participants(self, *, for_update: bool = False):
         """Return people waiting at this visit.
 
         Does not take extra row locks unless ``for_update`` is true.
+        ``for_update`` is keyword-only, matching :meth:`Barrier.get_waiting_participants`.
         """
         return _get_waiting_participants(
             self.barrier_id,

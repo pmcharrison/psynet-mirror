@@ -3268,11 +3268,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Parameters
         ----------
         timeline_hold_resume : bool
-            If True, a ``page_uuid`` that still matches this participant's
-            hold record is a catch-up after a partner already advanced the
-            waiter, not a multi-tab sync failure. Ignored when the participant
-            is already on a later hold. Keyword-only; overrides should accept
-            ``**kwargs`` or this argument.
+            If True, lock the participant with ``NOWAIT`` so last-arrival is
+            not blocked. A submitted ``page_uuid`` that still matches this
+            participant's hold record is a catch-up after a partner already
+            advanced the waiter, for both hold-resume and ordinary submits.
+            Ignored when the participant is already on a later hold.
+            Keyword-only; overrides should accept ``**kwargs`` or this
+            argument.
         """
         _p = get_translator(context=True)
         logger.info(
@@ -3315,15 +3317,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
-                if timeline_hold_resume:
-                    page = self._page_for_stale_hold_resume(
-                        participant, page_uuid, event
+                page = self._page_for_stale_hold_resume(participant, page_uuid, event)
+                if page is not None:
+                    return ResponseResult(
+                        payload=self._approved_payload(participant, page),
+                        page=page,
                     )
-                    if page is not None:
-                        return ResponseResult(
-                            payload=self._approved_payload(participant, page),
-                            page=page,
-                        )
                 return ResponseResult(
                     payload={
                         "submission": "rejected",
@@ -3407,13 +3406,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _page_for_stale_hold_resume(
         self, participant, submitted_page_uuid, current_page
     ):
-        """Return the current page when a hold-resume still carries a released uuid.
+        """Return the current page when a submit still carries a released hold uuid.
 
-        The last arriver can already have advanced this waiter, rotating
-        ``participant.page_uuid``. The hold-resume POST still sends the hold
-        page's uuid. If that uuid belongs to this participant and they are
-        not already on a later hold, approve the current page instead of
-        treating it as a multi-tab mismatch.
+        The last arriver or a ready GET skip can already have advanced this
+        waiter, rotating ``participant.page_uuid``. The client's POST still
+        sends the hold page's uuid. If that uuid belongs to this participant
+        and they are not already on a later hold, approve the current page
+        instead of treating it as a multi-tab mismatch.
         """
         from .timeline_hold import TimelineHoldRecord
 
@@ -5769,6 +5768,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return page
 
     @classmethod
+    def _reapply_lock_timeout_and_prepare(
+        cls, experiment, participant, page, *, commit=False
+    ):
+        """Reapply ``SET LOCAL lock_timeout`` and prepare the page to render.
+
+        GET /timeline commits before this helper's callers run, so the
+        previous ``lock_timeout`` is gone. Ready-hold skips also commit
+        before preparing the next page.
+        """
+        _set_transaction_lock_timeout(get_config().get("timeline_lock_timeout_seconds"))
+        page = cls._prepare_resolved_timeline_page(experiment, participant, page)
+        if commit and page is not None:
+            db.session.commit()
+        return participant, page
+
+    @classmethod
     def _prepare_approved_inplace_page(cls, experiment, participant, page, payload):
         """Prepare an inplace page in the write phase and refresh its JSON.
 
@@ -5807,13 +5822,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page = experiment.timeline.get_current_elt(experiment, participant)
             if not getattr(page, "is_timeline_hold", False):
                 if not checks:
-                    _set_transaction_lock_timeout(
-                        get_config().get("timeline_lock_timeout_seconds")
-                    )
-                    page = cls._prepare_resolved_timeline_page(
+                    return cls._reapply_lock_timeout_and_prepare(
                         experiment, participant, page
                     )
-                    return participant, page
         if not checks and getattr(page, "is_timeline_hold", False):
             is_ready = getattr(page, "is_ready_to_resume", None)
             if callable(is_ready):
@@ -5852,13 +5863,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     )
                 page = experiment.timeline.get_current_elt(experiment, participant)
                 if not checks:
-                    _set_transaction_lock_timeout(
-                        get_config().get("timeline_lock_timeout_seconds")
-                    )
-                    page = cls._prepare_resolved_timeline_page(
+                    return cls._reapply_lock_timeout_and_prepare(
                         experiment, participant, page
                     )
-                    return participant, page
             else:
                 instance_id = _hold_instance_id_for_page(participant, page)
                 if instance_id:
@@ -5872,11 +5879,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             checks,
             result,
         )
-        _set_transaction_lock_timeout(get_config().get("timeline_lock_timeout_seconds"))
-        page = cls._prepare_resolved_timeline_page(experiment, participant, result.page)
-        if page is not None:
-            db.session.commit()
-        return participant, page
+        return cls._reapply_lock_timeout_and_prepare(
+            experiment, participant, result.page, commit=True
+        )
 
     @classmethod
     def _finalize_barrier_arrivals(cls, experiment, participant_id, checks, result):
@@ -6150,20 +6155,63 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls._handle_response_fatal_error(experiment, participant_id, error)
 
     @classmethod
+    def _approved_timeline_reload_response(cls, experiment, participant_id):
+        """Return an approved payload that forces GET /timeline.
+
+        Used after the response write committed but a later relock or render
+        failed. The client must not retry the same POST (page_uuid advanced).
+        """
+        try:
+            participant = cls._participant_request_query().get(participant_id)
+            if participant is None:
+                return None
+            page = experiment.timeline.get_current_elt(experiment, participant)
+            if page is None:
+                return None
+            payload = experiment._approved_payload(participant, page)
+            attributes = payload["page"].setdefault("attributes", {})
+            attributes["requires_full_page_reload"] = True
+            return success_response(**payload)
+        except Exception:
+            logger.warning(
+                "Could not build a reload payload after post-commit contention "
+                "for participant %s.",
+                participant_id,
+                exc_info=True,
+            )
+            return None
+
+    @classmethod
     def _handle_response_render_error(cls, experiment, participant_id, error):
         """Handle errors after the response write is committed.
 
         Never returns busy/503 here: the page_uuid has already advanced, so a
-        client retry would look like a multi-tab conflict. Fall through to a
-        fatal error page instead.
+        client retry would look like a multi-tab conflict. Transient lock
+        timeouts after that commit are recovered with an approved reload so
+        the next GET /timeline can follow the live cursor.
         """
         if os.getenv("PASSTHROUGH_ERRORS"):
             raise error
-        logger.exception(
-            "Response rendering failed after commit for participant %s.",
-            participant_id,
-        )
+        transient = cls._is_transient_transaction_error(error)
+        if transient:
+            logger.warning(
+                "Response rendering hit transient contention after commit for "
+                "participant %s.",
+                participant_id,
+                exc_info=True,
+            )
+        else:
+            logger.exception(
+                "Response rendering failed after commit for participant %s.",
+                participant_id,
+            )
         db.session.rollback()
+        if transient:
+            reload_response = cls._approved_timeline_reload_response(
+                experiment, participant_id
+            )
+            if reload_response is not None:
+                return reload_response
         return cls._handle_response_fatal_error(experiment, participant_id, error)
 
     @classmethod

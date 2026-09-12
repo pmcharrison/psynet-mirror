@@ -107,6 +107,33 @@ def test_behavior_hash_tracks_release_state():
     assert behavior_hash(first) != behavior_hash(different)
 
 
+def test_simple_grouper_auto_id_includes_initial_group_size():
+    assert SimpleGrouper(group_type="main", initial_group_size=3).id == "main_grouper_3"
+    assert SimpleGrouper(group_type="main", initial_group_size=2).id == "main_grouper_2"
+    assert SimpleGrouper(group_type="main", initial_group_size=2, id_="custom").id == (
+        "custom"
+    )
+
+
+def test_timeline_rejects_same_barrier_id_with_different_behavior():
+    from psynet.timeline import Timeline
+
+    with pytest.raises(ValueError, match="different behavior"):
+        Timeline(
+            SimpleGrouper(group_type="main", initial_group_size=3, id_="same"),
+            SimpleGrouper(group_type="main", initial_group_size=2, id_="same"),
+        )
+
+
+def test_timeline_allows_same_barrier_id_with_matching_behavior():
+    from psynet.timeline import Timeline
+
+    Timeline(
+        SimpleGrouper(group_type="main", initial_group_size=2, id_="same"),
+        SimpleGrouper(group_type="main", initial_group_size=2, id_="same"),
+    )
+
+
 def test_invalid_spec_version_is_rejected():
     serialized = json.dumps(
         {

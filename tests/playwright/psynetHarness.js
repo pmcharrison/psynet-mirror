@@ -1061,10 +1061,26 @@ async function captureFirstTimelineAfterGateway(page, timeout = 120000) {
 function timelineHoldReleaseProbeScript() {
   // Listeners belong on every document. Wrapping resumeTimelineHold happens
   // later, after window.psynet exists, via wrapTimelineHoldResumeProbe.
+  const storedNumber = (key) => {
+    try {
+      const raw = sessionStorage.getItem(key);
+      const value = raw == null ? null : Number(raw);
+      return Number.isFinite(value) ? value : null;
+    } catch (error) {
+      return null;
+    }
+  };
+  const storedText = (key) => {
+    try {
+      return sessionStorage.getItem(key);
+    } catch (error) {
+      return null;
+    }
+  };
   const probe = window.__psynetHoldReleaseProbe || {
-    wakeReceivedAtMs: null,
-    holdEndedAtMs: null,
-    wakeReason: null,
+    wakeReceivedAtMs: storedNumber("__psynetHoldWakeReceivedAtMs"),
+    holdEndedAtMs: storedNumber("__psynetHoldEndedAtMs"),
+    wakeReason: storedText("__psynetHoldWakeReason"),
     resumeReasons: [],
     nextPageHoldResumes: [],
     wrappedResume: false,
@@ -1072,17 +1088,32 @@ function timelineHoldReleaseProbeScript() {
   };
   window.__psynetHoldReleaseProbe = probe;
 
+  const persistClock = (key, value) => {
+    try {
+      if (value == null) {
+        sessionStorage.removeItem(key);
+      } else {
+        sessionStorage.setItem(key, String(value));
+      }
+    } catch (error) {
+      // Private mode can block sessionStorage; the in-memory probe still works.
+    }
+  };
+
   if (!window.__psynetHoldReleaseProbeListeners) {
     window.__psynetHoldReleaseProbeListeners = true;
     window.addEventListener("timelineHoldWakeReceived", (event) => {
       if (probe.wakeReceivedAtMs == null) {
         probe.wakeReceivedAtMs = Date.now();
         probe.wakeReason = event.detail?.reason || null;
+        persistClock("__psynetHoldWakeReceivedAtMs", probe.wakeReceivedAtMs);
+        persistClock("__psynetHoldWakeReason", probe.wakeReason);
       }
     });
     window.addEventListener("timelineHoldEnded", () => {
       if (probe.holdEndedAtMs == null) {
         probe.holdEndedAtMs = Date.now();
+        persistClock("__psynetHoldEndedAtMs", probe.holdEndedAtMs);
       }
     });
     window.addEventListener("timelineHoldStarted", () => {
@@ -1093,6 +1124,9 @@ function timelineHoldReleaseProbeScript() {
       current.wakeReceivedAtMs = null;
       current.holdEndedAtMs = null;
       current.wakeReason = null;
+      persistClock("__psynetHoldWakeReceivedAtMs", null);
+      persistClock("__psynetHoldEndedAtMs", null);
+      persistClock("__psynetHoldWakeReason", null);
     });
   }
 
@@ -1279,8 +1313,12 @@ async function waitForHeldParticipantToResume(
   await expect(page.locator("#psynet-timeline-hold-indicator")).toHaveCount(0);
   await expect(page.locator("body")).not.toHaveClass(/timeline-held/);
   const probe = await readTimelineHoldReleaseProbe(page);
-  // Use the holdEnded event clock, not Date.now() after the prompt appears.
-  return { resumedAtMs: probe.holdEndedAtMs || Date.now() };
+  if (probe.holdEndedAtMs == null) {
+    throw new Error(
+      "waitForHeldParticipantToResume missing holdEndedAtMs; the probe did not see timelineHoldEnded."
+    );
+  }
+  return { resumedAtMs: probe.holdEndedAtMs };
 }
 
 function readTimelinePageFromHtml(html) {

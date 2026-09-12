@@ -244,13 +244,14 @@ def test_timeline_handler_skips_unused_participant_relationships(
     db.session.remove()
 
     with _timeline_request(unique_id):
-        # Write/commit/read-only render is more than one SELECT. The table
+        # Write/commit/read-only render plus SET LOCAL lock_timeout. The table
         # assertions below are the unused-relationship regression check.
-        with assert_query_count(min_queries=1, max_queries=5) as profiler:
+        with assert_query_count(min_queries=1, max_queries=6) as profiler:
             second = experiment.route_timeline()
     assert second.status_code == 200
     assert json.loads(second.get_data())["attributes"]["unique_id"] == unique_id
     assert _table_query_count(profiler, "participant_link_barrier") == 0
+    assert _table_query_count(profiler, "participant_link_sync_group") == 0
     assert _table_query_count(profiler, "module_state") == 0
 
 
@@ -283,6 +284,7 @@ def test_response_handler_skips_unused_participant_relationships(
     assert body["status"] == "success"
     assert body["submission"] == "approved"
     assert _table_query_count(profiler, "participant_link_barrier") == 0
+    assert _table_query_count(profiler, "participant_link_sync_group") == 0
     assert _table_query_count(profiler, "module_state") <= 2
 
 

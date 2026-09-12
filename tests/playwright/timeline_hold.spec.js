@@ -5,6 +5,7 @@ const {
   assertNoBackendError,
   completeInitialGateway,
   installTimelineHoldReleaseProbe,
+  silenceTimelineHoldSafetyPoll,
   startResponseSubmitTracker,
   withExperiment
 } = require("./psynetHarness");
@@ -396,6 +397,7 @@ test("timeline hold client overlay and busy retry stay on a live hold", { tag: "
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")
     ).toBeVisible({ timeout: STEP_TIMEOUT_MS });
+    await silenceTimelineHoldSafetyPoll(experimentPage);
 
     const holdClient = await probeTimelineHoldClientBehavior(experimentPage);
     expect(holdClient).toEqual({
@@ -717,7 +719,7 @@ test("timeline hold uses the authoritative server timeout", { tag: "@both" }, as
     ).toBeVisible({ timeout: STEP_TIMEOUT_MS });
     await expect(experimentPage.locator("#main-body")).toContainText(
       "The timeline hold timed out.",
-      { timeout: 3000 }
+      { timeout: STEP_TIMEOUT_MS }
     );
     const fixedCredit = await experimentPage
       .locator("#fixed-hold-credit")

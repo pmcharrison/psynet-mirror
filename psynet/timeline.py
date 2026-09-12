@@ -1070,6 +1070,26 @@ _SPA_CLEANUP_RETURN_RE = re.compile(
 )
 
 
+def _loaded_active_sync_groups(participant):
+    """Return active sync groups only when the collection is already loaded.
+
+    ``Participant.active_sync_groups`` lazy-loads ``sync_group_links``. Pages
+    for participants who were never grouped must not pay that query.
+    """
+    from sqlalchemy.exc import NoInspectionAvailable
+    from sqlalchemy.inspection import inspect as sa_inspect
+
+    try:
+        unloaded = sa_inspect(participant).unloaded
+    except NoInspectionAvailable:
+        groups = getattr(participant, "active_sync_groups", None)
+        return groups or None
+    if "sync_group_links" in unloaded:
+        return None
+    groups = getattr(participant, "active_sync_groups", None)
+    return groups or None
+
+
 def _arrival_updates_for(page, participant):
     """Return partner-ready websocket config, or None when it cannot be used.
 
@@ -1078,7 +1098,7 @@ def _arrival_updates_for(page, participant):
     """
     if getattr(page, "is_timeline_hold", False):
         return None
-    if not getattr(participant, "active_sync_groups", None):
+    if not _loaded_active_sync_groups(participant):
         return None
     from psynet.sync import pending_arrival_notice_for
     from psynet.timeline_hold import _timeline_hold_channel
@@ -2444,6 +2464,31 @@ class Timeline:
         assert len(self.elts["main"]) > 0
         self.check_for_time_estimate()
         self.check_modules()
+        self.check_barrier_ids()
+
+    def check_barrier_ids(self):
+        """Reject one barrier ID used with different release behavior.
+
+        Sequential groupers may share an ID after the first pool deactivates,
+        but only when their persisted behavior hashes match. Overlapping
+        definitions in the same timeline must use distinct IDs.
+        """
+        from .barrier_spec import behavior_hash
+        from .sync import Barrier
+
+        seen = {}
+        for elt in self.all_elts:
+            barrier = elt if isinstance(elt, Barrier) else elt.links.get("barrier")
+            if not isinstance(barrier, Barrier):
+                continue
+            digest = behavior_hash(barrier)
+            previous = seen.get(barrier.id)
+            if previous is not None and previous != digest:
+                raise ValueError(
+                    f"Barrier ID '{barrier.id}' is used with different behavior. "
+                    "Give each distinct waiting pool its own id_."
+                )
+            seen[barrier.id] = digest
 
     def check_for_time_estimate(self):
         for elt in self.all_elts:

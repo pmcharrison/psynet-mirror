@@ -198,7 +198,7 @@ def advance_past_wait_pages(bots: List["BotDriver"], max_iterations=10):
         for bot in bots:
             # Last-arrival may have skipped this waiter while another bot was
             # submitting. Refresh before reading the cached page.
-            bot._fetch_status()
+            bot.refresh_status()
             current_page = bot.get_current_page()
             if isinstance(current_page, WaitPage) or getattr(
                 current_page, "is_timeline_hold", False

@@ -113,7 +113,7 @@ def test_advance_past_wait_pages_refreshes_status_when_server_already_advanced()
     bot.get_current_page.return_value = SimpleNamespace(is_timeline_hold=False)
     advance_past_wait_pages([bot])
     bot.take_page.assert_not_called()
-    bot._fetch_status.assert_called_once()
+    bot.refresh_status.assert_called_once()
 
 
 def test_advance_past_wait_pages_refreshes_before_each_wait_iteration():
@@ -133,4 +133,4 @@ def test_advance_past_wait_pages_refreshes_before_each_wait_iteration():
     bot.get_current_page.side_effect = current_page
     advance_past_wait_pages([bot])
     assert bot.take_page.call_count == 1
-    assert bot._fetch_status.call_count == 2
+    assert bot.refresh_status.call_count == 2

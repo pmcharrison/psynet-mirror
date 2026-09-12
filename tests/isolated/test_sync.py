@@ -23,7 +23,7 @@ from psynet.data import SQLBase
 from psynet.db import _set_transaction_lock_timeout, transaction
 from psynet.experiment import Experiment, get_experiment
 from psynet.modular_page import ModularPage
-from psynet.page import WaitPage
+from psynet.page import InfoPage, WaitPage, wait_while
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallable
@@ -577,9 +577,9 @@ def test_group_allocator(in_experiment_directory, db_session):
     _arrive_at_group_barrier(exp, grouper, participants[0])
     _commit_barrier_arrivals()
 
-    assert BarrierDefinition.query.get("main_grouper") is not None
-    assert "main_grouper" in participants[0].active_barriers
-    assert "main_grouper" not in participants[1].active_barriers
+    assert BarrierDefinition.query.get("main_grouper_3") is not None
+    assert "main_grouper_3" in participants[0].active_barriers
+    assert "main_grouper_3" not in participants[1].active_barriers
     assert not grouper.can_participant_exit(participants[0])
 
     for participant in participants:
@@ -689,7 +689,7 @@ def test_sync_group_dashboard_grouper_progress_uses_timeline_all_elts(monkeypatc
 
     assert _get_grouper_progress() == [
         {
-            "barrier_id": "main_grouper",
+            "barrier_id": "main_grouper_3",
             "group_type": "main",
             "batch_size": 2,
             "initial_group_size": 3,
@@ -1710,7 +1710,7 @@ def test_participant_link_barrier_lists_waiting_participants(
     _arrive_at_group_barrier(exp, grouper, first)
     db.session.commit()
 
-    link = first.active_barriers.get("waitlist_grouper")
+    link = first.active_barriers.get("waitlist_grouper_3")
     assert link is not None
     assert link.get_waiting_participants() == [first]
     assert grouper.get_waiting_participants(first) == [first]
@@ -1718,6 +1718,8 @@ def test_participant_link_barrier_lists_waiting_participants(
     assert grouper.get_waiting_participants(second) == []
     with pytest.raises(TypeError, match="for_update"):
         grouper.get_waiting_participants(True)
+    with pytest.raises(TypeError):
+        link.get_waiting_participants(True)
     pair_first, _pair_last = _pair_sync_group(exp, db_session)[0]
     grouped = GroupBarrier(id_="needs_visit", group_type="main")
     with pytest.raises(TypeError, match="needs a participant"):
@@ -1815,9 +1817,11 @@ def test_check_instance_does_not_reactivate_when_another_pool_is_active(
     db.session.commit()
     leftover = BarrierInstance.query.get(leftover.id)
     newer = BarrierInstance.query.get(newer.id)
+    first = Participant.query.get(first.id)
     assert leftover.active is False
     assert newer.active is True
     assert _barrier_link_released(first.id, barrier.id) is False
+    assert first.active_barriers[barrier.id].barrier_instance_id == newer.id
 
 
 @pytest.mark.parametrize(
@@ -1833,7 +1837,11 @@ def test_ungrouped_instance_clears_active_so_later_behavior_can_reuse_the_id(
     for participant in first_wave + second_wave:
         participant.status = "working"
     db.session.commit()
-    first_grouper = SimpleGrouper(group_type="regroup_sizes", initial_group_size=3)
+    first_grouper = SimpleGrouper(
+        group_type="regroup_sizes",
+        initial_group_size=3,
+        id_="regroup_sizes_grouper",
+    )
     for participant in first_wave:
         _arrive_at_group_barrier(exp, first_grouper, participant)
         _commit_barrier_arrivals()
@@ -1848,7 +1856,11 @@ def test_ungrouped_instance_clears_active_so_later_behavior_can_reuse_the_id(
     } == {group.id}
     group.close()
     db.session.commit()
-    second_grouper = SimpleGrouper(group_type="regroup_sizes", initial_group_size=2)
+    second_grouper = SimpleGrouper(
+        group_type="regroup_sizes",
+        initial_group_size=2,
+        id_="regroup_sizes_grouper",
+    )
     _arrive_at_group_barrier(exp, second_grouper, second_wave[0])
     _commit_barrier_arrivals()
     instances = BarrierInstance.query.filter_by(
@@ -1876,7 +1888,7 @@ def test_for_arrival_reactivates_inactive_ungrouped_instance_with_waiters(
     _arrive_at_group_barrier(exp, grouper, first)
     db.session.commit()
     instance = BarrierInstance.query.filter_by(
-        barrier_id="reuse_ungrouped_grouper"
+        barrier_id="reuse_ungrouped_grouper_3"
     ).one()
     instance_id = instance.id
     instance.active = False
@@ -1886,7 +1898,7 @@ def test_for_arrival_reactivates_inactive_ungrouped_instance_with_waiters(
     assert recovered.id == instance_id
     assert recovered.active is True
     assert (
-        BarrierInstance.query.filter_by(barrier_id="reuse_ungrouped_grouper").count()
+        BarrierInstance.query.filter_by(barrier_id="reuse_ungrouped_grouper_3").count()
         == 1
     )
 
@@ -1906,7 +1918,7 @@ def test_check_instance_does_not_reactivate_ungrouped_when_another_pool_is_activ
     _arrive_at_group_barrier(exp, grouper, first)
     db.session.commit()
     leftover = BarrierInstance.query.filter_by(
-        barrier_id="split_ungrouped_grouper"
+        barrier_id="split_ungrouped_grouper_3"
     ).one()
     leftover.active = False
     db.session.commit()
@@ -1927,9 +1939,60 @@ def test_check_instance_does_not_reactivate_ungrouped_when_another_pool_is_activ
     db.session.commit()
     leftover = BarrierInstance.query.get(leftover.id)
     newer = BarrierInstance.query.get(newer.id)
+    first = Participant.query.get(first.id)
     assert leftover.active is False
     assert newer.active is True
-    assert _barrier_link_released(first.id, "split_ungrouped_grouper") is False
+    assert _barrier_link_released(first.id, "split_ungrouped_grouper_3") is False
+    assert first.active_barriers["split_ungrouped_grouper_3"].barrier_instance_id == (
+        newer.id
+    )
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_leftover_ungrouped_waiter_joins_the_active_pool_and_can_proceed(
+    in_experiment_directory, db_session
+):
+    """A leftover waiter must join the live pool in time to be grouped."""
+    exp = get_experiment()
+    first, second, third = [new_participant(exp) for _ in range(3)]
+    for participant in (first, second, third):
+        participant.status = "working"
+    db.session.commit()
+    grouper = SimpleGrouper(group_type="migrate_join", initial_group_size=3)
+    _arrive_at_group_barrier(exp, grouper, first)
+    db.session.commit()
+    leftover = BarrierInstance.query.filter_by(barrier_id=grouper.id).one()
+    leftover.active = False
+    newer = BarrierInstance(
+        id=str(uuid.uuid4()),
+        barrier_id=leftover.barrier_id,
+        group_id=None,
+        active=True,
+        spec=leftover.spec,
+        behavior_hash=leftover.behavior_hash,
+    )
+    db.session.add(newer)
+    db.session.commit()
+    _arrive_at_group_barrier(exp, grouper, second)
+    db.session.commit()
+    leftover = BarrierInstance.query.get(leftover.id)
+    assert _check_claimed_barrier_instance(leftover) is True
+    db.session.commit()
+    db.session.expire_all()
+    first = Participant.query.get(first.id)
+    leftover = BarrierInstance.query.get(leftover.id)
+    newer = BarrierInstance.query.get(newer.id)
+    assert leftover.active is False
+    assert first.active_barriers[grouper.id].barrier_instance_id == newer.id
+    _arrive_at_group_barrier(exp, grouper, third)
+    _commit_barrier_arrivals()
+    groups = {
+        Participant.query.get(participant.id).sync_group.id
+        for participant in (first, second, third)
+    }
+    assert len(groups) == 1
 
 
 @pytest.mark.parametrize(
@@ -2224,7 +2287,7 @@ def test_last_of_three_skips_stacked_holds_and_releases_waiters(
 def test_stale_hold_resume_approves_the_current_page_after_last_arrival(
     in_experiment_directory, db_session
 ):
-    """A hold-resume with the old uuid is a catch-up, not a multi-tab reject."""
+    """A submit with the old hold uuid is a catch-up, not a multi-tab reject."""
     exp = get_experiment()
     original_timeline = exp.timeline
     group_type = f"stack_resume_{uuid.uuid4().hex[:8]}"
@@ -2250,7 +2313,7 @@ def test_stale_hold_resume_approves_the_current_page_after_last_arrival(
             exp.timeline.get_current_elt(exp, first), "is_timeline_hold", False
         )
 
-        rejected = _process_response(exp, first, hold_uuid)
+        rejected = _process_response(exp, first, str(uuid.uuid4()))
         assert rejected.payload["submission"] == "rejected"
 
         unknown = _process_response(
@@ -2260,7 +2323,7 @@ def test_stale_hold_resume_approves_the_current_page_after_last_arrival(
 
         progress_before = first.progress
         current_page = exp.timeline.get_current_elt(exp, first)
-        approved = _process_response(exp, first, hold_uuid, timeline_hold_resume=True)
+        approved = _process_response(exp, first, hold_uuid)
         assert approved.payload["submission"] == "approved"
         assert approved.page.label == "choose_action"
         assert approved.payload["page"]["attributes"]["type"] == "ModularPage"
@@ -2275,6 +2338,46 @@ def test_stale_hold_resume_approves_the_current_page_after_last_arrival(
         assert (
             exp._page_for_stale_hold_resume(first, hold_uuid, current_page) is not None
         )
+    finally:
+        exp.timeline = original_timeline
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_stale_wait_while_uuid_is_catch_up_after_get_skip(
+    in_experiment_directory, db_session
+):
+    """A ready wait_while skip must accept the old hold uuid on the next POST."""
+    exp = get_experiment()
+    original_timeline = exp.timeline
+    ready = {"stop": False}
+    exp.timeline = Timeline(
+        wait_while(lambda: not ready["stop"], expected_wait=1),
+        InfoPage("done", time_estimate=1),
+    )
+    try:
+        (first,) = _working_participants(exp, 1)
+        first_response = _json_timeline(exp, first)
+        assert first_response.status_code == 200
+        first = Participant.query.get(first.id)
+        hold_uuid = first.page_uuid
+        assert getattr(
+            exp.timeline.get_current_elt(exp, first), "is_timeline_hold", False
+        )
+        ready["stop"] = True
+        skipped = _json_timeline(exp, first)
+        assert skipped.status_code == 200
+        db.session.expire_all()
+        first = Participant.query.get(first.id)
+        assert first.page_uuid != hold_uuid
+        assert not getattr(
+            exp.timeline.get_current_elt(exp, first), "is_timeline_hold", False
+        )
+        approved = _process_response(exp, first, hold_uuid)
+        assert approved.payload["submission"] == "approved"
+        assert not getattr(approved.page, "is_timeline_hold", False)
+        assert approved.payload["page"]["attributes"]["page_uuid"] == first.page_uuid
     finally:
         exp.timeline = original_timeline
 

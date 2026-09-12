@@ -1268,8 +1268,14 @@ class ParticipantDriver:
         self._submit_response(self.status, self.response_files, response)
         if render_pages:
             self._render_page()
+            # GET /timeline can skip a ready hold after the submit fetch.
+            self.refresh_status()
 
         return True
+
+    def refresh_status(self):
+        """Reload the cached page and response files from the experiment server."""
+        self._fetch_status()
 
     def _fetch_status(self):
         """
