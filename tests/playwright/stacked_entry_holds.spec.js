@@ -59,7 +59,8 @@ test("last choice releases the waiting partner without a safety poll", { tag: "@
 }) => {
   // After both players reach the action page, the first submit waits in place.
   // The second submit is a POST /response last arrival, which is a different
-  // finalize path from the first GET /timeline skip.
+  // finalize path from the first GET /timeline skip. A last-arrival GET can
+  // 302 after page_uuid advances; first-paint waits for the 200 HTML body.
   const { experiment, sessions } = await startHoldExperiment(browser, RPS_DIR, [
     "choice_hold_first",
     "choice_hold_second"

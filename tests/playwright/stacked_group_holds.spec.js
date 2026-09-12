@@ -13,6 +13,7 @@ const {
   enterPossiblyHeldArrival,
   enterSkippingHold,
   enterWaitingHold,
+  lastArriverReleaseAtMs,
   startHoldExperiment,
   stopExperiment,
   submitChoiceMaybeHeld,
@@ -86,7 +87,7 @@ test("two late trio members arriving together release every waiter", { tag: "@bo
       })
     ]);
     const laterEntry =
-      arrivalA.entry.start.timelineAtMs >= arrivalB.entry.start.timelineAtMs
+      lastArriverReleaseAtMs(arrivalA.entry) >= lastArriverReleaseAtMs(arrivalB.entry)
         ? arrivalA.entry
         : arrivalB.entry;
     await assertWaiterReleasedWithLastArriver(first, laterEntry);
@@ -113,7 +114,8 @@ test("last of three choices releases both waiting members", { tag: "@both" }, as
   browser
 }) => {
   // The post-choice barrier is a POST /response last arrival with two people
-  // already held. Both have to leave without a safety poll.
+  // already held. Both have to leave without a safety poll. Entry first-paint
+  // must follow a last-arrival GET /timeline 302 to the 200 HTML document.
   const { experiment, sessions } = await startHoldExperiment(browser, TRIO_DIR, [
     "trio_choice_a",
     "trio_choice_b",
@@ -231,7 +233,9 @@ test("two late choices complete a trio without a safety poll", { tag: "@both" },
       })
     ]);
     const laterChoice =
-      choiceA.start.timelineAtMs >= choiceB.start.timelineAtMs ? choiceA : choiceB;
+      lastArriverReleaseAtMs(choiceA) >= lastArriverReleaseAtMs(choiceB)
+        ? choiceA
+        : choiceB;
     await assertWaiterReleasedWithLastArriver(first, laterChoice, {
       prompt: RESULTS_PROMPT
     });

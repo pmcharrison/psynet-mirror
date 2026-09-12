@@ -870,7 +870,16 @@ function isTimelineDocumentResponse(response) {
   } catch {
     return false;
   }
-  return response.request().method() === "GET" && url.pathname === "/timeline";
+  if (response.request().method() !== "GET" || url.pathname !== "/timeline") {
+    return false;
+  }
+  // JSON fragments use mode=. Last-arrival skip can 302 GET /timeline when
+  // page_uuid advances during read-only render; first-paint must wait for the
+  // following HTML document, not the empty redirect body.
+  if (url.searchParams.has("mode")) {
+    return false;
+  }
+  return response.status() === 200 || response.status() === 503;
 }
 
 function parseTrackedParticipantRequest(urlLike, method) {
@@ -982,7 +991,8 @@ function startParticipantRequestTracker(page) {
         status: response.status(),
         durationMs: requestDurationMs(request, wallMs),
         busy: response.status() === 503,
-        startedAtMs: startedAt.get(request) || Date.now()
+        startedAtMs: startedAt.get(request) || Date.now(),
+        finishedAtMs: Date.now()
       });
     })();
     pending.push(task);
@@ -1078,6 +1088,7 @@ function unexpectedBlockingRequests(records, maxDurationMs, options = {}) {
 
 async function enterTimelineAfterGateway(page, timeout = 120000) {
   const tracker = startParticipantRequestTracker(page);
+  // Ignore 302s from last-arrival skip; paint comes from the 200 HTML body.
   const timelineResponsePromise = page.waitForResponse(isTimelineDocumentResponse, {
     timeout
   });
@@ -1151,6 +1162,7 @@ function timelineHoldReleaseProbeScript() {
   const probe = window.__psynetHoldReleaseProbe || {
     wakeReceivedAtMs: storedNumber("__psynetHoldWakeReceivedAtMs"),
     holdEndedAtMs: storedNumber("__psynetHoldEndedAtMs"),
+    previousHoldEndedAtMs: storedNumber("__psynetPrevHoldEndedAtMs"),
     wakeReason: storedText("__psynetHoldWakeReason"),
     resumeReasons: [],
     nextPageHoldResumes: [],
@@ -1201,6 +1213,10 @@ function timelineHoldReleaseProbeScript() {
       if (!current) {
         return;
       }
+      // Keep the previous hold's end clock. A later hold, or a legacy reload
+      // that starts a hold controller, must not erase the resume we already saw.
+      current.previousHoldEndedAtMs = current.holdEndedAtMs;
+      persistClock("__psynetPrevHoldEndedAtMs", current.holdEndedAtMs);
       current.wakeReceivedAtMs = null;
       current.holdEndedAtMs = null;
       current.wakeReason = null;
@@ -1364,6 +1380,7 @@ async function readTimelineHoldReleaseProbe(page) {
         probe || {
           wakeReceivedAtMs: null,
           holdEndedAtMs: null,
+          previousHoldEndedAtMs: null,
           wakeReason: null,
           resumeReasons: [],
           nextPageHoldResumes: [],
@@ -1373,6 +1390,7 @@ async function readTimelineHoldReleaseProbe(page) {
     .catch(() => ({
       wakeReceivedAtMs: null,
       holdEndedAtMs: null,
+      previousHoldEndedAtMs: null,
       wakeReason: null,
       resumeReasons: [],
       nextPageHoldResumes: [],
@@ -1413,9 +1431,22 @@ function resumeReasonsSince(probe, startedAtMs) {
   );
 }
 
+function holdEndedAtMsFromProbe(probe, resumeLog = []) {
+  if (probe?.holdEndedAtMs != null) {
+    return probe.holdEndedAtMs;
+  }
+  if (probe?.previousHoldEndedAtMs != null) {
+    return probe.previousHoldEndedAtMs;
+  }
+  const loggedEnd = [...resumeLog]
+    .reverse()
+    .find((entry) => entry.kind === "holdEnded");
+  return loggedEnd?.atMs ?? null;
+}
+
 async function waitForHeldParticipantToResume(
   page,
-  { prompt, timeout = 120000 } = {}
+  { prompt, timeout = 120000, resumeLog = [] } = {}
 ) {
   if (!prompt) {
     throw new Error("waitForHeldParticipantToResume requires a prompt.");
@@ -1436,12 +1467,15 @@ async function waitForHeldParticipantToResume(
         timeout: remaining
       });
       const probe = await readTimelineHoldReleaseProbe(page);
-      if (probe.holdEndedAtMs == null) {
-        throw new Error(
+      const endedAtMs = holdEndedAtMsFromProbe(probe, resumeLog);
+      if (endedAtMs == null) {
+        lastError = new Error(
           "waitForHeldParticipantToResume missing holdEndedAtMs; the probe did not see timelineHoldEnded."
         );
+        await page.waitForTimeout(50);
+        continue;
       }
-      return { resumedAtMs: probe.holdEndedAtMs };
+      return { resumedAtMs: endedAtMs };
     } catch (error) {
       lastError = error;
       if (!isDestroyedExecutionContext(error)) {

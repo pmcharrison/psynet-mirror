@@ -87,7 +87,27 @@ function lastArriverWorkRecord(lastEntry) {
     (record) =>
       record.kind === "timeline_document" || record.kind === "timeline_json"
   );
-  return timelines[timelines.length - 1] || null;
+  // A last-arrival GET can 302 after page_uuid advances during render. The
+  // first GET is the grouping work; the follow-up 200 is only the HTML body.
+  return timelines[0] || null;
+}
+
+function requestFinishedAtMs(record) {
+  if (record?.finishedAtMs != null) {
+    return record.finishedAtMs;
+  }
+  if (record?.startedAtMs != null && record?.durationMs != null) {
+    return record.startedAtMs + record.durationMs;
+  }
+  return null;
+}
+
+function lastArriverReleaseAtMs(lastEntry) {
+  const finishedAtMs = requestFinishedAtMs(lastArriverWorkRecord(lastEntry));
+  if (finishedAtMs != null) {
+    return finishedAtMs;
+  }
+  return lastArriverClock(lastEntry).paintedAtMs;
 }
 
 function overlayLingerBudgetMs(holdResumePostMs) {
@@ -148,6 +168,7 @@ function holdReleaseSummary({
   clickToPaintMs,
   afterClickMs,
   afterPaintMs,
+  afterReleaseMs = null,
   clockKind = "entry",
   holdResumePostMs,
   holdResumePost = null,
@@ -194,10 +215,15 @@ function holdReleaseSummary({
     clockKind === "choice" ? "last paint" : "last timeline";
   const afterClickLabel =
     clockKind === "choice" ? "after last choice" : "after last consent";
+  const afterReleaseNote =
+    afterReleaseMs == null
+      ? ""
+      : `; ${Math.round(afterReleaseMs)}ms after last arriver ${lastWorkKind} finished`;
   return (
     `${label}: last arriver ${clickLabel} ${Math.round(clickToPaintMs)}ms ` +
     `(${lastWorkKind} ${lastWorkDetail}); ` +
-    `waiter ${Math.round(afterPaintMs)}ms after ${afterPaintLabel} ` +
+    `waiter ${Math.round(afterPaintMs)}ms after ${afterPaintLabel}` +
+    `${afterReleaseNote} ` +
     `(${Math.round(afterClickMs)}ms ${afterClickLabel}; ` +
     `hold-resume POST ${holdResumeDetail}; overlay budget ${Math.round(lingerBudget)}ms; extra GET /timeline ${extraTimelineGets}; ` +
     `inplace=${isInplaceTimelineModeEnabled()}; ` +
@@ -213,7 +239,7 @@ function assertEntryWasResponsive(entry, label) {
   const summary = summarizeParticipantRequests(entry.tracker.records);
   const entryRequests = entryPathRequests(entry.tracker.records);
   expect(
-    [200, 301, 302, 303, 307, 308].includes(entry.timeline.status),
+    [200, 503].includes(entry.timeline.status),
     `${label} first GET /timeline status ${entry.timeline.status} (${summary})`
   ).toBe(true);
   expect(entry.timeline.busy, `${label} first GET /timeline was busy (${summary})`).toBe(
@@ -331,7 +357,8 @@ async function armVisibleHold(
   }
   session.resumePromise = waitForHeldParticipantToResume(session.page, {
     prompt,
-    timeout
+    timeout,
+    resumeLog: session.resumeLog
   });
   return true;
 }
@@ -359,7 +386,10 @@ async function enterWaitingHold(session, { holdText, prompt, timeout = STEP_TIME
 async function enterSkippingHold(session, { timeout = STEP_TIMEOUT_MS } = {}) {
   session.entry = await enterTimelineAfterGateway(session.page, timeout);
   assertEntryWasResponsive(session.entry, session.label);
-  expect(session.entry.paint.type).toBe("ModularPage");
+  expect(
+    session.entry.paint.type,
+    `${session.label} first timeline HTML was not a ModularPage (status=${session.entry.timeline.status}, type=${session.entry.paint.type})`
+  ).toBe("ModularPage");
   expect(session.entry.paint.showsHold).toBe(false);
   await waitForTimelinePageReady(session.page, timeout);
   await expect(session.page.locator("#main-body")).toContainText(ACTION_PROMPT, {
@@ -446,7 +476,10 @@ async function attachClearedHoldResume(
     probe.holdEndedAtMs != null &&
     (sinceMs == null || probe.holdEndedAtMs >= sinceMs)
       ? probe.holdEndedAtMs
-      : null;
+      : probe.previousHoldEndedAtMs != null &&
+          (sinceMs == null || probe.previousHoldEndedAtMs >= sinceMs)
+        ? probe.previousHoldEndedAtMs
+        : null;
   const resumedAtMs = endedAtMs || logged?.atMs;
   if (resumedAtMs == null) {
     throw new Error(
@@ -586,10 +619,12 @@ async function assertWaiterReleasedWithLastArriver(
     : session.entry.tracker.records;
   const clock = lastArriverClock(lastEntry);
   const sinceMs = clock.clickedAtMs;
-  const extraTimelineSinceMs = clock.paintedAtMs;
+  const releaseAtMs = lastArriverReleaseAtMs(lastEntry);
+  const extraTimelineSinceMs = releaseAtMs;
   const resumeRequests = responsesSince(records, sinceMs);
   const afterClickMs = resume.resumedAtMs - clock.clickedAtMs;
   const afterPaintMs = resume.resumedAtMs - clock.paintedAtMs;
+  const afterReleaseMs = resume.resumedAtMs - releaseAtMs;
   const laterTimeline = requestsSince(
     records,
     extraTimelineSinceMs,
@@ -618,6 +653,7 @@ async function assertWaiterReleasedWithLastArriver(
     clickToPaintMs: clock.clickToPaintMs,
     afterClickMs,
     afterPaintMs,
+    afterReleaseMs,
     clockKind: clock.kind,
     holdResumePostMs,
     holdResumePost: holdResumePosts[0] || null,
@@ -666,7 +702,7 @@ async function assertWaiterReleasedWithLastArriver(
     ).toBeLessThan(lingerBudgetMs);
   }
   expect(
-    afterPaintMs,
+    afterReleaseMs,
     `${session.label} hold-resume clock ran backwards (${summary})`
   ).toBeGreaterThan(-ENTRY_REQUEST_MAX_MS);
   expect(
@@ -684,12 +720,12 @@ async function assertWaiterReleasedWithLastArriver(
   if (isInplaceTimelineModeEnabled()) {
     expect(
       laterTimeline.length,
-      `${session.label} extra /timeline reloads after the last arriver painted (${summary})`
+      `${session.label} extra /timeline reloads after the last arriver finished grouping (${summary})`
     ).toBe(0);
   } else {
     expect(
       laterTimeline.length,
-      `${session.label} extra /timeline reloads after the last arriver painted (${summary})`
+      `${session.label} extra /timeline reloads after the last arriver finished grouping (${summary})`
     ).toBeLessThanOrEqual(1);
   }
   expect(
@@ -829,6 +865,7 @@ module.exports = {
   enterSkippingHold,
   enterTimelineAfterGateway,
   enterWaitingHold,
+  lastArriverReleaseAtMs,
   responsesSince,
   startHoldExperiment,
   stopExperiment,
