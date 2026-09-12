@@ -1338,6 +1338,12 @@ async function evaluateOnLivePage(page, pageFunction, timeout = 10000) {
         throw error;
       }
       await page.waitForLoadState("domcontentloaded").catch(() => {});
+      const remaining = Math.max(250, deadline - Date.now());
+      // Legacy hold resume can land on the HTML busy page first. Wait for
+      // psynet.js before retrying so the next evaluate is not a ReferenceError.
+      await page
+        .waitForFunction(() => window.psynet, { timeout: remaining })
+        .catch(() => {});
     }
   }
   throw lastError;

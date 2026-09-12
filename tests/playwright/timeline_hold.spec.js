@@ -271,7 +271,7 @@ async function probeTimelineHoldClientBehavior(page) {
         psynet.beginTimelineHold(hold);
       }
     }
-  });
+  }, 30000);
 }
 
 test("wait_while preserves the submitted page and wakes after async work", { tag: "@both" }, async ({
