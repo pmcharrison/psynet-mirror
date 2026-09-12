@@ -255,6 +255,10 @@ def test_timeline_handler_skips_unused_participant_relationships(
     assert _table_query_count(profiler, "participant_link_sync_group") <= 1
     assert _table_query_count(profiler, "module_state") == 0
     timing = second.headers.get("Server-Timing", "")
+    assert "lock;dur=" in timing
+    assert "page;dur=" in timing
+    assert "barriers;dur=" in timing
+    assert "render;dur=" in timing
     assert "app;dur=" in timing
 
 

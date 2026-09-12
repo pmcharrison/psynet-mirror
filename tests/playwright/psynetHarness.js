@@ -1050,14 +1050,10 @@ function serverQueueDetail(record) {
   const queueMs =
     record.durationMs != null ? Math.max(0, record.durationMs - serverMs) : null;
   const parts = [`server=${Math.round(serverMs)}ms`];
-  if (timing.process != null) {
-    parts.push(`process=${Math.round(timing.process)}`);
-  }
-  if (timing.barriers != null) {
-    parts.push(`barriers=${Math.round(timing.barriers)}`);
-  }
-  if (timing.render != null) {
-    parts.push(`render=${Math.round(timing.render)}`);
+  for (const name of ["lock", "page", "process", "barriers", "render"]) {
+    if (timing[name] != null) {
+      parts.push(`${name}=${Math.round(timing[name])}`);
+    }
   }
   if (queueMs != null) {
     parts.push(`queue~${Math.round(queueMs)}`);

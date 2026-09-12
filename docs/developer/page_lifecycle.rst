@@ -407,12 +407,15 @@ Those routes do not share a lock protocol:
   Hold-resume POSTs take the participant with ``NOWAIT`` so they cannot sit
   behind the last arriver's row lock. ``POST /response`` still reports
   ``Server-Timing`` phases (``process``, ``barriers``, ``render``, ``app``).
-  ``GET /timeline`` reports ``app``. Browser wall time minus ``app`` is
-  queueing plus network. ``psynet debug local`` (Flask) is one process.
-  ``psynet debug --legacy`` starts two gunicorn workers so a waiter POST can
-  overlap last-arrival work; remaining ``queue~`` means the worker pool is
-  busy. A short HTTP 503 on hold-resume is that ``NOWAIT`` overlap, not a
-  missed wake.
+  ``GET /timeline`` reports ``lock``, ``page``, ``barriers``, ``render``, and
+  ``app``. ``lock`` is the participant ``FOR UPDATE`` load; ``page`` is
+  ``get_current_page`` through the first commit; ``barriers`` is hold skip
+  plus last-arrival checks; ``render`` is the HTML (or JSON) body. Browser
+  wall time minus ``app`` is queueing plus network. ``psynet debug local``
+  (Flask) is one process. ``psynet debug --legacy`` starts three gunicorn
+  workers so last-arrival GET can overlap two waiter POSTs; remaining
+  ``queue~`` means the worker pool is busy. A short HTTP 503 on hold-resume
+  is that ``NOWAIT`` overlap, not a missed wake.
 * After the arrival write commits, queued barrier checks run in short
   transactions. Websocket wakes from those inner commits wait until stacked
   finalize returns.

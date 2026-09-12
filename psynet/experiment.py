@@ -5201,9 +5201,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def route_timeline(cls):
         started = time.perf_counter()
+        mark = started
+        phases = {}
+        closed_phases = set()
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
         participant_id = None
+
+        def close_phase(name):
+            nonlocal mark
+            if name in closed_phases:
+                return
+            now = time.perf_counter()
+            phases[name] = (now - mark) * 1000.0
+            mark = now
+            closed_phases.add(name)
+
         try:
             _set_transaction_lock_timeout(
                 get_config().get("timeline_lock_timeout_seconds")
@@ -5212,8 +5225,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 unique_id, for_update=True
             )
             participant_id = participant.id
+            close_phase("lock")
             experiment = get_experiment()
-            response = cls._route_timeline(experiment, participant, mode)
+            response = cls._route_timeline(
+                experiment, participant, mode, close_phase=close_phase
+            )
         except Exception as error:
             if not cls._is_transient_transaction_error(error):
                 raise
@@ -5227,6 +5243,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls._apply_timeline_timing(
             response,
             participant_id=participant_id,
+            phases=phases,
             total_ms=(time.perf_counter() - started) * 1000.0,
             mode=mode,
         )
@@ -5399,7 +5416,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls.busy_response()
 
     @classmethod
-    def _route_timeline(cls, experiment, participant, mode):
+    def _route_timeline(cls, experiment, participant, mode, *, close_phase=None):
+        close = close_phase or (lambda _name: None)
         try:
             # Finished participants who hit Back from the exit page would
             # otherwise land on a stale first timeline page with no Next.
@@ -5438,6 +5456,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant_id = participant.id
             unique_id = participant.unique_id
             db.session.commit()
+            close("page")
             participant, page = cls._finalize_pending_timeline_barriers(
                 experiment, participant, page
             )
@@ -5445,7 +5464,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # Close any implicit transaction opened by expire-on-commit
             # reloads or ``pre_render()`` so read-only rendering can start.
             db.session.commit()
-            return cls._render_timeline_page_read_only(
+            close("barriers")
+            rendered = cls._render_timeline_page_read_only(
                 experiment=experiment,
                 participant_id=participant_id,
                 unique_id=unique_id,
@@ -5453,6 +5473,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 page=page,
                 mode=mode,
             )
+            close("render")
+            return rendered
         except cls.HandledError as err:
             # HandledError.error_page re-fetches and prepares recovery. Those
             # writes must happen after rollback, not in a read-only transaction.
@@ -6086,19 +6108,37 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return flask_response
 
     @classmethod
-    def _apply_timeline_timing(cls, response, *, participant_id, total_ms, mode):
-        """Attach ``Server-Timing`` ``app`` and log GET /timeline duration.
+    def _apply_timeline_timing(
+        cls, response, *, participant_id, phases, total_ms, mode
+    ):
+        """Attach ``Server-Timing`` phases and log GET /timeline duration.
 
-        Browser wall time minus ``app`` is queueing plus network. ``psynet debug
-        local`` (Flask) is one process; ``psynet debug --legacy`` starts two
-        gunicorn workers so a waiter POST can overlap last-arrival GET
-        /timeline. Remaining ``queue~`` is a saturated worker pool.
+        ``lock`` is the participant ``FOR UPDATE`` load. ``page`` is
+        ``get_current_page`` through the first commit. ``barriers`` is hold
+        skip plus last-arrival checks. ``render`` is the HTML or JSON body.
+        ``app`` is handler time; browser wall minus ``app`` is queueing plus
+        network. Flask debug is one process; legacy debug uses three gunicorn
+        workers, so waiter queueing means the pool is busy, not that this
+        waiter's SQL is slow.
         """
-        flask_response = cls._attach_server_timing(response, {"app": total_ms})
+        metrics = {
+            "lock": phases.get("lock") or 0.0,
+            "page": phases.get("page") or 0.0,
+            "barriers": phases.get("barriers") or 0.0,
+            "render": phases.get("render") or 0.0,
+            "app": total_ms,
+        }
+        flask_response = cls._attach_server_timing(response, metrics)
         logger.info(
-            "GET /timeline timing participant=%s pid=%s total_ms=%.0f mode=%s",
+            "GET /timeline timing participant=%s pid=%s "
+            "lock_ms=%.0f page_ms=%.0f barriers_ms=%.0f render_ms=%.0f "
+            "total_ms=%.0f mode=%s",
             participant_id if participant_id is not None else "-",
             os.getpid(),
+            metrics["lock"],
+            metrics["page"],
+            metrics["barriers"],
+            metrics["render"],
             total_ms,
             mode or "-",
         )
@@ -6122,7 +6162,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ``process`` is ``process_response``. ``barriers`` is queued last-arrival
         work. ``render`` includes inplace prepare plus fragment rendering.
         ``app`` is handler time; browser wall minus ``app`` is queueing plus
-        network. Flask debug is one process; legacy debug uses two gunicorn
+        network. Flask debug is one process; legacy debug uses three gunicorn
         workers, so waiter queueing means the pool is busy, not that this
         waiter's SQL is slow.
         """
