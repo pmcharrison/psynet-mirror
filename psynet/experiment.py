@@ -6076,9 +6076,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _apply_timeline_timing(cls, response, *, participant_id, total_ms, mode):
         """Attach ``Server-Timing`` ``app`` and log GET /timeline duration.
 
-        Browser wall time minus ``app`` is queueing plus network. Last-arrival
-        work on this route can occupy the single ``psynet debug`` thread that
-        waiters need for their hold-resume POST.
+        Browser wall time minus ``app`` is queueing plus network. ``psynet debug
+        local`` (Flask) is one process; ``psynet debug --legacy`` starts two
+        gunicorn workers so a waiter POST can overlap last-arrival GET
+        /timeline. Remaining ``queue~`` is a saturated worker pool.
         """
         flask_response = cls._attach_server_timing(response, {"app": total_ms})
         logger.info(
@@ -6108,8 +6109,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ``process`` is ``process_response``. ``barriers`` is queued last-arrival
         work. ``render`` includes inplace prepare plus fragment rendering.
         ``app`` is handler time; browser wall minus ``app`` is queueing plus
-        network. ``psynet debug`` uses one thread, so a waiter hold-resume can
-        sit behind the last arriver's still-running handler.
+        network. Flask debug is one process; legacy debug uses two gunicorn
+        workers, so waiter queueing means the pool is busy, not that this
+        waiter's SQL is slow.
         """
         metrics = {
             "process": phases.get("process") or 0.0,

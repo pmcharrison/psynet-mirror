@@ -406,8 +406,10 @@ Those routes do not share a lock protocol:
   behind the last arriver's row lock. ``POST /response`` still reports
   ``Server-Timing`` phases (``process``, ``barriers``, ``render``, ``app``).
   ``GET /timeline`` reports ``app``. Browser wall time minus ``app`` is
-  queueing plus network; ``psynet debug`` uses one thread, so a waiter can
-  wait on the last arriver's handler.
+  queueing plus network. ``psynet debug local`` (Flask) is one process.
+  ``psynet debug --legacy`` starts two gunicorn workers so a waiter POST can
+  overlap last-arrival work; remaining ``queue~`` means the worker pool is
+  busy.
 * After the arrival write commits, queued barrier checks run in short
   transactions. Websocket wakes from those inner commits wait until stacked
   finalize returns.
@@ -417,6 +419,9 @@ Those routes do not share a lock protocol:
   and fail must not run yet), skips, commits, and re-reads again. If the hold
   is not ready, GET may recover a dropped last-arrival check without
   ``FOR UPDATE``, so the last arriver can still lock waiters with ``NOWAIT``.
+  When that skip advances ``page_uuid`` during read-only render, GET returns
+  302 to the same URL so the next document follows the live cursor. First-paint
+  checks must wait for the following 200 HTML, not the empty redirect body.
 * ``SET LOCAL lock_timeout`` expires at each of those commits, so GET
   reapplies it before the next lock or ``pre_render()``.
 

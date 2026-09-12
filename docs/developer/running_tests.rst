@@ -152,7 +152,17 @@ wake token plus an approved hold-resume POST still counts as a server wake.
 Hold-release summaries print ``Server-Timing`` ``app`` versus browser wall
 time (``queue~``) for the last arriver's request and the waiter's hold-resume
 POST. Blocking-request checks use ``app`` when that header is present, so
-one-thread debug queueing is not treated as a slow handler.
+worker-pool queueing is not treated as a slow handler. GitLab Playwright jobs
+run ``psynet debug --legacy`` (two gunicorn workers) so last-arrival work can
+overlap waiter hold-resume POSTs.
+
+Last-arrival ``GET /timeline`` can 302 when ``page_uuid`` advances during
+read-only render. First-paint assertions wait for the following 200 HTML
+document. Waiter release clocks are compared with the last arriver's grouping
+request (the first GET or the choice POST), not with how long that browser
+took to paint after a legacy reload. ``waitForHeldParticipantToResume`` keeps
+the previous ``holdEndedAtMs`` across a later ``timelineHoldStarted`` and
+falls back to the context ``resumeLog``.
 
 Faster local iteration for Playwright tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -189,7 +199,12 @@ Playwright harness startup options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Playwright harness launches experiments with ``psynet debug local`` by default
-and does not force legacy mode.
+and does not force legacy mode. GitLab Playwright jobs set
+``PSYNET_USE_LEGACY_DEBUG=1`` so those runs use gunicorn. ``psynet debug
+--legacy`` starts two gunicorn workers, which lets last-arrival ``GET
+/timeline`` overlap waiter hold-resume POSTs. The default vs legacy *job*
+split is still in-place vs full reload (``inplace_timeline_transitions``),
+not Flask vs gunicorn.
 
 Optional environment variables:
 

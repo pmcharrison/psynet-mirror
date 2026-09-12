@@ -451,7 +451,7 @@ class TestCommandLine(object):
 #             bot=False,
 #             proxy=None,
 #             no_browsers=False,
-#             exp_config={"threads": "1"},
+#             exp_config={"threads": "2"},
 #             archive=None,
 #         )
 #
@@ -482,10 +482,38 @@ class TestCommandLine(object):
 #             bot=True,
 #             proxy="5001",
 #             no_browsers=True,
-#             exp_config={"threads": "1"},
+#             exp_config={"threads": "2"},
 #         )
 #
-#
+
+
+def test_debug_legacy_starts_two_gunicorn_workers(monkeypatch):
+    """Legacy debug overlaps last-arrival with waiter hold-resume POSTs."""
+    from psynet.command_line import LEGACY_DEBUG_GUNICORN_THREADS, _debug_legacy
+
+    calls = []
+
+    class _Ctx:
+        def invoke(self, _command, **kwargs):
+            calls.append(kwargs)
+
+    monkeypatch.setattr("psynet.command_line.db.session.commit", lambda: None)
+    monkeypatch.setattr("psynet.command_line.reset_console", lambda: None)
+
+    _debug_legacy(_Ctx(), archive=None, no_browsers=True)
+
+    assert LEGACY_DEBUG_GUNICORN_THREADS == "2"
+    assert calls == [
+        {
+            "verbose": True,
+            "bot": False,
+            "proxy": None,
+            "no_browsers": True,
+            "exp_config": {"threads": "2"},
+        }
+    ]
+
+
 # @pytest.mark.parametrize("experiment_directory", [path_to_test_experiment("timeline")], indirect=True)
 # @pytest.mark.usefixtures("in_experiment_directory")
 # class TestDeploy:
