@@ -1001,10 +1001,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "/timeline",
         ]
         path = request.path
-        # Finished participants who hit Back from the exit page must re-hit
-        # the server (so ``_route_timeline`` can redirect them) instead of
-        # restoring a stale timeline document from the back/forward cache.
-        if path == "/timeline":
+        # Timeline HTML and live JSON snapshots must re-hit the server.
+        # Back from exit must not restore a finished timeline from bfcache.
+        # A cached arrival notice can hide a partner who arrived during
+        # websocket connect; cached progress/reward can freeze the bar.
+        if path == "/timeline" or path.startswith("/timeline/"):
             response.headers["Cache-Control"] = "no-store"
         if path.startswith("/asset/"):
             # Media players issue many Range requests while seeking/buffering.

@@ -943,8 +943,10 @@
       if (psynet.participantId === undefined || typeof $ === "undefined") {
         return;
       }
-      $.get("/timeline/arrival_notice", {
-        participantId: psynet.participantId,
+      $.ajax({
+        url: "/timeline/arrival_notice",
+        cache: false,
+        data: { participantId: psynet.participantId },
       }).done(function (data) {
         if (!psynet.arrivalUpdates) {
           return;
@@ -3729,8 +3731,10 @@
 
   let updateProgressAndReward = function () {
     if (psynet.participantId !== undefined) {
-      $.get("/timeline/progress_and_reward", {
-        participantId: psynet.participantId,
+      $.ajax({
+        url: "/timeline/progress_and_reward",
+        cache: false,
+        data: { participantId: psynet.participantId },
       }).done(function (data) {
         let progressPercentage = data["progressPercentage"];
         let progressPercentageStr = progressPercentage + "%";

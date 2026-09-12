@@ -769,7 +769,7 @@ def test_exit_navigation_replaces_the_finished_timeline_in_history():
     experiment_source = (resources.files("psynet") / "experiment.py").read_text(
         encoding="utf-8"
     )
-    assert 'path == "/timeline"' in experiment_source
+    assert 'path == "/timeline" or path.startswith("/timeline/")' in experiment_source
     assert 'response.headers["Cache-Control"] = "no-store"' in experiment_source
 
 
@@ -918,8 +918,14 @@ def test_arrival_notice_socket_fetches_current_notice_on_open():
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"
     )
+    fetch = js[
+        js.index("psynet.fetchArrivalNotice = function") : js.index(
+            "psynet.ensureArrivalUpdates"
+        )
+    ]
     assert "psynet.fetchArrivalNotice = function" in js
-    assert '"/timeline/arrival_notice"' in js
+    assert '"/timeline/arrival_notice"' in fetch
+    assert "cache: false" in fetch
     assert "onOpen: psynet.fetchArrivalNotice" in js
 
 
