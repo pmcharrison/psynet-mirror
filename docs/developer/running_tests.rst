@@ -205,7 +205,9 @@ Playwright harness startup options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Playwright harness launches experiments with ``psynet debug local`` by default
-and does not force legacy mode. GitLab Playwright jobs set
+and does not force legacy mode. That Flask reloader is one process; use
+``PSYNET_USE_LEGACY_DEBUG=1`` (or ``psynet debug --legacy``) for gunicorn
+workers. GitLab Playwright jobs set
 ``PSYNET_USE_LEGACY_DEBUG=1`` so those runs use gunicorn. ``psynet debug
 --legacy`` starts four gunicorn workers by default. Playwright stacked-hold
 tests set ``PSYNET_LEGACY_DEBUG_GUNICORN_THREADS`` to the session count so

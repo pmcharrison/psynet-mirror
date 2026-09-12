@@ -5197,26 +5197,43 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(release_url=release_url)
 
+    class _ServerTimingClock:
+        """Record consecutive Server-Timing phase durations."""
+
+        def __init__(self):
+            self.started = time.perf_counter()
+            self._mark = self.started
+            self.phases = {}
+            self._closed = set()
+
+        def close(self, name):
+            """Close ``name`` if it is still open."""
+            if name in self._closed:
+                return
+            now = time.perf_counter()
+            self.phases[name] = (now - self._mark) * 1000.0
+            self._mark = now
+            self._closed.add(name)
+
+        def close_open(self, *names):
+            """Close the first still-open name in ``names``."""
+            for name in names:
+                if name not in self._closed:
+                    self.close(name)
+                    return
+
+        def elapsed_ms(self):
+            """Return milliseconds since the clock started."""
+            return (time.perf_counter() - self.started) * 1000.0
+
     @experiment_route("/timeline", methods=["GET"])
     @classmethod
     @with_transaction
     def route_timeline(cls):
-        started = time.perf_counter()
-        mark = started
-        phases = {}
-        closed_phases = set()
+        clock = cls._ServerTimingClock()
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
         participant_id = None
-
-        def close_phase(name):
-            nonlocal mark
-            if name in closed_phases:
-                return
-            now = time.perf_counter()
-            phases[name] = (now - mark) * 1000.0
-            mark = now
-            closed_phases.add(name)
 
         try:
             _set_transaction_lock_timeout(
@@ -5226,12 +5243,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 unique_id, for_update=True
             )
             participant_id = participant.id
-            close_phase("lock")
+            clock.close("lock")
             experiment = get_experiment()
             response = cls._route_timeline(
-                experiment, participant, mode, close_phase=close_phase
+                experiment, participant, mode, close_phase=clock.close
             )
         except Exception as error:
+            clock.close_open("lock", "page", "barriers", "render")
             if not cls._is_transient_transaction_error(error):
                 raise
             db.session.rollback()
@@ -5244,8 +5262,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls._apply_timeline_timing(
             response,
             participant_id=participant_id,
-            phases=phases,
-            total_ms=(time.perf_counter() - started) * 1000.0,
+            phases=clock.phases,
+            total_ms=clock.elapsed_ms(),
             mode=mode,
         )
 
@@ -6108,6 +6126,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         flask_response.headers["Server-Timing"] = cls._server_timing_header(phases)
         return flask_response
 
+    @staticmethod
+    def _server_timing_metrics(phase_names, phases, total_ms):
+        """Return closed phases plus ``app``.
+
+        Unclosed names are omitted so a lock timeout cannot look like
+        ``lock;dur=0``. ``app`` is handler time; browser wall minus ``app`` is
+        queueing plus network.
+        """
+        metrics = {name: phases[name] for name in phase_names if name in phases}
+        metrics["app"] = total_ms
+        return metrics
+
+    @staticmethod
+    def _format_timing_ms(metrics, name):
+        """Return a log token for a phase, or ``-`` if it never closed."""
+        value = metrics.get(name)
+        return "-" if value is None else f"{value:.0f}"
+
     @classmethod
     def _apply_timeline_timing(
         cls, response, *, participant_id, phases, total_ms, mode
@@ -6117,30 +6153,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ``lock`` is the participant ``FOR UPDATE`` load. ``page`` is
         ``get_current_page`` through the first commit. ``barriers`` is hold
         skip plus last-arrival checks. ``render`` is the HTML or JSON body.
-        ``app`` is handler time; browser wall minus ``app`` is queueing plus
-        network. Flask debug is one process; ``psynet debug --legacy`` uses
-        gunicorn. Waiter queueing means that worker pool is busy, not that
-        this waiter's SQL is slow. Playwright hold tests set the worker count
-        to the session count.
+        Unclosed phases are omitted rather than reported as zero.
         """
-        metrics = {
-            "lock": phases.get("lock") or 0.0,
-            "page": phases.get("page") or 0.0,
-            "barriers": phases.get("barriers") or 0.0,
-            "render": phases.get("render") or 0.0,
-            "app": total_ms,
-        }
+        metrics = cls._server_timing_metrics(
+            ("lock", "page", "barriers", "render"), phases, total_ms
+        )
         flask_response = cls._attach_server_timing(response, metrics)
         logger.info(
             "GET /timeline timing participant=%s pid=%s "
-            "lock_ms=%.0f page_ms=%.0f barriers_ms=%.0f render_ms=%.0f "
+            "lock_ms=%s page_ms=%s barriers_ms=%s render_ms=%s "
             "total_ms=%.0f mode=%s",
             participant_id if participant_id is not None else "-",
             os.getpid(),
-            metrics["lock"],
-            metrics["page"],
-            metrics["barriers"],
-            metrics["render"],
+            cls._format_timing_ms(metrics, "lock"),
+            cls._format_timing_ms(metrics, "page"),
+            cls._format_timing_ms(metrics, "barriers"),
+            cls._format_timing_ms(metrics, "render"),
             total_ms,
             mode or "-",
         )
@@ -6163,30 +6191,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         ``process`` is ``process_response``. ``barriers`` is queued last-arrival
         work. ``render`` includes inplace prepare plus fragment rendering.
-        ``app`` is handler time; browser wall minus ``app`` is queueing plus
-        network. Flask debug is one process; ``psynet debug --legacy`` uses
-        gunicorn. Waiter queueing means that worker pool is busy, not that
-        this waiter's SQL is slow. Playwright hold tests set the worker count
-        to the session count.
+        Unclosed phases are omitted rather than reported as zero.
         """
-        metrics = {
-            "process": phases.get("process") or 0.0,
-            "barriers": phases.get("barriers") or 0.0,
-            "render": phases.get("render") or 0.0,
-            "app": total_ms,
-        }
+        metrics = cls._server_timing_metrics(
+            ("process", "barriers", "render"), phases, total_ms
+        )
         flask_response = cls._attach_server_timing(response, metrics)
         logger.info(
             "POST /response timing participant=%s hold_resume=%s inplace=%s pid=%s "
-            "process_ms=%.0f barriers_ms=%.0f render_ms=%.0f total_ms=%.0f "
+            "process_ms=%s barriers_ms=%s render_ms=%s total_ms=%.0f "
             "barrier_checks=%s page=%s submission=%s",
             participant_id,
             int(bool(hold_resume)),
             int(bool(get_config().get("inplace_timeline_transitions"))),
             os.getpid(),
-            metrics["process"],
-            metrics["barriers"],
-            metrics["render"],
+            cls._format_timing_ms(metrics, "process"),
+            cls._format_timing_ms(metrics, "barriers"),
+            cls._format_timing_ms(metrics, "render"),
             total_ms,
             barrier_checks,
             page_type or "-",
@@ -6200,24 +6221,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_response(cls):
         from .sync import _take_pending_barrier_checks
 
-        started = time.perf_counter()
-        mark = started
-        phases = {}
-        closed_phases = set()
+        clock = cls._ServerTimingClock()
         participant_id = None
         timeline_hold_resume = False
         barrier_checks = 0
         page = None
         submission = None
-
-        def close_phase(name):
-            nonlocal mark
-            if name in closed_phases:
-                return
-            now = time.perf_counter()
-            phases[name] = (now - mark) * 1000.0
-            mark = now
-            closed_phases.add(name)
 
         def finish(response):
             return cls._apply_response_timing(
@@ -6227,8 +6236,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 page_type=None if page is None else type(page).__name__,
                 submission=submission,
                 barrier_checks=barrier_checks,
-                phases=phases,
-                total_ms=(time.perf_counter() - started) * 1000.0,
+                phases=clock.phases,
+                total_ms=clock.elapsed_ms(),
             )
 
         exp = get_experiment()
@@ -6267,7 +6276,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 timeline_hold_resume=timeline_hold_resume,
             )
         except Exception as error:
-            close_phase("process")
+            clock.close_open("process", "barriers", "render")
             busy = cls._busy_response_after_transient(
                 error,
                 participant_id,
@@ -6277,15 +6286,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 submission = "busy"
                 return finish(busy)
             raise
-        close_phase("process")
+        clock.close("process")
 
         pending_barrier_checks = _take_pending_barrier_checks()
         barrier_checks = len(pending_barrier_checks)
         page = result.page
         submission = (result.payload or {}).get("submission")
         if result.flask_response is not None:
-            close_phase("barriers")
-            close_phase("render")
             return finish(result.flask_response)
 
         write_committed = False
@@ -6309,7 +6316,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 payload = result.payload
                 page = result.page
                 submission = payload.get("submission")
-            close_phase("barriers")
+            clock.close("barriers")
             if (
                 approved
                 and include_timeline_fragment
@@ -6332,8 +6339,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.commit()
             write_committed = True
         except Exception as err:
-            close_phase("barriers")
-            close_phase("render")
+            clock.close_open("barriers", "render")
             if write_committed:
                 return finish(
                     cls._handle_response_render_error(exp, participant_id, err)
@@ -6350,13 +6356,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     kind="fragment",
                 )
             except Exception as err:
-                close_phase("render")
+                clock.close("render")
                 if os.getenv("PASSTHROUGH_ERRORS"):
                     raise
                 return finish(
                     cls._handle_response_render_error(exp, participant_id, err)
                 )
-            close_phase("render")
+            clock.close("render")
             if fragment is None:
                 _p = get_translator(context=True)
                 submission = "rejected"
@@ -6373,7 +6379,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             payload["timeline_fragment"] = fragment
             return finish(success_response(**payload))
 
-        close_phase("render")
+        clock.close("render")
         if payload.get("submission") == "rejected":
             return finish(exp.response_rejected(payload["message"]))
         return finish(success_response(**payload))

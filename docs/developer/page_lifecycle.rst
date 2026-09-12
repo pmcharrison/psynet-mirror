@@ -410,9 +410,12 @@ Those routes do not share a lock protocol:
   ``GET /timeline`` reports ``lock``, ``page``, ``barriers``, ``render``, and
   ``app``. ``lock`` is the participant ``FOR UPDATE`` load; ``page`` is
   ``get_current_page`` through the first commit; ``barriers`` is hold skip
-  plus last-arrival checks; ``render`` is the HTML (or JSON) body. Browser
-  wall time minus ``app`` is queueing plus network. ``psynet debug local``
-  (Flask) is one process, so last-arrival and waiter POSTs cannot overlap.
+  plus last-arrival checks; ``render`` is the HTML (or JSON) body. A phase
+  that never ran is omitted from the header, so a lock timeout is ``lock``
+  plus ``app`` without a fake ``page;dur=0``. Browser wall time minus ``app``
+  is queueing plus network. ``psynet debug local`` (Flask) is one process, so
+  last-arrival and waiter POSTs cannot overlap. There is no worker-count flag
+  for that Flask reloader; use ``psynet debug --legacy`` for gunicorn workers.
   ``psynet debug --legacy`` starts gunicorn; both Playwright CI jobs use that
   path. The default vs legacy *job* split is in-place vs full reload, not
   Flask vs gunicorn. Worker-pool ``queue~`` happens in both job modes: the

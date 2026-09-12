@@ -321,6 +321,43 @@ def test_html_timeline_lock_timeout_returns_busy_503(monkeypatch):
         body, status = response, response.status_code
     assert status == 503
     assert body.get_json()["status"] == "busy"
+    timing = body.headers.get("Server-Timing", "")
+    assert "lock;dur=" in timing
+    assert "app;dur=" in timing
+    assert "page;" not in timing
+    assert "barriers;" not in timing
+    assert "render;" not in timing
+
+
+def test_server_timing_clock_closes_only_the_open_phase():
+    from psynet.experiment import Experiment
+
+    clock = Experiment._ServerTimingClock()
+    clock.close("lock")
+    clock.close_open("lock", "page", "barriers", "render")
+    assert set(clock.phases) == {"lock", "page"}
+
+
+def test_timeline_timing_omits_unclosed_phases():
+    from flask import Flask, make_response
+
+    from psynet.experiment import Experiment
+
+    app = Flask(__name__)
+    with app.app_context():
+        response = Experiment._apply_timeline_timing(
+            make_response("ok"),
+            participant_id=1,
+            phases={"lock": 12.0},
+            total_ms=100.0,
+            mode=None,
+        )
+    header = response.headers["Server-Timing"]
+    assert "lock;dur=12.0" in header
+    assert "app;dur=100.0" in header
+    assert "page;" not in header
+    assert "barriers;" not in header
+    assert "render;" not in header
 
 
 def test_html_timeline_lock_timeout_returns_html_busy_page(monkeypatch):
