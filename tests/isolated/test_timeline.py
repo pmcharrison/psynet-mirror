@@ -1028,6 +1028,21 @@ def test_get_trial_maker():
     assert tm_1 != tm_2
 
 
+def test_two_sync_trial_makers_keep_distinct_barrier_ids():
+    tm_1 = new_trial_maker(id_="tm-1", sync_group_type="main")
+    tm_2 = new_trial_maker(id_="tm-2", sync_group_type="main")
+    timeline = Timeline(tm_1, tm_2)
+    ids = {
+        elt.links["barrier"].id
+        for elt in timeline.all_elts
+        if elt.links.get("barrier") is not None
+    }
+    assert tm_1.with_namespace("init_participant") in ids
+    assert tm_2.with_namespace("init_participant") in ids
+    assert tm_1.with_namespace("prepare_trial") in ids
+    assert tm_2.with_namespace("prepare_trial") in ids
+
+
 def test_estimate_credit__simple():
     e = [
         InfoPage("", time_estimate=5),

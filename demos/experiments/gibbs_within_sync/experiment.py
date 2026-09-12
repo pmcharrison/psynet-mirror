@@ -235,7 +235,7 @@ class Exp(psynet.experiment.Experiment):
         # Now the participant should be waiting at the prepare_trial barrier.
         # The other two bots need to finish the previous trial before this new trial can begin
         assert new_bot.get_current_page().is_timeline_hold
-        assert "prepare_trial" in new_bot.active_barriers
+        assert trial_maker.with_namespace("prepare_trial") in new_bot.active_barriers
 
         # Let's have them finish the trial, then
         for bot in [bots[1], bots[2]]:
