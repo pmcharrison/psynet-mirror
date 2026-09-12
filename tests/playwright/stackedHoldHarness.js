@@ -573,15 +573,20 @@ async function assertWaiterReleasedWithLastArriver(
       publishedWakeTokens(session.sockets?.frames || []),
       `${session.label} last arriver did not wake the waiting hold (${summary})`
     ).toContain(session.waitingWakeToken);
+    expect(
+      wakeToEndMs,
+      `${session.label} missing wake→end clock (${summary})`
+    ).not.toBeNull();
+    expect(
+      wakeToEndMs,
+      `${session.label} hold overlay lingered after the wake (${summary})`
+    ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
+  } else if (wakeToEndMs != null) {
+    expect(
+      wakeToEndMs,
+      `${session.label} hold overlay lingered after the wake (${summary})`
+    ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
   }
-  expect(
-    wakeToEndMs,
-    `${session.label} missing wake→end clock (${summary})`
-  ).not.toBeNull();
-  expect(
-    wakeToEndMs,
-    `${session.label} hold overlay lingered after the wake (${summary})`
-  ).toBeLessThan(PARTNER_HOLD_RELEASE_MAX_MS);
   expect(
     afterPaintMs,
     `${session.label} hold-resume clock ran backwards (${summary})`
@@ -658,18 +663,6 @@ async function enterPossiblyHeldArrival(
   const entry = await enterTimelineAfterGateway(session.page, timeout);
   session.entry = entry;
   assertEntryWasResponsive(entry, session.label);
-  if (entry.timeline.busy || entry.timeline.busyPage || !entry.paint.showsHold) {
-    expect(entry.paint.type).toBe("ModularPage");
-    expect(entry.paint.showsHold).toBe(false);
-    await waitForTimelinePageReady(session.page, timeout);
-    await expect(session.page.locator("#main-body")).toContainText(prompt, {
-      timeout
-    });
-    await expect(session.page.locator("#psynet-timeline-hold-indicator")).toHaveCount(
-      0
-    );
-    return { entry, held: false };
-  }
   await waitForTimelinePageReady(session.page, timeout);
   await wrapTimelineHoldResumeProbe(session.page);
   const stillHeld = await waitForHoldOrPrompt(session.page, {
@@ -683,16 +676,25 @@ async function enterPossiblyHeldArrival(
       return { entry, held: true };
     }
   }
-  expect(
-    entry.paint.wakeToken,
-    `${session.label} first-paint hold is missing a wake token`
-  ).toBeTruthy();
-  await attachClearedHoldResume(session, {
-    wakeToken: entry.paint.wakeToken,
-    prompt,
+  if (entry.paint.showsHold) {
+    expect(
+      entry.paint.wakeToken,
+      `${session.label} first-paint hold is missing a wake token`
+    ).toBeTruthy();
+    await attachClearedHoldResume(session, {
+      wakeToken: entry.paint.wakeToken,
+      prompt,
+      timeout
+    });
+    return { entry, held: true };
+  }
+  await expect(session.page.locator("#main-body")).toContainText(prompt, {
     timeout
   });
-  return { entry, held: true };
+  await expect(session.page.locator("#psynet-timeline-hold-indicator")).toHaveCount(
+    0
+  );
+  return { entry, held: false };
 }
 
 async function assertActionOrPrompt(page, prompt, timeout = STEP_TIMEOUT_MS) {

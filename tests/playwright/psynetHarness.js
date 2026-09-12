@@ -1336,16 +1336,37 @@ async function waitForHeldParticipantToResume(
   if (!prompt) {
     throw new Error("waitForHeldParticipantToResume requires a prompt.");
   }
-  await expect(page.locator("#main-body")).toContainText(prompt, { timeout });
-  await expect(page.locator("#psynet-timeline-hold-indicator")).toHaveCount(0);
-  await expect(page.locator("body")).not.toHaveClass(/timeline-held/);
-  const probe = await readTimelineHoldReleaseProbe(page);
-  if (probe.holdEndedAtMs == null) {
-    throw new Error(
-      "waitForHeldParticipantToResume missing holdEndedAtMs; the probe did not see timelineHoldEnded."
-    );
+  const deadline = Date.now() + timeout;
+  let lastError;
+  while (Date.now() < deadline) {
+    const remaining = Math.max(250, deadline - Date.now());
+    try {
+      await expect(page.locator("#main-body")).toContainText(prompt, {
+        timeout: remaining
+      });
+      await expect(page.locator("#psynet-timeline-hold-indicator")).toHaveCount(
+        0,
+        { timeout: remaining }
+      );
+      await expect(page.locator("body")).not.toHaveClass(/timeline-held/, {
+        timeout: remaining
+      });
+      const probe = await readTimelineHoldReleaseProbe(page);
+      if (probe.holdEndedAtMs == null) {
+        throw new Error(
+          "waitForHeldParticipantToResume missing holdEndedAtMs; the probe did not see timelineHoldEnded."
+        );
+      }
+      return { resumedAtMs: probe.holdEndedAtMs };
+    } catch (error) {
+      lastError = error;
+      if (!isDestroyedExecutionContext(error)) {
+        throw error;
+      }
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
+    }
   }
-  return { resumedAtMs: probe.holdEndedAtMs };
+  throw lastError;
 }
 
 function readTimelinePageFromHtml(html) {
