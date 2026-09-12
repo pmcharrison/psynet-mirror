@@ -403,7 +403,11 @@ Those routes do not share a lock protocol:
 
 * Ordinary ``POST /response`` waits up to ``timeline_lock_timeout_seconds``.
   Hold-resume POSTs take the participant with ``NOWAIT`` so they cannot sit
-  behind the last arriver.
+  behind the last arriver's row lock. ``POST /response`` still reports
+  ``Server-Timing`` phases (``process``, ``barriers``, ``render``, ``app``).
+  ``GET /timeline`` reports ``app``. Browser wall time minus ``app`` is
+  queueing plus network; ``psynet debug`` uses one thread, so a waiter can
+  wait on the last arriver's handler.
 * After the arrival write commits, queued barrier checks run in short
   transactions. Websocket wakes from those inner commits wait until stacked
   finalize returns.

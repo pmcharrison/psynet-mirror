@@ -246,17 +246,54 @@ def _populate_sync_group_links(participants):
         set_committed_value(participant, "sync_group_links", grouped[participant.id])
 
 
+_HAS_ACTIVE_SYNC_GROUP_ATTR = "_psynet_has_active_sync_group"
+
+
+def _membership_cache():
+    """Return the per-session membership memo, or ``None`` if no session."""
+    session = db.session
+    if session is None:
+        return None
+    return session.info.setdefault("_psynet_has_active_sync_group", {})
+
+
+def _remember_active_sync_group(participant, participant_id, result):
+    """Memoize a membership check on the instance and the current session."""
+    participant.__dict__[_HAS_ACTIVE_SYNC_GROUP_ATTR] = result
+    cache = _membership_cache()
+    if cache is not None:
+        cache[participant_id] = result
+    return result
+
+
+def _forget_active_sync_group(participant):
+    """Drop a stale membership memo after grouping changes."""
+    participant_id = getattr(participant, "id", None)
+    if participant_id is not None:
+        participant.__dict__.pop(_HAS_ACTIVE_SYNC_GROUP_ATTR, None)
+        cache = _membership_cache()
+        if cache is not None:
+            cache.pop(participant_id, None)
+
+
 def _has_active_sync_group(participant):
     """Return whether this participant currently belongs to an active sync group.
 
-    This is a cheap ``EXISTS`` query. Callers that already loaded
+    This is a cheap ``EXISTS`` query, memoized for the rest of the session so
+    page rendering does not repeat it. Callers that already loaded
     ``sync_group_links`` should inspect ``active_sync_groups`` instead so
     ungrouped pages skip even this lookup.
     """
     participant_id = getattr(participant, "id", None)
     if participant_id is None:
         return False
-    return (
+    cache = _membership_cache()
+    if cache is not None and participant_id in cache:
+        return cache[participant_id]
+    cached = participant.__dict__.get(_HAS_ACTIVE_SYNC_GROUP_ATTR)
+    if cached is not None:
+        return _remember_active_sync_group(participant, participant_id, cached)
+    result = (
         db.session.query(ParticipantLinkSyncGroup.id)
         .join(ParticipantLinkSyncGroup.sync_group)
         .filter(
@@ -267,6 +304,7 @@ def _has_active_sync_group(participant):
         .first()
         is not None
     )
+    return _remember_active_sync_group(participant, participant_id, result)
 
 
 class _BarrierHoldPage(_TimelineHoldPage):
@@ -1474,6 +1512,7 @@ class SyncGroup(SQLBase, SQLMixin):
 
     def add_participant(self, participant: Participant):
         """Add a participant to the group (creates an active link)."""
+        _forget_active_sync_group(participant)
         self.participant_links.append(
             ParticipantLinkSyncGroup(participant=participant, active=True)
         )
@@ -1514,6 +1553,7 @@ class SyncGroup(SQLBase, SQLMixin):
         self.n_active_participants = len(self.active_participants)
 
     def remove_participant(self, participant: Participant):
+        _forget_active_sync_group(participant)
         for link in self.participant_links:
             if link.participant_id == participant.id:
                 link.active = False

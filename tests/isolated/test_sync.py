@@ -34,6 +34,7 @@ from psynet.participant import Participant
 from psynet.process import AsyncProcess, LocalAsyncProcess, WorkerAsyncProcess
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallable
+from psynet.sqlalchemy_profiling import assert_query_count
 from psynet.sync import (
     Barrier,
     BarrierDefinition,
@@ -42,6 +43,7 @@ from psynet.sync import (
     SimpleGrouper,
     SimpleSyncGroup,
     _check_claimed_barrier_instance,
+    _has_active_sync_group,
     _run_pending_barrier_checks,
     _take_pending_barrier_checks,
     check_barriers,
@@ -1794,6 +1796,27 @@ def test_unloaded_grouped_page_includes_arrival_updates(
     page = Page(template_fragment_str="<p>Grouped page</p>")
     updates = page.attributes(participant)["arrival_updates"]
     assert updates["channel"] == _timeline_hold_channel(participant.id)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_has_active_sync_group_is_memoized(in_experiment_directory, db_session):
+    """Page render must not repeat the grouped-page membership EXISTS."""
+    first, _last = _pair_sync_group(get_experiment(), db_session)[0]
+    assert _has_active_sync_group(first) is True
+    with assert_query_count(max_queries=0):
+        assert _has_active_sync_group(first) is True
+
+    ungrouped = new_participant(get_experiment())
+    db_session.commit()
+    assert _has_active_sync_group(ungrouped) is False
+    with assert_query_count(max_queries=0):
+        assert _has_active_sync_group(ungrouped) is False
+
+    other = Participant.query.get(first.id)
+    with assert_query_count(max_queries=0):
+        assert _has_active_sync_group(other) is True
 
 
 def test_check_claimed_barrier_instance_treats_finished_work_as_success():

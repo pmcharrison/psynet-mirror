@@ -911,6 +911,28 @@ function requestDurationMs(request, fallbackMs) {
   return fallbackMs;
 }
 
+function parseServerTiming(header) {
+  const metrics = {};
+  if (!header) {
+    return metrics;
+  }
+  for (const part of String(header).split(",")) {
+    const pieces = part.trim().split(";");
+    const name = pieces[0];
+    if (!name) {
+      continue;
+    }
+    const dur = pieces.find((piece) => piece.trim().startsWith("dur="));
+    if (dur) {
+      const value = Number(dur.trim().slice(4));
+      if (Number.isFinite(value)) {
+        metrics[name] = value;
+      }
+    }
+  }
+  return metrics;
+}
+
 function wakeTokenFromResponseBody(body) {
   if (!body || body[0] !== "{") {
     return null;
@@ -941,7 +963,10 @@ function startParticipantRequestTracker(page) {
     const task = (async () => {
       await response.finished().catch(() => {});
       const wallMs = Date.now() - (startedAt.get(request) || Date.now());
-      const extras = {};
+      const extras = {
+        serverTiming: parseServerTiming(response.headers()["server-timing"]),
+      };
+      extras.serverTimingMs = extras.serverTiming.app ?? null;
       if (parsed.kind === "response") {
         const posted = request.postData() || "";
         extras.holdResume =
@@ -985,8 +1010,8 @@ function summarizeParticipantRequests(records) {
       const duration = record.durationMs == null ? "?" : `${Math.round(record.durationMs)}ms`;
       const extra =
         record.kind === "response" && record.holdResume != null
-          ? ` holdResume=${record.holdResume}`
-          : "";
+          ? ` holdResume=${record.holdResume}${formatServerTimingExtra(record)}`
+          : formatServerTimingExtra(record);
       return `${record.method} ${record.path} ${record.status} ${duration}${
         record.busy ? " busy" : ""
       }${extra}`;
@@ -994,14 +1019,60 @@ function summarizeParticipantRequests(records) {
     .join("; ");
 }
 
+function formatServerTimingExtra(record) {
+  const detail = serverQueueDetail(record);
+  return detail ? ` ${detail}` : "";
+}
+
+function requestHandlerMs(record) {
+  if (record?.serverTimingMs != null) {
+    return record.serverTimingMs;
+  }
+  return record?.durationMs ?? 0;
+}
+
+function serverQueueDetail(record) {
+  const serverMs = record?.serverTimingMs;
+  if (serverMs == null) {
+    return "";
+  }
+  const timing = record.serverTiming || {};
+  const queueMs =
+    record.durationMs != null ? Math.max(0, record.durationMs - serverMs) : null;
+  const parts = [`server=${Math.round(serverMs)}ms`];
+  if (timing.process != null) {
+    parts.push(`process=${Math.round(timing.process)}`);
+  }
+  if (timing.barriers != null) {
+    parts.push(`barriers=${Math.round(timing.barriers)}`);
+  }
+  if (timing.render != null) {
+    parts.push(`render=${Math.round(timing.render)}`);
+  }
+  if (queueMs != null) {
+    parts.push(`queue~${Math.round(queueMs)}`);
+  }
+  return parts.join(" ");
+}
+
+function requestTimingDetail(record, fallbackMs) {
+  if (record == null && fallbackMs == null) {
+    return "missing";
+  }
+  const wallMs = record?.durationMs ?? fallbackMs;
+  const wallLabel = wallMs == null ? "missing" : `${Math.round(wallMs)}ms`;
+  const extra = serverQueueDetail(record);
+  return extra ? `${wallLabel} ${extra}` : wallLabel;
+}
+
 function unexpectedBlockingRequests(records, maxDurationMs, options = {}) {
   const busyMs = options.busyMs ?? 500;
   return records.filter((record) => {
-    const duration = record.durationMs ?? 0;
-    if (duration >= maxDurationMs) {
+    const handlerMs = requestHandlerMs(record);
+    if (handlerMs >= maxDurationMs) {
       return true;
     }
-    return Boolean(record.busy) && duration >= busyMs;
+    return Boolean(record.busy) && (record.durationMs ?? 0) >= busyMs;
   });
 }
 
@@ -1108,12 +1179,21 @@ function timelineHoldReleaseProbeScript() {
         probe.wakeReason = event.detail?.reason || null;
         persistClock("__psynetHoldWakeReceivedAtMs", probe.wakeReceivedAtMs);
         persistClock("__psynetHoldWakeReason", probe.wakeReason);
+        if (typeof window.__psynetRecordHoldResume === "function") {
+          window.__psynetRecordHoldResume({
+            kind: "wake",
+            reason: event.detail?.reason || null
+          });
+        }
       }
     });
     window.addEventListener("timelineHoldEnded", () => {
       if (probe.holdEndedAtMs == null) {
         probe.holdEndedAtMs = Date.now();
         persistClock("__psynetHoldEndedAtMs", probe.holdEndedAtMs);
+        if (typeof window.__psynetRecordHoldResume === "function") {
+          window.__psynetRecordHoldResume({ kind: "holdEnded" });
+        }
       }
     });
     window.addEventListener("timelineHoldStarted", () => {
@@ -1276,16 +1356,20 @@ function startTimelineHoldSocketTracker(page) {
 }
 
 async function readTimelineHoldReleaseProbe(page) {
-  return page
-    .evaluate(() => window.__psynetHoldReleaseProbe || null)
-    .then((probe) => probe || {
-      wakeReceivedAtMs: null,
-      holdEndedAtMs: null,
-      wakeReason: null,
-      resumeReasons: [],
-      nextPageHoldResumes: [],
-      wrappedResume: false
-    })
+  // Legacy hold resumes reload the document. Retry on the live page instead
+  // of treating a destroyed context as missing clocks.
+  return evaluateOnLivePage(page, () => window.__psynetHoldReleaseProbe || null)
+    .then(
+      (probe) =>
+        probe || {
+          wakeReceivedAtMs: null,
+          holdEndedAtMs: null,
+          wakeReason: null,
+          resumeReasons: [],
+          nextPageHoldResumes: [],
+          wrappedResume: false
+        }
+    )
     .catch(() => ({
       wakeReceivedAtMs: null,
       holdEndedAtMs: null,
@@ -1551,6 +1635,7 @@ module.exports = {
   readTimelinePageFromHtml,
   startParticipantRequestTracker,
   summarizeParticipantRequests,
+  requestTimingDetail,
   unexpectedBlockingRequests,
   withExperiment,
   withFreshParticipantIds,

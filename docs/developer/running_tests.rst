@@ -147,7 +147,12 @@ instead of failing on the destroyed context.
 Overlay linger after a published wake is bounded by
 ``max(1800ms, hold-resume POST duration + 500ms)``. A slow approved POST is
 not a missed wake; still assert that the resume reason is not
-``safety poll``.
+``safety poll``. If a legacy reload drops in-page wake clocks, a published
+wake token plus an approved hold-resume POST still counts as a server wake.
+Hold-release summaries print ``Server-Timing`` ``app`` versus browser wall
+time (``queue~``) for the last arriver's request and the waiter's hold-resume
+POST. Blocking-request checks use ``app`` when that header is present, so
+one-thread debug queueing is not treated as a slow handler.
 
 Faster local iteration for Playwright tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
