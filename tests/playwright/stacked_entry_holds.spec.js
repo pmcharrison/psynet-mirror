@@ -9,12 +9,14 @@ const {
   closeHoldSessions,
   enterSkippingHold,
   enterWaitingHold,
+  lastArriverWorkRecord,
   startHoldExperiment,
   stopExperiment,
   armChoiceHold,
   assertWaiterReleasedWithLastArriver,
   submitLastChoice
 } = require("./stackedHoldHarness");
+const { requestHandlerMs } = require("./psynetHarness");
 
 const RPS_DIR = path.resolve("demos/experiments/rock_paper_scissors");
 
@@ -40,10 +42,12 @@ test("last arriver's first timeline page skips stacked partner holds", { tag: "@
     await first.page.waitForTimeout(SETTLE_HOLD_MS);
     await assertStillHeld(first, PAIR_HOLD_TEXT);
     const lastEntry = await enterSkippingHold(last);
+    const lastWork = lastArriverWorkRecord(lastEntry);
+    const firstWork = lastArriverWorkRecord(first.entry);
     expect(
-      lastEntry.timeline.durationMs,
-      `last arriver GET /timeline ${Math.round(lastEntry.timeline.durationMs)}ms vs first ${Math.round(first.entry.timeline.durationMs)}ms`
-    ).toBeLessThan(first.entry.timeline.durationMs + 2500);
+      requestHandlerMs(lastWork),
+      `last arriver grouping ${Math.round(requestHandlerMs(lastWork))}ms vs first ${Math.round(requestHandlerMs(firstWork))}ms`
+    ).toBeLessThan(requestHandlerMs(firstWork) + 2500);
     await expect(last.page.getByRole("button", { name: "rock" })).toBeVisible();
     await assertWaiterReleasedWithLastArriver(first, lastEntry);
     await expect(first.page.getByRole("button", { name: "rock" })).toBeVisible();

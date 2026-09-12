@@ -255,9 +255,16 @@ function assertEntryWasResponsive(entry, label) {
     unexpectedBlockingRequests(entryRequests, ENTRY_REQUEST_MAX_MS),
     `${label} unexpected entry blocking: ${summary}`
   ).toEqual([]);
+  const grouping = lastArriverWorkRecord(entry);
+  if (grouping != null) {
+    expect(
+      requestHandlerMs(grouping),
+      `${label} grouping ${grouping.method} ${grouping.path} ${grouping.status} took ${Math.round(requestHandlerMs(grouping))}ms (${summary})`
+    ).toBeLessThan(ENTRY_REQUEST_MAX_MS);
+  }
   expect(
     entry.timeline.durationMs,
-    `${label} GET /timeline took ${Math.round(entry.timeline.durationMs)}ms (${summary})`
+    `${label} GET /timeline HTML took ${Math.round(entry.timeline.durationMs)}ms (${summary})`
   ).toBeLessThan(ENTRY_REQUEST_MAX_MS);
   expect(
     entry.start.consentToTimelineMs,
@@ -874,6 +881,7 @@ module.exports = {
   enterTimelineAfterGateway,
   enterWaitingHold,
   lastArriverReleaseAtMs,
+  lastArriverWorkRecord,
   responsesSince,
   startHoldExperiment,
   stopExperiment,

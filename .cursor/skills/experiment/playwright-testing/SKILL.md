@@ -58,7 +58,9 @@ a control becoming enabled, or a URL change. Do not assert countdown text or
 short-lived status labels. When the contract is first paint — for example the
 last group member skipping a partner wait — assert the first `GET /timeline`
 HTML. An eventual prompt can arrive from the poller after a hold was already
-shown:
+shown. `entry.timeline.durationMs` is that HTML 200 (or 503). Last-arrival
+grouping work is `lastArriverWorkRecord` (the 302, or the submit POST), not
+the follow-up body:
 
 ```js
 const entry = await enterTimelineAfterGateway(page);
@@ -66,6 +68,7 @@ expect(entry.paint.type).toBe("ModularPage");
 expect(entry.paint.showsHold).toBe(false);
 expect(entry.timeline.busy).toBe(false);
 expect(entry.timeline.durationMs).toBeLessThan(2500);
+expect(requestHandlerMs(lastArriverWorkRecord(entry))).toBeLessThan(2500);
 expect(entry.start.consentToTimelineMs).toBeLessThan(6000);
 ```
 
