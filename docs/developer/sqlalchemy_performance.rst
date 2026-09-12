@@ -320,6 +320,15 @@ Query *count* still grows with *N* because each released waiter is advanced
 onto the next hold. The stacked test allows at most 35 extra statements per
 extra member as a loose cap on that advancement SQL, not as a target.
 
+``GET /timeline`` Server-Timing splits that work from HTML render. In one
+local Playwright last-arrival run with three gunicorn workers, a trio skip
+was about 180 ms ``barriers`` plus 300 ms ``render`` (total ~500 ms). A
+quartet skip was about 370 ms ``barriers`` plus 200 ms ``render`` (total
+~580 ms). ``lock`` and ``page`` stayed under 40 ms. CI ~1 s last-arrival
+GETs are these two phases under load, not participant-row lock wait. Waiter
+hold-resume ``queue~`` behind that GET is worker-pool saturation; three
+workers overlap two waiter POSTs with the GET.
+
 Leftover inactive visits are outside this budget. Last-arrival keeps
 ``instance.active``, so ``Barrier._other_active_pool`` does not look up a
 second pool on that path. Migrating waiters onto the live visit is extra SQL
