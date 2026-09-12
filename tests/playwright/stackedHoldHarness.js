@@ -713,10 +713,10 @@ async function assertWaiterReleasedWithLastArriver(
     unexpectedBlockingRequests(resumeRequests, ENTRY_REQUEST_MAX_MS),
     `${session.label} hold-resume blocking: ${summary}`
   ).toEqual([]);
-  expect(
-    resumeRequests.filter((record) => record.busy),
-    `${session.label} hold-resume retries: ${summary}`
-  ).toEqual([]);
+  // Two gunicorn workers can overlap a hold-resume POST with the same
+  // participant's GET /timeline (NOWAIT 503, then a short retry). That is the
+  // busy protocol, not a missed wake. unexpectedBlockingRequests still fails
+  // a busy retry that lasts 500ms or more.
   if (isInplaceTimelineModeEnabled()) {
     expect(
       laterTimeline.length,

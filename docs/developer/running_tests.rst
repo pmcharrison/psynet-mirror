@@ -154,7 +154,9 @@ time (``queue~``) for the last arriver's request and the waiter's hold-resume
 POST. Blocking-request checks use ``app`` when that header is present, so
 worker-pool queueing is not treated as a slow handler. GitLab Playwright jobs
 run ``psynet debug --legacy`` (two gunicorn workers) so last-arrival work can
-overlap waiter hold-resume POSTs.
+overlap waiter hold-resume POSTs. A short HTTP 503 on hold-resume is the
+``NOWAIT`` busy retry when those two requests hit the same participant row;
+the suite still fails a busy retry that lasts 500ms or more.
 
 Last-arrival ``GET /timeline`` can 302 when ``page_uuid`` advances during
 read-only render. First-paint assertions wait for the following 200 HTML

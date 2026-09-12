@@ -409,7 +409,8 @@ Those routes do not share a lock protocol:
   queueing plus network. ``psynet debug local`` (Flask) is one process.
   ``psynet debug --legacy`` starts two gunicorn workers so a waiter POST can
   overlap last-arrival work; remaining ``queue~`` means the worker pool is
-  busy.
+  busy. A short HTTP 503 on hold-resume is that ``NOWAIT`` overlap, not a
+  missed wake.
 * After the arrival write commits, queued barrier checks run in short
   transactions. Websocket wakes from those inner commits wait until stacked
   finalize returns.
