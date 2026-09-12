@@ -939,6 +939,20 @@
       psynet.arrivalUpdates = null;
     };
 
+    psynet.fetchArrivalNotice = function () {
+      if (psynet.participantId === undefined || typeof $ === "undefined") {
+        return;
+      }
+      $.get("/timeline/arrival_notice", {
+        participantId: psynet.participantId,
+      }).done(function (data) {
+        if (!psynet.arrivalUpdates) {
+          return;
+        }
+        psynet.applyArrivalNotice(data && data.notice);
+      });
+    };
+
     psynet.ensureArrivalUpdates = function (config) {
       if (!config?.channel || psynet.timelineHold) {
         psynet.stopArrivalUpdates();
@@ -947,6 +961,9 @@
       }
       if (psynet.arrivalUpdates?.channel === config.channel) {
         psynet.applyArrivalNotice(config.notice);
+        if (!config.notice) {
+          psynet.fetchArrivalNotice();
+        }
         return;
       }
       psynet.stopArrivalUpdates();
@@ -955,6 +972,7 @@
         connection: PsyNetWebSocketChannel.connect({
           channel: config.channel,
           onMessage: psynet.handleArrivalUpdateMessage,
+          onOpen: psynet.fetchArrivalNotice,
         }),
       };
       psynet.applyArrivalNotice(config.notice);

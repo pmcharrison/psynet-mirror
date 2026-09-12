@@ -113,6 +113,10 @@ test("default barriers hold the current page until websocket release", { tag: "@
         { timeout: STEP_TIMEOUT_MS }
       )
     ]);
+    await secondParticipant.waitForFunction(
+      () => Boolean(window.psynet?.arrivalUpdates?.connection?.isOpen?.()),
+      { timeout: STEP_TIMEOUT_MS }
+    );
 
     const pageErrors = [];
     firstParticipant.on("pageerror", (error) => pageErrors.push(error.message));

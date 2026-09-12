@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 from psynet.page import ExecuteFrontEndJS, JsPsychPage, UnityPage
+from psynet.sync import arrival_notice_payload
 from psynet.timeline import Page
 from psynet.timeline_hold import _timeline_hold_channel
 
@@ -100,6 +101,11 @@ def test_grouped_page_includes_arrival_updates(monkeypatch):
     updates = page.attributes(participant)["arrival_updates"]
     assert updates["channel"] == _timeline_hold_channel(participant.id)
     assert updates["notice"] == "Your partner is ready."
+
+
+def test_arrival_notice_payload_without_a_participant():
+    assert arrival_notice_payload(None) == {"notice": None}
+    assert arrival_notice_payload("") == {"notice": None}
 
 
 def test_hold_page_omits_arrival_updates_even_when_grouped(monkeypatch):

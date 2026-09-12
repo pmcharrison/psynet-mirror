@@ -1923,6 +1923,23 @@ def _waiting_barrier_instance_ids():
         ]
 
 
+def arrival_notice_payload(participant_id):
+    """Return the partner-ready notice snapshot for one participant.
+
+    Redis arrival wakes are fire-and-forget. The browser fetches this when
+    the arrival websocket opens so a partner who arrived during connect is
+    still shown.
+    """
+    from psynet.participant import Participant
+
+    if participant_id is None or participant_id == "":
+        return {"notice": None}
+    participant = Participant.query.get(participant_id)
+    if participant is None:
+        return {"notice": None}
+    return {"notice": pending_arrival_notice_for(participant)}
+
+
 def pending_arrival_notice_for(participant):
     """Return a partner-ready notice if this participant is behind a waiter.
 

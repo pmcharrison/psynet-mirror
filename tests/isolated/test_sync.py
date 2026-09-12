@@ -46,6 +46,7 @@ from psynet.sync import (
     _has_active_sync_group,
     _run_pending_barrier_checks,
     _take_pending_barrier_checks,
+    arrival_notice_payload,
     check_barriers,
     check_sync_groups,
     pending_arrival_notice_for,
@@ -3138,6 +3139,8 @@ def test_group_arrival_notifies_partner_still_on_earlier_page(
         for message in hold_messages
     )
     assert pending_arrival_notice_for(last) == "Your partner is ready."
+    assert arrival_notice_payload(last.id) == {"notice": "Your partner is ready."}
+    assert arrival_notice_payload(None) == {"notice": None}
     overlay = barrier.waiting_logic.overlay_html(first)
     assert "Waiting for your partner" in overlay
     assert "psynet-timeline-hold-progress" not in overlay

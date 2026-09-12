@@ -913,6 +913,16 @@ def test_the_error_page_is_reached_by_get_so_that_it_can_be_reloaded():
     assert "TODO(Dallinger structured participant errors)" in start
 
 
+def test_arrival_notice_socket_fetches_current_notice_on_open():
+    """A missed Redis wake still shows partner-ready copy after the socket opens."""
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    assert "psynet.fetchArrivalNotice = function" in js
+    assert '"/timeline/arrival_notice"' in js
+    assert "onOpen: psynet.fetchArrivalNotice" in js
+
+
 def test_no_page_paints_a_placeholder_logo_before_the_theme_swap():
     """theme.html replaces #adlogo on DOMContentLoaded, so a real src flashes first."""
     templates = resources.files("psynet") / "templates"

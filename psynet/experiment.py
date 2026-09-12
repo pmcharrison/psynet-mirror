@@ -6032,6 +6032,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return True
 
+    @experiment_route("/timeline/arrival_notice", methods=["GET"])
+    @classmethod
+    @with_transaction
+    def get_arrival_notice(cls):
+        """Return the current partner-ready notice for the arrival websocket.
+
+        Redis pub/sub can miss a partner who arrived before this socket
+        subscribed. The browser fetches this snapshot on open.
+        """
+        from .sync import arrival_notice_payload
+
+        return arrival_notice_payload(request.args.get("participantId"))
+
     @experiment_route("/timeline/progress_and_reward", methods=["GET"])
     @classmethod
     @with_transaction
