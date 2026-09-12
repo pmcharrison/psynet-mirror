@@ -8,4 +8,3 @@ Sync
 
 .. automodule:: psynet.barrier_spec
     :members:
-

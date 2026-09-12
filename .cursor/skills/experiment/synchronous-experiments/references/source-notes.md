@@ -61,7 +61,7 @@ and platform docs when a study is near deployment.
   `on_release`.
 - `rock_paper_scissors` shows dyadic synchronized static trials, barriers inside
   `show_trial`, server-side scoring in `on_release`, and a `ChatRoom` scoped to
-  `participant.sync_group.id` for communication after the round.
+  `self.sync_group.id` for communication after the round.
 - `sync_quorum` shows a waiting-room/quorum pattern where participants complete
   filler trials while waiting for enough active participants.
 - `gibbs_within_sync` shows `GibbsTrialMaker(sync_group_type=...)`,

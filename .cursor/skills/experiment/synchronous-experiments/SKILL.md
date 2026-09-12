@@ -77,8 +77,11 @@ If participants exchange live actions or messages within a trial, also read
 - For chain or Gibbs designs, distinguish true co-presence from async
   across-participant chains. Use `wait_for_networks=True` when participants may
   otherwise exit while async network growth is still pending.
-- Use `ChatRoom(room_id=f"group_{participant.sync_group.id}")` only for
-  participant communication; keep phase advancement and scoring in barriers.
+- Use `ChatRoom` only for participant communication; keep phase advancement
+  and scoring in barriers. Inside a trial, scope the room with
+  `self.sync_group.id`. Elsewhere use
+  `participant.active_sync_groups[group_type].id`.
+  `participant.sync_group` raises if more than one group is active.
 - Prefer engaging waiting trials over passive wait screens when waits may be
   long. Participants may be distracted or running multiple experiments at once;
   useful filler tasks can improve retention and reduce idle no-shows.

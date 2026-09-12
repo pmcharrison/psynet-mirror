@@ -100,9 +100,14 @@ async function probeTimelineHoldClientBehavior(page) {
 
     try {
       psynet.arrivalUpdates = fakeArrival();
+      const strayNotice = document.createElement("div");
+      strayNotice.id = "psynet-arrival-notice";
+      document.body.appendChild(strayNotice);
       psynet.ensureArrivalUpdates(null);
       const closedWithoutChannel =
         arrivalClosed === 1 && psynet.arrivalUpdates === null;
+      const noticeClearedWithoutChannel =
+        document.getElementById("psynet-arrival-notice") === null;
 
       psynet.arrivalUpdates = fakeArrival();
       const hold = { ...controller.hold };
@@ -183,14 +188,35 @@ async function probeTimelineHoldClientBehavior(page) {
           probe.wakeReason === null;
       }
 
+      let reloadedHoldPayload = 0;
+      const originalReload = psynet.loadNextTimelinePageWithReload;
+      psynet.loadNextTimelinePageWithReload = () => {
+        reloadedHoldPayload += 1;
+      };
+      try {
+        await psynet.handleApprovedResponse({
+          page: {
+            attributes: {
+              timeline_hold: { ...controller.hold },
+              requires_full_page_reload: true,
+              page_uuid: controller.hold.page_uuid
+            }
+          }
+        });
+      } finally {
+        psynet.loadNextTimelinePageWithReload = originalReload;
+      }
+
       return {
         closedWithoutChannel,
+        noticeClearedWithoutChannel,
         closedOnBeginHold,
         updatedMessage,
         sendCount,
         approved,
         passed,
-        clocksReset
+        clocksReset,
+        reloadedHoldPayload
       };
     } finally {
       psynet.scheduleTimelineHoldCheck = originalSchedule;
@@ -402,12 +428,14 @@ test("timeline hold client overlay and busy retry stay on a live hold", { tag: "
     const holdClient = await probeTimelineHoldClientBehavior(experimentPage);
     expect(holdClient).toEqual({
       closedWithoutChannel: true,
+      noticeClearedWithoutChannel: true,
       closedOnBeginHold: true,
       updatedMessage: "Updated wait copy",
       sendCount: 2,
       approved: 1,
       passed: true,
-      clocksReset: true
+      clocksReset: true,
+      reloadedHoldPayload: 1
     });
 
     await experimentPage.waitForTimeout(500);

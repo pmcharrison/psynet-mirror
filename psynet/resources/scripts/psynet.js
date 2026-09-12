@@ -942,6 +942,7 @@
     psynet.ensureArrivalUpdates = function (config) {
       if (!config?.channel || psynet.timelineHold) {
         psynet.stopArrivalUpdates();
+        psynet.hideArrivalNotice();
         return;
       }
       if (psynet.arrivalUpdates?.channel === config.channel) {
@@ -3271,6 +3272,12 @@
 
     psynet.handleApprovedResponse = async function (response) {
       psynet.log.debug("Response received successfully.");
+
+      if (response.page?.attributes?.requires_full_page_reload) {
+        psynet.stopTimelineHold();
+        psynet.loadNextTimelinePageWithReload();
+        return true;
+      }
 
       let hold = response.page?.attributes?.timeline_hold;
       if (hold) {
