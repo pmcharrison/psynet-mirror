@@ -741,7 +741,7 @@ def sql_profiled_command(func):
 @click.option(
     "--legacy",
     is_flag=True,
-    help="Use gunicorn (two workers) instead of Flask auto-reload.",
+    help="Use gunicorn (three workers) instead of Flask auto-reload.",
 )
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
 @_add_sql_profile_options
@@ -841,13 +841,14 @@ def run_pre_auto_reload_checks():
             )
 
 
-# Dallinger ``threads`` is gunicorn worker *processes*. Two workers let a
-# waiter hold-resume POST run while last-arrival GET /timeline still occupies
-# the other process, which is closer to deploy (``threads=auto``) than a
-# single worker. One worker saved ~1s of startup in 2022; local gunicorn does
-# not pay a Heroku dyno cost, and performance-test / Playwright duration
-# checks need overlap rather than serialized queueing.
-LEGACY_DEBUG_GUNICORN_THREADS = "2"
+# Dallinger ``threads`` is gunicorn worker *processes*. Three workers let
+# last-arrival GET /timeline occupy one process while two waiter hold-resume
+# POSTs occupy the others. A trio extra waiter is otherwise queued behind that
+# GET. That is closer to deploy (``threads=auto``) than a single worker. One
+# worker saved ~1s of startup in 2022; local gunicorn does not pay a Heroku
+# dyno cost, and performance-test / Playwright duration checks need overlap
+# rather than serialized queueing.
+LEGACY_DEBUG_GUNICORN_THREADS = "3"
 
 
 def _debug_legacy(ctx, archive, no_browsers):
@@ -1265,7 +1266,7 @@ def deploy():
 @click.option(
     "--legacy",
     is_flag=True,
-    help="Use gunicorn (two workers) instead of Flask auto-reload.",
+    help="Use gunicorn (three workers) instead of Flask auto-reload.",
 )
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
 @click.pass_context
@@ -3942,7 +3943,7 @@ def _run_performance_test_with_new_server(
     n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
 ):
     """Run performance test after starting a new experiment server"""
-    # Prefer legacy debug: gunicorn with two workers is closer to a deployed
+    # Prefer legacy debug: gunicorn with three workers is closer to a deployed
     # server than the auto-reload develop path used by normal
     # ``psynet debug local``.
     server_info = _start_local_server_and_wait_for_ready(

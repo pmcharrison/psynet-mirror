@@ -867,9 +867,9 @@ Heroku
     When given the default value of ``auto`` the number of worker processes will be calculated
     using the formula ``round(multiprocessing.cpu_count() * worker_multiplier)) + 1`` by making use
     of the ``worker_multiplier`` config variable. Default: ``auto``.
-    ``psynet debug --legacy`` currently starts two workers rather than
-    ``auto``, so last-arrival and hold-resume can overlap without a full
-    deploy worker count.
+    ``psynet debug --legacy`` currently starts three workers rather than
+    ``auto``, so last-arrival ``GET /timeline`` can overlap two waiter
+    hold-resume POSTs without a full deploy worker count.
 
 ``worker_multiplier`` *float* |dlgr-icon|
     Multiplier used to determine the number of gunicorn web worker processes

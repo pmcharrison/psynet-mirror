@@ -29,8 +29,7 @@ const BLOCKING_REQUEST_MS = 4000;
 // Fast waiters leave in ~0.2–0.8s after last paint. Keep this floor under the
 // 2s safety poll so a missed wake cannot hide inside the budget. When CI load
 // makes the approved hold-resume POST itself slower than 1.8s, overlay linger
-// tracks that POST; the budget then becomes post duration plus slack. Waiter
-// spread subtracts gunicorn queue when the overlay left during that POST.
+// tracks that POST; the budget then becomes post duration plus slack.
 const PARTNER_HOLD_RELEASE_MAX_MS = 1800;
 const HOLD_RESUME_OVERLAY_SLACK_MS = 500;
 const WAITER_RELEASE_SPREAD_MAX_MS = 1500;
@@ -117,29 +116,6 @@ function overlayLingerBudgetMs(holdResumePostMs) {
     PARTNER_HOLD_RELEASE_MAX_MS,
     postMs + HOLD_RESUME_OVERLAY_SLACK_MS
   );
-}
-
-function holdResumeQueueMs(record) {
-  if (record?.durationMs == null || record?.serverTimingMs == null) {
-    return 0;
-  }
-  return Math.max(0, record.durationMs - record.serverTimingMs);
-}
-
-function resumeAtWithoutWorkerQueue(result) {
-  const resumedAtMs = result.resume.resumedAtMs;
-  const post = result.holdResumePost;
-  const queueMs = holdResumeQueueMs(post);
-  if (!queueMs || post?.startedAtMs == null) {
-    return resumedAtMs;
-  }
-  const finishedAtMs = post.finishedAtMs ?? post.startedAtMs + post.durationMs;
-  // Overlay left during this hold-resume POST. Gunicorn queue is pool
-  // contention, not waiters leaving in different rounds.
-  if (resumedAtMs + 50 < post.startedAtMs || resumedAtMs > finishedAtMs + 500) {
-    return resumedAtMs;
-  }
-  return resumedAtMs - queueMs;
 }
 
 function publishedWakeTokens(holdFrames) {
@@ -737,10 +713,10 @@ async function assertWaiterReleasedWithLastArriver(
     unexpectedBlockingRequests(resumeRequests, ENTRY_REQUEST_MAX_MS),
     `${session.label} hold-resume blocking: ${summary}`
   ).toEqual([]);
-  // Two gunicorn workers can overlap a hold-resume POST with the same
-  // participant's GET /timeline (NOWAIT 503, then a short retry). That is the
-  // busy protocol, not a missed wake. unexpectedBlockingRequests still fails
-  // a busy retry that lasts 500ms or more.
+  // Three gunicorn workers can overlap last-arrival GET /timeline with two
+  // waiter hold-resume POSTs. A short HTTP 503 is NOWAIT when a POST hits the
+  // same participant row as that participant's GET. unexpectedBlockingRequests
+  // still fails a busy retry that lasts 500ms or more.
   if (isInplaceTimelineModeEnabled()) {
     expect(
       laterTimeline.length,
@@ -786,7 +762,7 @@ async function assertAllWaitersReleasedTogether(sessions, lastEntry, options = {
       assertWaiterReleasedWithLastArriver(session, lastEntry, options)
     )
   );
-  const times = results.map(resumeAtWithoutWorkerQueue);
+  const times = results.map((result) => result.resume.resumedAtMs);
   const spread = Math.max(...times) - Math.min(...times);
   expect(
     spread,

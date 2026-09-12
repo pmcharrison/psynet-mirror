@@ -1,1 +1,1 @@
-Started ``psynet debug --legacy`` with two gunicorn workers so last-arrival ``GET /timeline`` can overlap waiter hold-resume POSTs. GitLab Playwright jobs now use that gunicorn path; the default vs legacy job split remains in-place vs full reload.
+Started ``psynet debug --legacy`` with three gunicorn workers so last-arrival ``GET /timeline`` can overlap two waiter hold-resume POSTs. GitLab Playwright jobs now use that gunicorn path; the default vs legacy job split remains in-place vs full reload.

@@ -151,11 +151,12 @@ not a missed wake; still assert that the resume reason is not
 wake token plus an approved hold-resume POST still counts as a server wake.
 Hold-release summaries print ``Server-Timing`` ``app`` versus browser wall
 time (``queue~``) for the last arriver's request and the waiter's hold-resume
-POST. Blocking-request checks use ``app`` when that header is present, so
+POST. ``GET /timeline`` also prints ``lock``, ``page``, ``barriers``, and
+``render``. Blocking-request checks use ``app`` when that header is present, so
 worker-pool queueing is not treated as a slow handler. GitLab Playwright jobs
-run ``psynet debug --legacy`` (two gunicorn workers) so last-arrival work can
-overlap waiter hold-resume POSTs. A short HTTP 503 on hold-resume is the
-``NOWAIT`` busy retry when those two requests hit the same participant row;
+run ``psynet debug --legacy`` (three gunicorn workers) so last-arrival work can
+overlap two waiter hold-resume POSTs. A short HTTP 503 on hold-resume is the
+``NOWAIT`` busy retry when those requests hit the same participant row;
 the suite still fails a busy retry that lasts 500ms or more.
 
 Last-arrival ``GET /timeline`` can 302 when ``page_uuid`` advances during
@@ -203,8 +204,8 @@ Playwright harness startup options
 The Playwright harness launches experiments with ``psynet debug local`` by default
 and does not force legacy mode. GitLab Playwright jobs set
 ``PSYNET_USE_LEGACY_DEBUG=1`` so those runs use gunicorn. ``psynet debug
---legacy`` starts two gunicorn workers, which lets last-arrival ``GET
-/timeline`` overlap waiter hold-resume POSTs. The default vs legacy *job*
+--legacy`` starts three gunicorn workers, which lets last-arrival ``GET
+/timeline`` overlap two waiter hold-resume POSTs. The default vs legacy *job*
 split is still in-place vs full reload (``inplace_timeline_transitions``),
 not Flask vs gunicorn.
 

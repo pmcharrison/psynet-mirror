@@ -487,8 +487,8 @@ class TestCommandLine(object):
 #
 
 
-def test_debug_legacy_starts_two_gunicorn_workers(monkeypatch):
-    """Legacy debug overlaps last-arrival with waiter hold-resume POSTs."""
+def test_debug_legacy_starts_three_gunicorn_workers(monkeypatch):
+    """Legacy debug overlaps last-arrival GET with two waiter hold-resume POSTs."""
     from psynet.command_line import LEGACY_DEBUG_GUNICORN_THREADS, _debug_legacy
 
     calls = []
@@ -502,14 +502,14 @@ def test_debug_legacy_starts_two_gunicorn_workers(monkeypatch):
 
     _debug_legacy(_Ctx(), archive=None, no_browsers=True)
 
-    assert LEGACY_DEBUG_GUNICORN_THREADS == "2"
+    assert LEGACY_DEBUG_GUNICORN_THREADS == "3"
     assert calls == [
         {
             "verbose": True,
             "bot": False,
             "proxy": None,
             "no_browsers": True,
-            "exp_config": {"threads": "2"},
+            "exp_config": {"threads": "3"},
         }
     ]
 

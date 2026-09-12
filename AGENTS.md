@@ -184,7 +184,7 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
     - Use ``Server-Timing`` ``app`` versus browser wall time to split handler time from worker-pool queueing.
     - Last-arrival ``GET /timeline`` can 302 after ``page_uuid`` advances; first-paint waits for the 200 HTML body.
     - Clock waiter resume against the last arriver's grouping request finish, not against a slow legacy client paint.
-    - Playwright CI uses ``psynet debug --legacy`` (two gunicorn workers) so last-arrival and hold-resume can overlap.
+    - Playwright CI uses ``psynet debug --legacy`` (three gunicorn workers) so last-arrival GET can overlap two waiter hold-resume POSTs.
     - A short HTTP 503 on hold-resume is the ``NOWAIT`` busy retry when those requests hit the same participant row; fail only if that busy retry lasts 500ms or more.
 
 ## Automatic code review
