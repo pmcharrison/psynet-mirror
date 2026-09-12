@@ -1,1 +1,0 @@
-GET ``/timeline`` re-reads the live timeline page after a partner has already advanced a waiting participant, instead of crashing on a missing hold row. Skipping a ready hold also commits before stacked last-arrival checks so the waiter does not keep a row lock during those checks. Hold timeout side effects run only after that participant row is locked.

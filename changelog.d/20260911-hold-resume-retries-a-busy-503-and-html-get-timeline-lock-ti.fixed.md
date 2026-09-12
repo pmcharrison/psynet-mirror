@@ -1,1 +1,0 @@
-Hold-resume retries a structured busy HTTP 503 once, same as an ordinary Next submit. JSON ``GET /timeline`` and ``POST /response`` lock timeouts return that payload so automated drivers can retry. Browser HTML ``GET /timeline`` returns an HTML 503 page that refreshes automatically. Hold overlays always include a title span, and a same-page hold update applies the new message.

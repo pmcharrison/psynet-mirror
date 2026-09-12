@@ -1,1 +1,0 @@
-``GET /timeline`` skips a ready hold only after relocking that participant, then commits before preparing the next page or running stacked last-arrival checks. An unreleased barrier hold may recover a dropped last-arrival check, but it does not take ``FOR UPDATE`` before that check.
