@@ -177,6 +177,10 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
     - A legacy hold can navigate while the test is attaching the resume probe.
     - Retry `page.evaluate` after load; if the hold chip is already gone, treat it as a cleared hold.
 
+14. **Do not treat a slow approved hold-resume POST as a missed wake**:
+    - Overlay linger may track POST duration under CI load.
+    - Keep asserting the resume is a server wake, not a safety poll.
+
 ## Automatic code review
 
 Before finalizing a merge request, prompt the user to run an automatic code

@@ -144,6 +144,11 @@ navigation. If a stacked last-arrival hold clears while the test is arming the
 probe, treat the page as a cleared hold (wake token and hold-resume POST)
 instead of failing on the destroyed context.
 
+Overlay linger after a published wake is bounded by
+``max(1800ms, hold-resume POST duration + 500ms)``. A slow approved POST is
+not a missed wake; still assert that the resume reason is not
+``safety poll``.
+
 Faster local iteration for Playwright tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
