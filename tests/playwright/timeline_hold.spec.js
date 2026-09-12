@@ -207,6 +207,35 @@ async function probeTimelineHoldClientBehavior(page) {
         psynet.loadNextTimelinePageWithReload = originalReload;
       }
 
+      const originalReplace = window.location.replace.bind(window.location);
+      window.location.replace = (url) => {
+        throw new Error(`lucid terminated during hold: ${url}`);
+      };
+      if (window.location.replace === originalReplace) {
+        throw new Error("could not stub location.replace");
+      }
+      const originalLucidFlag = psynetTemplateData.flags.lucidRecruitment;
+      const originalLucid = { ...psynetTemplateData.lucid };
+      try {
+        psynetTemplateData.flags.lucidRecruitment = true;
+        Object.assign(psynetTemplateData.lucid, {
+          inactivityTimeoutMs: 1,
+          inactivityTimeoutS: 0,
+          noFocusTimeoutMs: 1,
+          noFocusTimeoutReason: "no-focus-",
+          overallTimeoutS: 600,
+          secondsLeft: 600,
+          shouldWarnOnBeforeUnload: false
+        });
+        psynet.initLucidTermination();
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+      } finally {
+        psynet.clearLucidTermination();
+        psynetTemplateData.flags.lucidRecruitment = originalLucidFlag;
+        Object.assign(psynetTemplateData.lucid, originalLucid);
+        window.location.replace = originalReplace;
+      }
+
       return {
         closedWithoutChannel,
         noticeClearedWithoutChannel,
@@ -216,7 +245,8 @@ async function probeTimelineHoldClientBehavior(page) {
         approved,
         passed,
         clocksReset,
-        reloadedHoldPayload
+        reloadedHoldPayload,
+        lucidHoldPausedClocks: true
       };
     } finally {
       psynet.scheduleTimelineHoldCheck = originalSchedule;
@@ -435,7 +465,8 @@ test("timeline hold client overlay and busy retry stay on a live hold", { tag: "
       approved: 1,
       passed: true,
       clocksReset: true,
-      reloadedHoldPayload: 1
+      reloadedHoldPayload: 1,
+      lucidHoldPausedClocks: true
     });
 
     await experimentPage.waitForTimeout(500);

@@ -2,7 +2,7 @@ import json
 import threading
 import time
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -11,7 +11,13 @@ from dallinger.models import timenow
 from flask import Flask
 from sqlalchemy import Column, String, text
 from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy.inspection import inspect as sa_inspect
 
+from psynet.barrier_spec import (
+    BarrierSpecError,
+    barrier_from_spec_json,
+    barrier_spec_json,
+)
 from psynet.dashboard.sync_groups import (
     _fail_sync_group_participant,
     _get_grouper_progress,
@@ -25,6 +31,7 @@ from psynet.experiment import Experiment, get_experiment
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage, wait_while
 from psynet.participant import Participant
+from psynet.process import AsyncProcess, LocalAsyncProcess, WorkerAsyncProcess
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallable
 from psynet.sync import (
@@ -41,7 +48,7 @@ from psynet.sync import (
     check_sync_groups,
     pending_arrival_notice_for,
 )
-from psynet.timeline import Timeline
+from psynet.timeline import Page, Timeline
 from psynet.timeline_hold import (
     TimelineHoldRecord,
     _defer_timeline_hold_wakes,
@@ -67,6 +74,10 @@ def new_participant(experiment):
     )
     db.session.add(participant)
     return participant
+
+
+def async_process_noop():
+    return None
 
 
 processed_barriers = []
@@ -1727,6 +1738,43 @@ def test_participant_link_barrier_lists_waiting_participants(
     _arrive_at_group_barrier(exp, grouped, pair_first)
     db.session.commit()
     assert grouped.get_waiting_participants(pair_first) == [pair_first]
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_arrival_requires_active_sync_group(
+    in_experiment_directory, db_session
+):
+    participant = new_participant(get_experiment())
+    participant.status = "working"
+    db_session.commit()
+    barrier = GroupBarrier(id_="needs_group", group_type="main")
+
+    with pytest.raises(RuntimeError, match="has no active sync group"):
+        BarrierInstance.for_arrival(barrier, participant)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_unloaded_sync_groups_omit_arrival_updates(
+    in_experiment_directory, db_session, monkeypatch
+):
+    participant = new_participant(get_experiment())
+    db_session.commit()
+    unique_id = participant.unique_id
+    db.session.remove()
+
+    participant = get_experiment()._get_request_participant_from_unique_id(unique_id)
+    assert "sync_group_links" in sa_inspect(participant).unloaded
+
+    def boom(_participant):
+        raise AssertionError("should not look up arrival notices")
+
+    monkeypatch.setattr("psynet.sync.pending_arrival_notice_for", boom)
+    page = Page(template_fragment_str="<p>Solo page</p>")
+    assert "arrival_updates" not in page.attributes(participant)
 
 
 def test_check_claimed_barrier_instance_treats_finished_work_as_success():
@@ -3760,6 +3808,66 @@ def test_group_barrier_accepts_orm_instance_method(in_experiment_directory, db_s
         on_release=instance.on_release,
     )
     assert isinstance(barrier.on_release, SerializedCallable)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_deleted_orm_callback_receiver_is_rejected(in_experiment_directory, db_session):
+    DummyModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    instance = DummyModel(id=get_random_id())
+    db_session.add(instance)
+    db_session.flush()
+    serialized = barrier_spec_json(
+        GroupBarrier(
+            id_="orm_gone",
+            group_type="group",
+            on_release=instance.on_release,
+        )
+    )
+    db_session.delete(instance)
+    db_session.flush()
+
+    with pytest.raises(BarrierSpecError, match="no longer exists"):
+        barrier_from_spec_json(serialized)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_async_process_events_wake_timeline_holds(
+    in_experiment_directory, db_session, monkeypatch
+):
+    wakes = []
+    monkeypatch.setattr(AsyncProcess, "add_to_launch_queue", lambda self: None)
+    monkeypatch.setattr(
+        "psynet.timeline_hold._queue_timeline_hold_wake",
+        lambda participant_id, reason=None, **kwargs: wakes.append(reason),
+    )
+    monkeypatch.setattr(
+        "psynet.process.Job.fetch",
+        lambda *args, **kwargs: SimpleNamespace(cancel=lambda: None),
+    )
+
+    participant = new_participant(get_experiment())
+    db_session.flush()
+    finished = LocalAsyncProcess(async_process_noop, participant=participant)
+    timed_out = WorkerAsyncProcess(
+        async_process_noop, participant=participant, timeout=30
+    )
+    cancelled = WorkerAsyncProcess(async_process_noop, participant=participant)
+    timed_out.timeout_scheduled_for = datetime.now() - timedelta(seconds=1)
+    db_session.commit()
+
+    LocalAsyncProcess.call_function(finished.id)
+    WorkerAsyncProcess.check_timeouts()
+    cancelled.cancel()
+
+    assert wakes == [
+        "async_process_finished",
+        "async_process_timed_out",
+        "async_process_cancelled",
+    ]
 
 
 def test_group_barrier_timeout_between_barriers_rejects_bad_action():
