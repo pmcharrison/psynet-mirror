@@ -4,6 +4,7 @@ const { test, expect } = require("./fixtures");
 const {
   assertNoBackendError,
   completeInitialGateway,
+  evaluateOnLivePage,
   installTimelineHoldReleaseProbe,
   silenceTimelineHoldSafetyPoll,
   startResponseSubmitTracker,
@@ -70,13 +71,14 @@ async function startBackgroundHold(page, { trackLucidUnload = false } = {}) {
 
 async function probeTimelineHoldClientBehavior(page) {
   await installTimelineHoldReleaseProbe(page);
-  return page.evaluate(async () => {
+  return evaluateOnLivePage(page, async () => {
     const controller = psynet.timelineHold;
     if (!controller) {
       throw new Error("timeline hold is not active");
     }
     const originalSchedule = psynet.scheduleTimelineHoldCheck;
     const originalTimeout = psynet.scheduleTimelineHoldTimeout;
+    const originalConnect = PsyNetWebSocketChannel.connect;
     clearTimeout(controller.safetyTimer);
     clearTimeout(controller.timeoutTimer);
     controller.safetyTimer = null;
@@ -87,6 +89,17 @@ async function probeTimelineHoldClientBehavior(page) {
     }
     psynet.scheduleTimelineHoldCheck = function () {};
     psynet.scheduleTimelineHoldTimeout = function () {};
+    // Reconnecting the live hold socket would POST a real hold-resume from
+    // onOpen and can reload the legacy document mid-evaluate.
+    PsyNetWebSocketChannel.connect = function () {
+      return {
+        close() {},
+        isOpen() {
+          return false;
+        },
+        send() {}
+      };
+    };
 
     let arrivalClosed = 0;
     const fakeArrival = () => ({
@@ -251,6 +264,7 @@ async function probeTimelineHoldClientBehavior(page) {
     } finally {
       psynet.scheduleTimelineHoldCheck = originalSchedule;
       psynet.scheduleTimelineHoldTimeout = originalTimeout;
+      PsyNetWebSocketChannel.connect = originalConnect;
       if (psynet.timelineHold) {
         const hold = { ...psynet.timelineHold.hold };
         psynet.stopTimelineHold();
