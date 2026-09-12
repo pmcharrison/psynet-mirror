@@ -246,6 +246,29 @@ def _populate_sync_group_links(participants):
         set_committed_value(participant, "sync_group_links", grouped[participant.id])
 
 
+def _has_active_sync_group(participant):
+    """Return whether this participant currently belongs to an active sync group.
+
+    This is a cheap ``EXISTS`` query. Callers that already loaded
+    ``sync_group_links`` should inspect ``active_sync_groups`` instead so
+    ungrouped pages skip even this lookup.
+    """
+    participant_id = getattr(participant, "id", None)
+    if participant_id is None:
+        return False
+    return (
+        db.session.query(ParticipantLinkSyncGroup.id)
+        .join(ParticipantLinkSyncGroup.sync_group)
+        .filter(
+            ParticipantLinkSyncGroup.participant_id == participant_id,
+            ParticipantLinkSyncGroup.active.is_(True),
+            SyncGroup.active.is_(True),
+        )
+        .first()
+        is not None
+    )
+
+
 class _BarrierHoldPage(_TimelineHoldPage):
     """Internal timeline checkpoint that preserves the preceding browser page."""
 

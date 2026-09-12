@@ -1761,6 +1761,7 @@ def test_group_barrier_arrival_requires_active_sync_group(
 def test_unloaded_sync_groups_omit_arrival_updates(
     in_experiment_directory, db_session, monkeypatch
 ):
+    """Ungrouped request participants skip the partner-ready websocket."""
     participant = new_participant(get_experiment())
     db_session.commit()
     unique_id = participant.unique_id
@@ -1775,6 +1776,24 @@ def test_unloaded_sync_groups_omit_arrival_updates(
     monkeypatch.setattr("psynet.sync.pending_arrival_notice_for", boom)
     page = Page(template_fragment_str="<p>Solo page</p>")
     assert "arrival_updates" not in page.attributes(participant)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_unloaded_grouped_page_includes_arrival_updates(
+    in_experiment_directory, db_session
+):
+    """Grouped pages still subscribe when request loading left links lazy."""
+    first, _last = _pair_sync_group(get_experiment(), db_session)[0]
+    unique_id = first.unique_id
+    db.session.remove()
+
+    participant = get_experiment()._get_request_participant_from_unique_id(unique_id)
+    assert "sync_group_links" in sa_inspect(participant).unloaded
+    page = Page(template_fragment_str="<p>Grouped page</p>")
+    updates = page.attributes(participant)["arrival_updates"]
+    assert updates["channel"] == _timeline_hold_channel(participant.id)
 
 
 def test_check_claimed_barrier_instance_treats_finished_work_as_success():

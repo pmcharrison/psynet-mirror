@@ -128,6 +128,8 @@ test("default barriers hold the current page until websocket release", { tag: "@
     await expect(
       firstParticipant.locator(".psynet-timeline-hold-progress")
     ).toHaveCount(0);
+    // The partner is still on choose_action. Grouped pages must subscribe to
+    // arrival_updates even when sync_group_links was not already loaded.
     const arrivalNotice = secondParticipant.locator("#psynet-arrival-notice");
     await expect(arrivalNotice).toHaveText("Your partner is ready.", {
       timeout: STEP_TIMEOUT_MS

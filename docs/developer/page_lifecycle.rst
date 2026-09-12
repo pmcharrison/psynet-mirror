@@ -353,7 +353,9 @@ without a framework event.
 When the last hold on a page ends, the browser closes the hold-channel
 WebSocket. The next hold reconnects. Partner-ready notices use the same
 channel; the extra arrival-update socket opens only while the participant
-is in an active sync group and not already on a hold. Hold-resume POSTs set
+is in an active sync group and not already on a hold. If membership is not
+already loaded, a cheap existence check decides whether to open that socket.
+Hold-resume POSTs set
 ``timeline_hold_resume`` so that if a partner already advanced this waiter
 (rotating ``page_uuid``), the server still returns the current page for an
 in-place update. A genuine reject, or a missing timeline fragment, still

@@ -1073,8 +1073,9 @@ _SPA_CLEANUP_RETURN_RE = re.compile(
 def _loaded_active_sync_groups(participant):
     """Return active sync groups only when the collection is already loaded.
 
-    ``Participant.active_sync_groups`` lazy-loads ``sync_group_links``. Pages
-    for participants who were never grouped must not pay that query.
+    ``None`` means membership is unknown. An empty mapping means this
+    participant is ungrouped. ``Participant.active_sync_groups`` lazy-loads
+    ``sync_group_links``; ungrouped pages must not pay that query.
     """
     from sqlalchemy.exc import NoInspectionAvailable
     from sqlalchemy.inspection import inspect as sa_inspect
@@ -1083,22 +1084,31 @@ def _loaded_active_sync_groups(participant):
         unloaded = sa_inspect(participant).unloaded
     except NoInspectionAvailable:
         groups = getattr(participant, "active_sync_groups", None)
-        return groups or None
+        return {} if not groups else groups
     if "sync_group_links" in unloaded:
         return None
     groups = getattr(participant, "active_sync_groups", None)
-    return groups or None
+    return {} if not groups else groups
 
 
 def _arrival_updates_for(page, participant):
     """Return partner-ready websocket config, or None when it cannot be used.
 
     Hold pages already subscribe to the same channel. Participants with no
-    sync group can never receive a ``GroupBarrier`` arrival notice.
+    sync group can never receive a ``GroupBarrier`` arrival notice. When
+    membership is not already loaded, a cheap existence check decides
+    whether to open the websocket.
     """
     if getattr(page, "is_timeline_hold", False):
         return None
-    if not _loaded_active_sync_groups(participant):
+    groups = _loaded_active_sync_groups(participant)
+    if groups is not None:
+        in_group = bool(groups)
+    else:
+        from psynet.sync import _has_active_sync_group
+
+        in_group = _has_active_sync_group(participant)
+    if not in_group:
         return None
     from psynet.sync import pending_arrival_notice_for
     from psynet.timeline_hold import _timeline_hold_channel
