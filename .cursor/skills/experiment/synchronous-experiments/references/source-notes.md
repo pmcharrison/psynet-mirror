@@ -11,9 +11,10 @@ and platform docs when a study is near deployment.
   `waiting_logic_expected_repetitions`, `max_wait_time`, and time-credit
   handling.
 - `psynet.sync.GroupBarrier` releases all active members of a `SyncGroup` once
-  they are waiting at the same barrier. The last arrival tries `check()` in that
-  request so the group does not wait for the 0.5 s poller; lock contention falls
-  back to the poller. Arrival notices are on by default: a pill on the
+  they are waiting at the same barrier. The last arrival runs framework-owned
+  evaluation (`check_waiting_participants()` / `choose_who_to_release()`) in
+  that request so the group does not wait for the 0.5 s poller; lock contention
+  falls back to the poller. Arrival notices are on by default: a pill on the
   progress bar for members who have not arrived yet, plus remaining-not-ready
   hold copy in groups of three or more. Pair holds keep the title only. Keep
   `on_arrival_message` notice copy to a short sentence. Set
@@ -25,8 +26,9 @@ and platform docs when a study is near deployment.
   `docs/tutorials/synchronization.rst` ("Release callbacks").
 - `psynet.sync.SimpleGrouper` creates `SyncGroup`s by waiting for `batch_size`
   participants and partitioning them into groups of `initial_group_size`.
-  The last arrival tries `check()` in that request so pairing does not wait
-  for the 0.5 s poller; lock contention falls back to the poller.
+  The last arrival runs the same framework-owned evaluation in that request so
+  pairing does not wait for the 0.5 s poller; lock contention falls back to the
+  poller.
   `min_group_size`, `max_group_size`, `join_existing_groups`, and
   `join_criterion` control top-up behavior.
 - `psynet.sync.GroupCloser` closes a group before participants are regrouped
@@ -36,9 +38,9 @@ and platform docs when a study is near deployment.
   namespaces may be active.
 - Trial makers support `sync_group_type`. When it is set, the leader's ordinary
   node allocation drives the group and followers receive matching trials.
-- Trial-maker synchronization uses internal `GroupBarrier`s such as
-  `init_participant` and `prepare_trial`; `sync_group_max_wait_time` defaults to
-  45 seconds.
+- Trial-maker synchronization uses internal `GroupBarrier`s namespaced with
+  the trial-maker id (for example `{id}__init_participant` and
+  `{id}__prepare_trial`); `sync_group_max_wait_time` defaults to 45 seconds.
 - `wait_while` and `WaitPage` are useful for single-participant waits or
   background readiness, but they do not replace group barriers.
 - `RecruitmentCriterion`, `recruit_mode`, `target_n_participants`, and

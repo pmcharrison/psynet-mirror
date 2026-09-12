@@ -867,7 +867,7 @@ test("trial feedback processing uses an in-place timeline hold", { tag: "@both" 
     );
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Asynchronous feedback is ready.",
-      { timeout: 5000 }
+      { timeout: HOLD_WAKE_TIMEOUT_MS }
     );
     await assertNoBackendError(experimentPage);
   });

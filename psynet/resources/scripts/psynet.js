@@ -1349,6 +1349,7 @@
     };
 
     psynet.handleTimelineTransitionFailure = async function (error, message) {
+      psynet.stopTimelineHold();
       psynet.setPageReady(false);
       psynet.nextPagePending = false;
       psynet.setTimelineTransitionBusy(false);
@@ -3842,7 +3843,12 @@
     function updateClocks() {
       let msg = "";
 
-      if (document.hasFocus()) {
+      if (psynet.timelineHold) {
+        // Overlay waits replace WaitPage reloads. Sitting on a hold is not
+        // inactivity or no-focus; overall HIT time still counts below.
+        noFocusSince = 0;
+        noActivitySince = 0;
+      } else if (document.hasFocus()) {
         noFocusSince = 0;
       } else {
         noFocusSince += POLLING_INTERVAL;
@@ -3860,7 +3866,9 @@
         }
       }
 
-      noActivitySince += POLLING_INTERVAL;
+      if (!psynet.timelineHold) {
+        noActivitySince += POLLING_INTERVAL;
+      }
       const noActivityTimeout = psynetTemplateData.lucid.inactivityTimeoutMs;
       if (noActivitySince > noActivityTimeout) {
         terminateParticipant(
