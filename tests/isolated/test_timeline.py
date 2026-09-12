@@ -433,6 +433,51 @@ def test_finalize_pending_unreleased_hold_rechecks_without_relock(monkeypatch):
     assert returned_participant is participant
 
 
+def test_finalize_pending_hold_without_is_ready_does_not_prepare(monkeypatch):
+    """GET must not run timeout/fail before lock when is_ready_to_resume is missing."""
+    prepared = []
+    hold = SimpleNamespace(
+        is_timeline_hold=True,
+        prepare_resume_if_ready=lambda *_args: prepared.append("prepare") or True,
+        barrier_id="main",
+        pre_render=lambda: None,
+        early_exit_available=lambda *_args: False,
+    )
+    participant = SimpleNamespace(id=1)
+    experiment = Experiment.__new__(Experiment)
+    experiment.timeline = MagicMock()
+    experiment.timeline.get_current_elt.return_value = hold
+    experiment._participant_request_query = MagicMock()
+    monkeypatch.setattr("psynet.sync._take_pending_barrier_checks", lambda: [])
+    monkeypatch.setattr(
+        "psynet.sync._hold_instance_id_for_page", lambda *_args: "instance-1"
+    )
+    monkeypatch.setattr(
+        "psynet.experiment._set_transaction_lock_timeout",
+        lambda *_args: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_config",
+        lambda: SimpleNamespace(get=lambda _key: 5),
+    )
+    captured = {}
+
+    def fake_finalize(cls, _experiment, participant_id, checks, result):
+        captured["checks"] = checks
+        result.page = hold
+        return participant
+
+    monkeypatch.setattr(
+        Experiment, "_finalize_barrier_arrivals", classmethod(fake_finalize)
+    )
+
+    Experiment._finalize_pending_timeline_barriers(experiment, participant, hold)
+
+    assert prepared == []
+    experiment._participant_request_query.assert_not_called()
+    assert captured["checks"] == ["instance-1"]
+
+
 def test_finalize_pending_prepares_the_page_after_skipping_a_ready_hold(monkeypatch):
     """GET /timeline must pre_render the page that will be shown after a skip."""
     participant = SimpleNamespace(id=42)

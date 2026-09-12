@@ -5871,12 +5871,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def _timeline_hold_is_ready_to_resume(page, experiment, participant):
-        """Return whether GET may relock this hold, without timeout side effects."""
+        """Return whether GET may relock this hold, without timeout side effects.
+
+        Missing ``is_ready_to_resume`` is treated as not ready. Do not fall
+        back to ``prepare_resume_if_ready``; that can fail or time out the
+        waiter before ``FOR UPDATE``.
+        """
         is_ready = getattr(page, "is_ready_to_resume", None)
-        if callable(is_ready):
-            return bool(is_ready(experiment, participant))
-        prepare = getattr(page, "prepare_resume_if_ready", None)
-        return callable(prepare) and bool(prepare(experiment, participant))
+        if not callable(is_ready):
+            return False
+        return bool(is_ready(experiment, participant))
 
     @classmethod
     def _skip_ready_hold_on_get(cls, experiment, participant):
