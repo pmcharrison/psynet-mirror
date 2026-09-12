@@ -1222,10 +1222,35 @@ async function installTimelineHoldReleaseProbeOnContext(context) {
   await context.addInitScript(timelineHoldReleaseProbeScript);
 }
 
+function isDestroyedExecutionContext(error) {
+  const message = String(error && error.message ? error.message : error);
+  return (
+    message.includes("Execution context was destroyed") ||
+    /because of a navigation/i.test(message)
+  );
+}
+
+async function evaluateOnLivePage(page, pageFunction, timeout = 10000) {
+  const deadline = Date.now() + timeout;
+  let lastError;
+  while (Date.now() < deadline) {
+    try {
+      return await page.evaluate(pageFunction);
+    } catch (error) {
+      lastError = error;
+      if (!isDestroyedExecutionContext(error)) {
+        throw error;
+      }
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
+    }
+  }
+  throw lastError;
+}
+
 async function installTimelineHoldReleaseProbe(page) {
   // Record the first hold-wake and hold-ended browser events. These are
   // hold-controller signals, not a live eventLog poll.
-  await page.evaluate(timelineHoldReleaseProbeScript);
+  await evaluateOnLivePage(page, timelineHoldReleaseProbeScript);
 }
 
 function startTimelineHoldSocketTracker(page) {
@@ -1272,7 +1297,9 @@ async function readTimelineHoldReleaseProbe(page) {
 }
 
 async function wrapTimelineHoldResumeProbe(page) {
-  return page.evaluate(() => {
+  // Legacy hold resume reloads the document. Retry after that navigation
+  // instead of treating a destroyed execution context as a test failure.
+  return evaluateOnLivePage(page, () => {
     if (typeof window.__psynetHoldReleaseProbeInstallWrap === "function") {
       return window.__psynetHoldReleaseProbeInstallWrap();
     }
@@ -1281,7 +1308,7 @@ async function wrapTimelineHoldResumeProbe(page) {
 }
 
 async function silenceTimelineHoldSafetyPoll(page) {
-  return page.evaluate(() => {
+  return evaluateOnLivePage(page, () => {
     const controller = window.psynet && window.psynet.timelineHold;
     if (!controller) {
       return false;
@@ -1477,6 +1504,8 @@ module.exports = {
   waitForHeldParticipantToResume,
   silenceTimelineHoldSafetyPoll,
   wrapTimelineHoldResumeProbe,
+  evaluateOnLivePage,
+  isDestroyedExecutionContext,
   resumeReasonsSince,
   clickConsentButton,
   clickFinish,

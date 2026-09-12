@@ -59,6 +59,8 @@ test("two late trio members arriving together release every waiter", { tag: "@bo
   // Concurrent last arrivals share one group fill. Arm both late members at
   // first paint so a hold that clears before Playwright looks at the chip still
   // has to prove a wake token, hold-resume POST, and server-driven resume.
+  // In legacy mode that clear can reload the document while the probe is
+  // attaching; treat the destroyed execution context as a cleared hold.
   const { experiment, sessions } = await startHoldExperiment(browser, TRIO_DIR, [
     "trio_wait",
     "trio_late_a",

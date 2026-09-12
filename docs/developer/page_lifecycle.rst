@@ -484,3 +484,5 @@ Key implementation and test locations
   and ``js_links`` force full reloads with classic globals.
 * ``tests/playwright/timeline_hold.spec.js`` — condition, timeout, refresh,
   feedback, reload, and same-session hold behavior.
+* ``tests/playwright/stacked_group_holds.spec.js`` — concurrent last arrivals
+  and stacked group-hold release.

@@ -135,6 +135,15 @@ Example:
       // ...
     });
 
+Hold-resume probes
+^^^^^^^^^^^^^^^^^^
+
+Legacy hold resumes reload the document, which destroys Playwright's execution
+context. ``wrapTimelineHoldResumeProbe`` retries ``page.evaluate`` after that
+navigation. If a stacked last-arrival hold clears while the test is arming the
+probe, treat the page as a cleared hold (wake token and hold-resume POST)
+instead of failing on the destroyed context.
+
 Faster local iteration for Playwright tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

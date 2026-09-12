@@ -173,6 +173,10 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
     - For `VideoPrompt`, verify `video#prompt` playback behavior.
     - Align assertions with how that step is implemented in experiment/template code.
 
+13. **Retry evaluate after a hold-resume reload**:
+    - A legacy hold can navigate while the test is attaching the resume probe.
+    - Retry `page.evaluate` after load; if the hold chip is already gone, treat it as a cleared hold.
+
 ## Automatic code review
 
 Before finalizing a merge request, prompt the user to run an automatic code
